@@ -1,0 +1,37 @@
+---
+description: Login, session, and frontend auth state patterns shared across features.
+globs: "frontend/src/**/*, backend/app/controllers/auth.*, backend/app/models/session.*, backend/app/routes/auth.*"
+---
+# Auth & Session Patterns
+
+## Session Model
+*   Fields: `token`, `email`, `expirationDate`, `userId` (FK to users).
+*   Token stored server-side; client sends it as Bearer header on each request.
+*   Session TTL: 24 hours (`expiresIn: 86400` on JWT; matching `expirationDate` on row).
+*   On login, reuse non-expired session for same email before issuing a new token.
+
+## Login Response Payload
+Return flat JSON (not wrapped):
+```json
+{
+  "userId": 1,
+  "username": "jdoe",
+  "email": "jdoe@example.com",
+  "fName": "Jane",
+  "lName": "Doe",
+  "role": "worker",
+  "token": "<jwt>"
+}
+```
+
+## Frontend Auth State
+*   Store full login response in `localStorage` key `user` via `Utils.setStore("user", res.data)`.
+*   `authServices.js`: `loginUser`, `logoutUser` methods calling `apiClient.post` (see `frontend-services.mdc`).
+*   Logout clears server session, then `Utils.removeItem("user")`, then route to login.
+*   `router.beforeEach`: if no `user` in store and route is not login → redirect to login.
+*   Axios token attachment and 401 redirect: `frontend-services.mdc`.
+
+## Registration (when spec requires)
+*   Hash password server-side before `User.create`.
+*   Validate required fields in controller; return `400` with `{ message }`.
+*   Mirror the same field rules in the Vue form with Vuetify validation rules.

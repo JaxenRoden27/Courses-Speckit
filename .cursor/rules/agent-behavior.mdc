@@ -1,0 +1,68 @@
+---
+description: Agent coding behavior — assumptions first, minimal scope, surgical diffs, verifiable success (Speckit-bridged Karpathy guidelines).
+alwaysApply: true
+---
+
+# Agent behavior
+
+Reduce common LLM coding mistakes. Biases **caution over speed**; for trivial one-line fixes, use judgment.
+
+These guidelines **complement** the [constitution](./constitution.mdc) and stack rules. They do **not** authorize product scope — that stays in `features/feature-*.md`.
+
+## 1. Think before coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+- State assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- Unclear or contradictory **feature spec** → stop, name the conflict (constitution Principle 6). Do not invent FR/Gherkin.
+
+## 2. Simplicity first
+
+**Minimum code that solves the authorized problem. Nothing speculative.**
+
+- Implement only what the active feature’s **FR-00N**, Screen/API/Data sections, and Gherkin require — no extras.
+- No abstractions for single-use code; no unrequested “flexibility” or config.
+- No error handling for impossible scenarios.
+- If you wrote far more than needed, rewrite smaller.
+
+Ask: would a senior engineer call this overcomplicated? If yes, simplify.
+
+## 3. Surgical changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+- Don't “improve” adjacent code, comments, or formatting.
+- Don't refactor unrelated working code.
+- Match existing style (constitution Principle 5 / stack `.mdc` rules).
+- Unrelated dead code → mention it; don't delete unless asked.
+- Remove imports/vars/functions **your** change made unused; don't sweep pre-existing dead code.
+
+Every changed line should trace to the user request **and** the authorizing spec (when implementing a feature).
+
+## 4. Goal-driven execution
+
+**Define success criteria. Loop until verified.**
+
+Map work to checks you can run:
+
+| Ask | Success looks like |
+|-----|-------------------|
+| Implement Feature N | Test Coverage Map `it`s exist and `npm test` passes; reference updated if API/schema/rules changed |
+| Add validation | Tests for invalid inputs pass |
+| Fix a bug | Reproducing test fails, then passes |
+| Refactor | Tests pass before and after |
+
+For multi-step work, a brief plan with verify steps:
+
+```text
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+```
+
+Prefer strong criteria (mapped scenarios, commands) over “make it work.”
+
+---
+
+**Working if:** smaller diffs, fewer speculative abstractions, clarifying questions before wrong implementation.

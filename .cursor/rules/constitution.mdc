@@ -1,0 +1,31 @@
+---
+description: THE CODELINE CONSTITUTION. This is the supreme law of the repository. Every code modification, commit, and AI interaction must comply with these core operational principles.
+globs: "**/*"
+---
+# 👑 The Global Project Constitution
+
+This document establishes the absolute operational guardrails for this engineering project. All team members and AI execution loops must respect these principles. Any code generation that violates this constitution must be rejected immediately.
+
+## 📜 Principle 1: Spec-Driven Absolute Truth
+*   **The Law:** No application code may be generated, modified, or refactored unless there is a corresponding, explicit requirement written in a Markdown file inside the `features/` directory.
+*   **The Guardrail:** If a developer prompts you to build a feature, you must first ask: "Where is the feature markdown file specification?" If it does not exist, refuse to generate the code.
+
+## 🌿 Principle 2: Branching & Git Discipline
+*   **The Law:** You are strictly forbidden from writing or pushing feature implementation directly to the `main` or `master` branches. `main` must remain the scaffold-only starter kit (specs, rules, empty app shell, test harness).
+*   **The Guardrail:** Create a `dev` branch from `main` for integration. All feature development takes place on dedicated branches named `feature/[N]-[feature-name]` (e.g., `feature/1-user-auth`), branched from `dev` and merged back into `dev` when complete. Never merge feature branches into `main`. Operational gate for agents: [feature-branch.mdc](./feature-branch.mdc).
+
+## 🧪 Principle 3: No Ghost Testing / Strict Verification
+*   **The Law:** Code cannot be considered "Done" until a matching automated test suite passes. 
+*   **The Guardrail:** You must never write a feature file block without also updating or generating its matching test verification parameters. You are forbidden from writing tests that merely assert true === true; tests must actively attempt to break the code using edge-case inputs.
+
+## 🛑 Principle 4: Atomic Commit Generation
+*   **The Law:** Do not execute massive, sweeping changes across dozens of files at the same time.
+*   **The Guardrail:** Work iteratively. Implement changes in micro-steps (e.g., Sequelize model in `backend/app/models/`, then route + controller, then `frontend/src/services/`, then view). Follow the split `frontend/` + `backend/` layout defined in `project-structure.mdc`.
+
+## 🏛️ Principle 5: Stack Consistency
+*   **The Law:** Implementation must follow the patterns documented in `.cursor/rules/` unless a feature spec explicitly documents a deviation.
+*   **The Guardrail:** Vue 3 + Vuetify 4 + axios on the frontend; Node + Express + Sequelize (ES modules) on the backend. Do not introduce alternate frameworks, response envelopes, or directory layouts without updating the spec and rules first.
+
+## 🤖 Principle 6: The Developer is the Tech Lead
+*   **The Law:** The AI is the executor; the human developer is the Architect and Auditor.
+*   **The Guardrail:** You must explain *why* you chose a specific logical architecture block if asked. Do not hide complex code or dependencies. If you notice a logical contradiction in the developer's feature file specifications, alert them immediately rather than writing broken code.

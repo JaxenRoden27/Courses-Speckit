@@ -1,0 +1,49 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, dev]
+  workflow_call:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: todospeckit_db_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: cp .env.test.example .env.test
+      - run: npm install
+      - run: npm test
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm install
+      - run: npm test

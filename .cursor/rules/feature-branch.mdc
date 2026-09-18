@@ -1,0 +1,53 @@
+---
+description: Before feature implementation, verify the matching feature/N-* branch is checked out; refuse product-code edits on main or dev and tell the human which branch to create.
+alwaysApply: true
+---
+
+# Feature branch gate
+
+Constitution Principle 2: product implementation lives on `feature/[N]-[short-name]`, branched from `dev`. Never implement features on `main` / `master` / `dev`.
+
+## When this applies
+
+Before creating or editing **product code** (backend/frontend app code, feature tests that implement a feature) for a numbered feature:
+
+1. Identify **Feature N** and the branch from the spec header (`**Branch pattern:** \`feature/N-…\``) or catalog.
+2. Run: `git branch --show-current`
+3. Gate the result (below).
+
+Does **not** block: editing `features/*.md`, `.cursor/rules/`, ADRs, docs, or Agility/scripts while clarifying specs.
+
+## Gate
+
+| Current branch | Action |
+|----------------|--------|
+| `feature/N-…` matching the feature being implemented | Proceed |
+| Wrong `feature/M-…` (M ≠ N) | **Stop.** Tell the human which branch is required. Do not switch. |
+| `main` / `master` | **Refuse** product-code edits. Tell the human which branch to create/check out. |
+| `dev` | **Refuse** product-code edits. Tell the human which branch to create/check out. |
+
+## Agent must not
+
+- Run `git checkout`, `git switch`, or `git branch` to create or change branches for feature work.
+- Create the feature branch on the user’s behalf.
+
+## What to tell the human
+
+State clearly, for example:
+
+```text
+Product code for Feature N must be on feature/N-short-name (from the feature spec).
+You are on <current-branch>.
+Create or check out that branch from dev first, then ask me to continue.
+```
+
+Use the exact short-name from the feature spec (e.g. `feature/3-todo-list-item-management`). Optional helper they can run themselves:
+
+```bash
+git checkout dev
+git checkout -b feature/N-short-name
+```
+
+## After they switch
+
+Confirm with `git branch --show-current`, then implement only on that branch. Merge back to `dev` when the feature is done (human/PR) — do not merge feature branches into `main`.

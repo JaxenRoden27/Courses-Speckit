@@ -1,0 +1,29 @@
+---
+description: How to read docs/nfr quality attributes — Accepted constrains code; Deferred is guidance only; Out of scope means do not invent.
+alwaysApply: true
+---
+
+# Quality attributes (NFR literacy)
+
+App-wide bars live in [`docs/nfr/quality-attributes.md`](../../docs/nfr/quality-attributes.md). Feature specs still authorize **what** to build (constitution Principle 1). This rule teaches **how to read Status** — it does **not** turn every Deferred number into a coding requirement.
+
+## Status → agent behavior
+
+| Status | Meaning | When generating code |
+|--------|---------|----------------------|
+| **Accepted** | In force for this product | Do **not** regress. Follow linked ADRs/rules/tests (security, ownership, logging, SDD maintainability). |
+| **Deferred** | Documented example / backlog | **Guidance only.** Do not add load tests, WCAG tooling, HA, or “meet p95” work unless a feature **FR-00N**, **SC-00N**, Gherkin scenario, or the human explicitly asks. |
+| **Out of scope** | Explicit non-goal | Do **not** invent multi-region HA, i18n frameworks, horizontal scale, etc. |
+| **Accepted (minimal)** | Thin bar in force | Meet the stated Approach (e.g. Winston logging); do not expand into a full observability platform. |
+
+## Do
+
+- Prefer patterns already required by **Accepted** rows and their **Links** (e.g. `security.mdc`, ADR-0002).
+- Put feature-local quality in that feature’s **Requirements (FR-00N)** + Gherkin when it must be proven.
+- If an app-wide bar’s Target/Approach/Status changes, update `docs/nfr/quality-attributes.md` (and ADR/rule when Approach changes).
+
+## Do not
+
+- Treat illustrative Target numbers on **Deferred** / **Out of scope** rows as CI gates or implementation tickets.
+- Over-engineer to “hit” Deferred SLOs (caching for latency, fake i18n, cluster deploy).
+- Skip feature specs because an NFR row exists — NFRs do not authorize new product behavior alone.

@@ -1,0 +1,107 @@
+name: Deploy
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Install and build
+        run: |
+          npm install
+          npm run build
+          npm run bundle
+
+      - name: Deploy to server
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          SOURCE: frontend/dist/
+          TARGET: ${{ secrets.FRONTEND_DEPLOY_TARGET }}
+          ARGS: "-rltgoDzvO --delete"
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+
+    env:
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PW: ${{ secrets.DB_PASS }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      PORT: ${{ secrets.PORT }}
+      NODE_ENV: production
+      SEQUELIZE_SYNC_ALTER: ${{ secrets.SEQUELIZE_SYNC_ALTER }}
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create production .env
+        run: |
+          touch .env
+          echo DB_HOST="$DB_HOST" >> .env
+          echo DB_PW="$DB_PW" >> .env
+          echo DB_USER="$DB_USER" >> .env
+          echo DB_NAME="$DB_NAME" >> .env
+          echo AUTH_SECRET="$AUTH_SECRET" >> .env
+          echo PORT="$PORT" >> .env
+          echo NODE_ENV="$NODE_ENV" >> .env
+          echo SEQUELIZE_SYNC_ALTER="$SEQUELIZE_SYNC_ALTER" >> .env
+
+      - name: Bundle deploy folder
+        run: npm run bundle
+
+      - name: Deploy to server
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: backend/deploy/
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.BACKEND_DEPLOY_TARGET }}
+
+      - name: Restart API service on server
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          privateKey: ${{ secrets.SERVER_SSH_KEY }}
+          debug: false
+          command: |
+            cd ${{ secrets.BACKEND_DEPLOY_TARGET }}
+            npm install --omit=dev
+            sudo systemctl stop todo-speckit-backend
+            sudo cp todo-speckit-backend.service /lib/systemd/system/todo-speckit-backend.service
+            sudo systemctl daemon-reload
+            sudo systemctl start todo-speckit-backend

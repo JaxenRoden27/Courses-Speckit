@@ -1,0 +1,32 @@
+{
+  "name": "speckit-app-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Speckit App — Node.js REST API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "bundle": "node scripts/make-deploy.mjs"
+  },
+  "keywords": ["node.js", "express", "sequelize"],
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.12.0",
+    "sequelize": "^6.37.5",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}

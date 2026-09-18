@@ -1,0 +1,65 @@
+---
+description: Monorepo layout, naming conventions, and environment configuration.
+globs: "**/*"
+---
+# Project Structure
+
+Split frontend and backend in one repository. Specs in `features/` are the source of truth.
+
+## Directory Layout
+```
+todo-speckit/
+  features/                  # SDD specs
+  frontend/                  # Vue 3 + Vite + Vuetify 4
+    public/                  # .htaccess for SPA deploy
+    src/
+      views/                 # Route-level pages
+      components/            # Reusable UI (forms, nav, dialogs)
+      services/              # Axios API modules (*Services.js)
+      config/                # utils.js (localStorage, helpers)
+      utils/                 # Pure helper functions
+      plugins/               # vuetify.js, webfontloader.js
+      router.js
+      main.js
+      App.vue
+    vite.config.js
+    package.json
+  backend/                   # Node + Express + Sequelize (ES modules)
+    server.js
+    app/
+      routes/                # Express routers; index.js mounts all
+      controllers/           # Request handlers
+      models/                # Sequelize models; index.js wires associations
+      authorization/         # authenticate, scope helpers, role guards
+      config/                # db, auth, logger, sequelizeInstance
+      scripts/               # Incremental schema/data scripts
+    package.json
+```
+
+## Naming Conventions
+*   Frontend services: `camelCase` + `Services.js` (e.g. `authServices.js`, `todoServices.js`).
+*   Backend files: `resource.controller.js`, `resource.routes.js`, `resource.model.js`.
+*   Multi-word URL segments: kebab-case (`/todo-lists`).
+
+## Environment Variables
+Backend (`backend/.env`):
+*   `DB_HOST`, `DB_USER`, `DB_PW`, `DB_NAME` — MySQL connection (default database: `todospeckit-db`).
+*   `AUTH_SECRET` — JWT signing secret (required in production).
+*   `PORT` — default `3200`.
+*   `NODE_ENV` — `development` | `production` | `test`.
+*   `SEQUELIZE_SYNC_ALTER` — set `true` to run `sync({ alter: true })` in dev only.
+
+Frontend: use `import.meta.env.DEV` for dev/prod API base URL; `cross-env APP_ENV=development` in npm scripts.
+
+Backend test env (`backend/.env.test`): copy from `backend/.env.test.example`; uses `NODE_ENV=test` and `DB_NAME=todospeckit-db-test`.
+
+## Dev Ports
+*   Frontend Vite: `8082`
+*   Backend Express: `3200`
+*   CORS origin must match the frontend dev URL.
+
+## Test Commands
+*   Root: `npm test` (runs backend + frontend)
+*   Backend: `cd backend && npm test` (Jest + supertest)
+*   Frontend: `cd frontend && npm test` (Vitest + `@vue/test-utils`)
+*   Copy `backend/.env.test.example` → `backend/.env.test` before running backend tests locally.

@@ -1,0 +1,89 @@
+---
+description: OC Academic Edition — Vuetify 4 design system (NO Tailwind).
+globs: "frontend/**/*.vue, frontend/src/plugins/**/*"
+---
+# UI Style System
+
+**OC Academic Edition** — a hybrid design system merging modern SaaS functionality with traditional academic visual heritage.
+
+Vuetify 4 only — no Tailwind, no Options API.
+
+## Stack
+*   Vue 3 `<script setup>` exclusively.
+*   Vuetify 4 via `vite-plugin-vuetify` (`autoImport: false`).
+*   `@mdi/font` icons; theme defined in `plugins/vuetify.js`.
+*   Font: **Inter** (`Inter, sans-serif`) — load via web fonts; do not fall back to system UI stacks as the primary face.
+
+## Brand & Color Tokens
+
+Hex values live **only** in `plugins/vuetify.js`. Views and components use Vuetify color names / CSS variables — never raw hex.
+
+| Token | Hex | Role |
+|-------|-----|------|
+| `primary` | `#801328` | Signature Deep Maroon — CTAs, headings, key accents |
+| `primary-container` | `#FFDAD9` | Soft maroon tint surfaces (chips, selected backgrounds) |
+| `on-primary` | `#FFFFFF` | Text/icons on primary |
+| `secondary` | `#775656` | Supporting actions, muted chrome |
+| `secondary-container` | `#FFDAD9` | Soft secondary tint surfaces |
+| `on-secondary` | `#FFFFFF` | Text/icons on secondary |
+| `surface` | `#F9F9FF` | Cards, panels, elevated surfaces |
+| `surface-variant` | `#E7E0E1` | Subtle fills, dividers adjacent |
+| `background` | `#FFFFFF` | App page background |
+| `outline` | `#857373` | Borders, hairlines, inactive strokes |
+
+Map these into Vuetify’s `theme.themes.light.colors` (and Material-style aliases such as `on-primary` where supported).
+
+## Typography
+
+| Token | Value |
+|-------|-------|
+| Font family | `Inter, sans-serif` |
+| Base size | `16px` |
+| Scale | `1.25` (Major Third) |
+
+**Headings:** weight `700`, color `primary` (`#801328`).  
+**Body:** weight `400`, color `#1C1B1F`.
+
+Suggested scale from base × 1.25: 16 → 20 → 25 → 31.25 → 39. Prefer Vuetify type props / theme typography over ad-hoc `font-size` in components.
+
+## Spacing
+
+*   Base unit: **4px**
+*   Scale (px): `0, 4, 8, 16, 24, 32, 48, 64`
+*   Prefer Vuetify spacing utilities (`pa-4`, `ma-2`, gap props) that align to this scale — avoid arbitrary pixel values.
+
+## Shape & Elevation
+
+*   **Border radius:** `8px` (“Round Eight”) — set as the default in the Vuetify theme / defaults; use consistently on cards, dialogs, inputs, and buttons.
+*   **Elevation — low:** `0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)`
+*   **Elevation — medium:** `0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)`
+
+Map low → light chrome (list rows, subtle panels); medium → cards and primary dialogs. Prefer theme defaults / `elevation` props over inline `box-shadow` unless extending the theme.
+
+## App Shell (`App.vue`)
+```vue
+<v-app>
+  <MenuBar />
+  <v-main><router-view /></v-main>
+</v-app>
+```
+Hide `MenuBar` on login and register routes (Feature 1). Introduce `MenuBar` in Feature 2.
+
+## Form Components
+*   Reusable forms use `v-model` via `defineProps({ modelValue })` + `emit("update:modelValue")`.
+*   Vuetify inline rules: `[(v) => !!v?.trim() || "Required"]`.
+*   Add/Edit/View modes via props (`readOnly`, `isAddMode`) — one form component, multiple views.
+
+## Vuetify Defaults
+*   Layout: `<v-container>`, `<v-row>`, `<v-col cols="12" md="6">`.
+*   Inputs: `<v-text-field density="comfortable" rounded="lg">` (8px family).
+*   Buttons — primary actions: `<v-btn color="primary" variant="elevated" class="oc-cta" :loading="loading">`.
+*   Buttons — secondary / cancel: `<v-btn color="secondary" variant="text">` or `variant="outlined"`.
+*   Buttons — **label size:** all primary labeled actions (`+ New List`, `Add`, `Edit Profile`, dialog confirms) use class **`oc-cta`** (0.875rem / medium weight — matches Edit Profile). Defined in `App.vue`. Do **not** nest these buttons inside `<v-card-title>` — title typography inherits and makes the label look oversized. Prefer `<v-card-item>` with `#append` for title + CTA layouts. Reserve `size="small"` for icon-only row actions (rename / delete).
+*   Cards: `<v-card rounded="lg">` on `surface`; prefer medium elevation for content cards.
+*   Errors: `<v-alert type="error" density="compact">`.
+*   Dialogs: `<v-dialog>` for create / rename / confirm flows; round-eight radius; primary confirm + secondary/text cancel.
+*   Theme color tokens only in components — hex values belong in `plugins/vuetify.js`.
+
+## View States
+Every data-driven view handles: **loading** (`:loading` or spinner), **empty** (zero-length message), **error** (ref + alert).

@@ -1,0 +1,64 @@
+---
+description: Backend API architecture — Node, Express, Sequelize (ES modules).
+globs: "backend/**/*, **/*.routes.js, **/*.controller.js, **/*.model.js"
+---
+# Backend API Architecture
+
+## Stack
+*   Node.js `"type": "module"` — import/export only.
+*   Express 4, mounted at `/todo/`.
+*   Sequelize 6 + mysql2; config in `app/config/db.config.js` via dotenv.
+*   Separate `sequelizeInstance.js`; models import it and register in `models/index.js`.
+*   bcryptjs + jsonwebtoken + Session model for auth.
+*   winston + morgan (morgan streams to winston).
+
+## server.js Responsibilities
+*   `db.sequelize.sync()` on startup; optional `{ alter: true }` when `SEQUELIZE_SYNC_ALTER=true`.
+*   CORS with `credentials: true` and frontend origin.
+*   `express.json()` and `urlencoded({ extended: true })`.
+*   Mount routes: `app.use("/todo", routes)`.
+*   Export `app` as default; call `listen()` only when `NODE_ENV !== "test"`.
+
+## Route Layout
+*   `app/routes/index.js` — central router registering each `*.routes.js`.
+*   Auth at mount root: `POST /register`, `POST /login`, `POST /logout`, `POST /reset-password` (dev only).
+*   Resource routes: `router.use("/lists", ListRoutes)` etc.
+*   Nested children on parent router: `GET /lists/:listId/todos`.
+
+Todo REST shape:
+*   `GET/POST /todo/lists`
+*   `GET/POST /todo/lists/:listId/todos`
+*   `PUT/DELETE /todo/todos/:id`
+
+## Controller Pattern
+```javascript
+import db from "../models/index.js";
+import logger from "../config/logger.js";
+
+const exports = {};
+exports.findAll = async (req, res) => { /* ... */ };
+export default exports;
+```
+*   Parse route IDs: `parseInt(req.params.id, 10)`; reject `NaN`.
+*   Use `logger.debug/warn/error` — never `console.log`.
+*   Sequelize `include` for associations; `order` for stable list sorting.
+
+## JSON Responses
+*   **Success:** `res.send(data)` or `res.status(201).send(created)`.
+*   **Failure:** `res.status(4xx).send({ message: "Human-readable explanation." })`.
+*   **404 format:** ``{ message: `List with id=${id} not found.` }``
+*   Do **not** use `{ success, data }` envelopes.
+
+## Model Conventions
+*   Sensitive fields excluded via `defaultScope` (e.g. User password).
+*   Use `Model.unscoped()` only when password compare is required at login.
+*   Associations and `hasMany`/`belongsTo` defined in `models/index.js`, not scattered in controllers.
+
+## Schema Changes
+Incremental scripts in `app/scripts/` — one concern per file, runnable via `npm run <script>`.
+
+## Protected Routes
+```javascript
+router.get("/", [authenticate], controller.findAll);
+```
+`authenticate` looks up Bearer token in Session table, checks expiration, sets `req.user`.

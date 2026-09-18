@@ -1,0 +1,50 @@
+---
+description: Authentication, session management, data scoping, and role-based access.
+globs: "backend/app/**/*"
+---
+# Security & Access Control
+
+## Authentication Flow
+1.  `POST /login` — validate `username` + `password`; normalize username: `trim().toLowerCase()`.
+2.  Look up user; compare password with `bcrypt.compare()` against hash from `User.unscoped()`.
+3.  Reuse valid Session row if token not expired; otherwise create new JWT + Session row.
+4.  Return user payload including `token`, `userId`, `role` (never return password hash).
+5.  `POST /logout` — clear token on Session row.
+6.  `AUTH_SECRET` from environment; no hardcoded secrets in production.
+
+## Request Authentication
+*   `authenticate` middleware reads `Authorization: Bearer <token>`.
+*   Validates token exists in Session table and `expirationDate >= Date.now()`.
+*   Sets `req.user = { id, role, organizationId }` from joined User row.
+*   Missing/invalid → `401` with `{ message: "Unauthorized! ..." }`.
+
+## User-Scoped Data (Todo App)
+*   Every list/todo query must include `userId: req.user.id` in the `where` clause.
+*   On create, set `userId` from `req.user.id` — never from request body.
+*   Before update/delete, load the row and verify ownership; return `404` if not found or not owned (do not leak existence via `403`).
+
+## Row-Level Access Helpers
+Centralize repeated checks in `app/authorization/`:
+```javascript
+export const getAccessibleListOrNull = async (req, listId) => {
+  const row = await List.findOne({ where: { id: listId, userId: req.user.id } });
+  return row ?? null;
+};
+```
+Controllers call helpers; do not duplicate scope logic inline.
+
+## Role Guards
+Export named middleware from `authorization/authorization.js`:
+*   `requireAdmin` — role is `admin` or `superadmin`.
+*   `requireSuperAdmin` — role is `superadmin` only.
+
+## Password Rules
+*   Hash with bcryptjs, `SALT_ROUNDS = 10`.
+*   Minimum length enforced at controller (e.g. 8 chars on reset).
+*   `reset-password` disabled when `NODE_ENV === "production"`.
+
+## Optional Multi-Org Scoping (future)
+If org tenancy is added, centralize filters in `authorization/tenantScope.js`:
+*   `sessionTenantScopeWhere(req)` for standard users.
+*   `X-Acting-Organization-Id` header for superadmin org switching.
+*   Never trust client-supplied `organizationId` on write operations.

@@ -1,0 +1,14 @@
+# Normalize text; keep scripts portable across macOS / Windows / Linux
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

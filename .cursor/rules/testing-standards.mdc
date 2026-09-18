@@ -1,0 +1,35 @@
+---
+description: Automated test standards — Jest (backend) and Vitest (frontend).
+globs: "**/*.test.js, **/*.spec.js, **/tests/**/*"
+---
+# Quality Assurance & Test Verification
+
+Every feature in `features/` must name its test coverage. Ghost tests are forbidden.
+
+See `features/framework.md` → **Test traceability** for the full convention.
+
+## Traceability structure
+
+1. **File header** — `Feature N` title + `Spec: features/feature-N-….md`
+2. **`describe("Feature N — …")`** — outer wrapper
+3. **`describe("US-N.n — Story title")`** — matches AC `###` heading in spec
+4. **`it("Scenario title")`** — exact Gherkin `#### Scenario:` name from spec
+
+Harness smoke tests (`backend/tests/app.test.js`, `frontend/tests/App.test.js`) are exempt from story nesting.
+
+## Backend (Jest + supertest)
+*   Import the Express `app` export (server does not listen in `NODE_ENV=test`).
+*   Integration-test each endpoint with supertest.
+*   Per success case, also test:
+    1.  Missing/invalid input → `400` with `{ message }`.
+    2.  Missing/expired token → `401`.
+    3.  Another user's resource → `404` (scoped access).
+*   Use a dedicated test database (`todospeckit-db-test`); copy `backend/.env.test.example` to `backend/.env.test`.
+
+## Frontend (Vitest + @vue/test-utils)
+*   Mount views/components with reactive state.
+*   Assert client-side validation blocks submit before API call.
+*   Assert loading and error UI states on promise resolve/reject.
+
+## SDD link
+Each Gherkin scenario in `features/feature-*.md` maps to at least one `it` block. Traceability: **US-N.n** → scenario → test; functional rules live in **FR-00N**; measurable bars in **SC-00N**. No `expect(true).toBe(true)`.
