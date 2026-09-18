@@ -11,7 +11,11 @@
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "bundle": "node scripts/make-deploy.mjs"
   },
-  "keywords": ["node.js", "express", "sequelize"],
+  "keywords": [
+    "node.js",
+    "express",
+    "sequelize"
+  ],
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -22,6 +26,7 @@
     "morgan": "^1.10.0",
     "mysql2": "^3.12.0",
     "sequelize": "^6.37.5",
+    "speckit-app": "file:..",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
