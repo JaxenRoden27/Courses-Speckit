@@ -114,8 +114,8 @@ Then do a **project-wide search-and-replace** for these placeholder strings acro
 
 | Placeholder | Replace with | Typical hits |
 |-------------|--------------|--------------|
-| `Speckit App` | Your display name | `README.md`, `Home.vue`, `server.js` log line, Agility examples |
-| `speckit-db` | Your MySQL database name | `.env.example`, `.env.test.example`, `db.config.js` |
+| `Courses Speckit App` | Your display name | `README.md`, `Home.vue`, `server.js` log line, Agility examples |
+| `course-speckit-db` | Your MySQL database name | `.env.example`, `.env.test.example`, `db.config.js` |
 | `/api/` | Your API mount path (if different) | `backend/server.js`, `frontend/src/services/services.js` |
 | Ports `8082` / `3200` | Only if you must change them | Vite config, Express `PORT`, CORS origin |
 

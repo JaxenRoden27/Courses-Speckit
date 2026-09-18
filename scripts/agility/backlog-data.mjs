@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const rootDir = join(__dirname, "..", "..");
 
-export const DEFAULT_PROJECT = "Speckit App";
+export const DEFAULT_PROJECT = "Courses Speckit App";
 
 const FEATURE_FILE_RE = /^feature-(\d+)-.+\.md$/i;
 

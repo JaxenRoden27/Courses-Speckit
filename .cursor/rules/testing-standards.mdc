@@ -24,7 +24,7 @@ Harness smoke tests (`backend/tests/app.test.js`, `frontend/tests/App.test.js`) 
     1.  Missing/invalid input → `400` with `{ message }`.
     2.  Missing/expired token → `401`.
     3.  Another user's resource → `404` (scoped access).
-*   Use a dedicated test database (`todospeckit-db-test`); copy `backend/.env.test.example` to `backend/.env.test`.
+*   Use a dedicated test database (`todocourse-speckit-db-test`); copy `backend/.env.test.example` to `backend/.env.test`.
 
 ## Frontend (Vitest + @vue/test-utils)
 *   Mount views/components with reactive state.
