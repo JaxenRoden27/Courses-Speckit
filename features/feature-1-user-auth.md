@@ -1,10 +1,10 @@
 # Feature: User Authentication & Session Management
 
 **Feature ID:** 1
-**Branch pattern:** `feature/1-user-auth`
+**Branch pattern:** `feature-1-user-auth`
 **Status:** Ready
-**Created:** 2026-01-15
-**Input:** Multi-user authentication and session management so each user can sign in and access private todo data
+**Created:** 2026-09-23
+**Input:** Multi-user authentication and session management so each user can sign in and access private role based data
 **Related:** [ADR-0001 — Client–server multi-user architecture](../docs/adr/0001-client-server-multi-user-architecture.md), [ADR-0002 — Security architecture](../docs/adr/0002-security-architecture.md)
 
 ---
@@ -55,7 +55,7 @@
 
 **As the** application  
 **I want to** require a valid session for all non-auth screens  
-**So that** users can only see and modify their own data
+**So that** protected screens and APIs are only available with a valid session
 
 **Priority:** P1  
 **Independent test:** Navigate to protected route without session → redirect to login; API without token → `401`  
@@ -68,7 +68,7 @@
 **So that** I can leave the session and I do not see tools for other roles
 
 **Priority:** P1  
-**Independent test:** After login, `MenuBar` is visible with **Sign out**; a `student` does not see admin-only items  
+**Independent test:** After login, `MenuBar` is visible with **Sign out**; a `student` does not see faculty-only items  
 **Acceptance scenarios:** see ### US-1.6 under Acceptance Criteria
 
 ---
@@ -83,8 +83,8 @@
 - **FR-004**: Sessions MUST use a **JWT + Session table** pattern: token stored server-side; client sends `Authorization: Bearer <token>`.
 - **FR-005**: Session lifetime MUST be **24 hours** from creation.
 - **FR-006**: Login MUST reuse a non-expired session for the same user when one already exists.
-- **FR-007**: Default role for new users MUST be `user` ([Feature 4](feature-4-faculty-management.md) supersedes the earlier `user` default). Role `faculty` is non-admin unless a later feature says otherwise.
-- **FR-008**: Every authenticated request MUST resolve to exactly one user via `req.user.id` from the session token (foundation for Features 2–3 ownership).
+- **FR-007**: Allowed roles are `student` and `faculty`. Registration MUST NOT accept a role from the client. New users MUST be stored with role `student`.
+- **FR-008**: Every authenticated request MUST resolve to exactly one user via `req.user.id` from the session token (foundation for later features that need the signed-in user).
 - **FR-009**: Registration MUST use shared `emailRules` from `frontend/src/config/validation.js` — required plus regex (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`); invalid format message: **"Enter a valid email address."**
 - **FR-010**: This feature MUST **introduce** `MenuBar` in `App.vue` (`<MenuBar />` above `<v-main>`). `MenuBar` MUST be visible on `login`, `register`, and `home`.
 - **FR-011**: `MenuBar` MUST show **Sign out** when a session exists (including if the user is on `login`). When there is no session, **Sign out** MUST be hidden.
@@ -96,7 +96,7 @@
 
 - Greenfield app — no existing users or external identity provider.
 - Single browser `localStorage` session per device (no multi-tab sync beyond shared storage).
-- League catalog UI is deferred to Feature 3; season catalog is deferred to Feature 2. Feature 1 delivers auth, a minimal protected home, and `MenuBar` (role-based items + **Sign out**).
+- Semester catalog UI is deferred to Feature 2; Courses catalog is deferred to Feature 2. Feature 1 delivers auth, a minimal protected home, and `MenuBar` (role-based items + **Sign out**).
 
 ## Edge Cases
 
@@ -116,11 +116,11 @@
 
 ## Data Ownership & Isolation (foundation)
 
-Feature 1 establishes identity; Features 2–3 enforce per-user data boundaries.
+Feature 1 establishes identity. Later features decide which data a signed-in user may see or change.
 
-- Each user account is a separate tenant boundary for todo lists and items.
+- Every authenticated request resolves to exactly one user (`req.user.id`).
 - No API in this feature returns another user's profile or session.
-- Later features must never expose lists or todos across users — not in list responses, detail views, or error messages that confirm another user's resource exists.
+- This feature does not scope semesters, courses, or other catalog data. Those features define their own access rules.
 
 ---
 
@@ -141,7 +141,7 @@ Feature 1 establishes identity; Features 2–3 enforce per-user data boundaries.
   "email": "jdoe@example.com",
   "fName": "Jane",
   "lName": "Doe",
-  "role": "manager",
+  "role": "student",
   "token": "<jwt>"
 }
 ```
@@ -163,7 +163,8 @@ Feature 1 establishes identity; Features 2–3 enforce per-user data boundaries.
 ### [View: Register Page] — route name `register`
 
 - Auth form with `MenuBar` visible.
-- Fields: first name, last name, email, role, username, password, confirm password.
+- Fields: first name, last name, email, username, password, confirm password.
+- No role field. The server assigns `student`.
 - Email field uses shared `emailRules` from `frontend/src/config/validation.js` (required + regex format).
 - Primary action: **Create account**.
 - Link or button to navigate to login.
@@ -171,7 +172,7 @@ Feature 1 establishes identity; Features 2–3 enforce per-user data boundaries.
 
 ### [View: Home placeholder] — route name `home`
 
-- Minimal protected landing page shown after successful login or registration. This is **not** the seasons list (`/seasons` is Feature 2) or the leagues list (`/leagues` is Feature 3).
+- Minimal protected landing page shown after successful login or registration. This is **not** the semester list (`/semester` is Feature 2) or the courses list (`/course` is Feature 3).
 - Displays a welcome message using the user's first name.
 - No on-page **Sign out** button — sign-out is only in `MenuBar`.
 
@@ -181,13 +182,13 @@ Feature 1 establishes identity; Features 2–3 enforce per-user data boundaries.
 - `MenuBar` is visible on `login`, `register`, and `home` (deviation from hide-on-login in `ui-style-system.mdc`).
 - No session: `MenuBar` shows with no catalog items and **no** **Sign out**.
 - Session exists: `MenuBar` shows the signed-in user's name, **Sign out**, and only nav items allowed for `user.role`.
-- Feature 1 catalog items: none. Later features register items against roles (`user` → **Semester** in Feature 2, **Course** in Feature 3, `faculty` → **Faculty** in Feature 4, **Section** in Feature 5, **Enrollment** in Feature 6, **Student Course Listing** in Feature 7, **Section Student Listing** in Feature 8).
+- Feature 1 catalog items: none. Later features register items against roles (`student` → **Semester** in Feature 2, **Course** in Feature 3, `faculty` → **Faculty** in Feature 4, **Section** in Feature 5, **Enrollment** in Feature 6, **Student Course Listing** in Feature 7, **Section Student Listing** in Feature 8).
 
 ---
-todos
+
 ## Key Entities
 
-- **User**: registered account (name, email, username, role); .
+- **User**: registered account (name, email, username, role);
 - **Session**: server-side record tying a JWT token to a user; expires after 24 hours.
 
 ---
@@ -204,7 +205,7 @@ todos
 | `email`    | STRING      | Required, unique                   |
 | `username` | STRING(100) | Required, unique; stored lowercase |
 | `password` | STRING(255) | Required; bcrypt hash only         |
-| `role`     | STRING(20)  | Default `manager`                  |
+| `role`     | STRING(20)  | `student` or `faculty`; default `student`; registration ignores a client-supplied role |
 
 ### `sessions` table
 
@@ -228,6 +229,7 @@ todos
 - **When** I enter valid first name, last name, email, username, password, and matching confirm password
 - **And** I submit the form
 - **Then** the API returns `201` with a user payload including `userId`, `username`, `email`, `token`, and `role`
+- **And** `role` is `student`
 - **And** my user record is stored in the database with a bcrypt password hash
 - **And** I am redirected to the home page
 - **And** my session is stored in `localStorage` under the key `user`
@@ -344,13 +346,13 @@ todos
 
 #### Scenario: API request includes session token
 
-- **Given** I am signed in as a user with role `admin`
+- **Given** I am signed in as a user with role `student`
 - **When** the frontend makes an authenticated API request
 - **Then** the request includes header `Authorization: Bearer <token>`
 
 #### Scenario: Expired or invalid session token
 
-- **Given** I am signed in as a user with role `admin`
+- **Given** I am signed in as a user with role `student`
 - **And** my session token is expired or revoked
 - **When** the frontend makes an authenticated API request
 - **Then** the API returns `401` with an unauthorized message
@@ -392,7 +394,7 @@ todos
 - **When** I am on the login page
 - **Then** the `MenuBar` is displayed
 - **And** **Sign out** is not shown
-- **And** **Seasons** and **Leagues** are not shown
+- **And** **Semester** and **Courses** are not shown
 
 #### Scenario: Signed-in user sees Sign out in MenuBar
 
@@ -402,20 +404,34 @@ todos
 - **And** **Sign out** is shown
 - **And** the signed-in user's name is shown
 
-#### Scenario: Student does not see admin-only menu items
+#### Scenario: Student does not see faculty-only menu items
 
 - **Given** I am signed in as a user with role `student`
 - **When** I view the `MenuBar`
-- **Then** **Seasons** is not shown
-- **And** **Leagues** is not shown
+- **Then** **Section Management** is not shown
+- **And** **Enrollment Management** is not shown
+- **And** **Student Course Listing** is not shown
+- **And** **Section Student Listing** is not shown
 
-#### Scenario: Admin MenuBar in Feature 1 has Sign out but no catalog links yet
+#### Scenario: Faculty MenuBar in Feature 1 has Sign out but no catalog links yet
 
-- **Given** I am signed in as a user with role `admin`
+- **Given** I am signed in as a user with role `faculty`
 - **When** I view the `MenuBar`
 - **Then** **Sign out** is shown
-- **And** **Seasons** is not shown (added in Feature 2)
-- **And** **Leagues** is not shown (added in Feature 3)
+- **And** **Semester** is not shown
+- **And** **Course** is not shown
+- **And** **Section Management** is not shown
+- **And** **Enrollment Management** is not shown
+- **And** **Student Course Listing** is not shown
+- **And** **Section Student Listing** is not shown
+
+#### Scenario: Signed-in student MenuBar has Sign out but no catalog links yet
+
+- **Given** I am signed in as a user with role `student`
+- **When** I view the `MenuBar`
+- **Then** **Sign out** is shown
+- **And** **Semester** is not shown (added in Feature 2)
+- **And** **Course** is not shown (added in Feature 3)
 
 ---
 
@@ -444,8 +460,9 @@ Each scenario above must map to at least one automated test.
 | US-1.5 | Unauthenticated user accesses a protected route                  | `backend/tests/authenticate.test.js`, `frontend/tests/router.test.js` | `Unauthenticated user accesses a protected route`                  |
 | US-1.6 | MenuBar is visible on the login page                             | `frontend/tests/MenuBar.test.js`                                      | `MenuBar is visible on the login page`                             |
 | US-1.6 | Signed-in user sees Sign out in MenuBar                          | `frontend/tests/MenuBar.test.js`                                      | `Signed-in user sees Sign out in MenuBar`                          |
-| US-1.6 | Student does not see admin-only menu items                       | `frontend/tests/MenuBar.test.js`                                      | `Student does not see admin-only menu items`                       |
-| US-1.6 | Admin MenuBar in Feature 1 has Sign out but no catalog links yet | `frontend/tests/MenuBar.test.js`                                      | `Admin MenuBar in Feature 1 has Sign out but no catalog links yet` |
+| US-1.6 | Student does not see faculty-only menu items                     | `frontend/tests/MenuBar.test.js`                                      | `Student does not see faculty-only menu items`                     |
+| US-1.6 | Faculty MenuBar in Feature 1 has Sign out but no catalog links yet | `frontend/tests/MenuBar.test.js`                                      | `Faculty MenuBar in Feature 1 has Sign out but no catalog links yet` |
+| US-1.6 | Signed-in student MenuBar has Sign out but no catalog links yet | `frontend/tests/MenuBar.test.js`                                      | `Signed-in student MenuBar has Sign out but no catalog links yet` |
 
 ---
 
@@ -485,13 +502,18 @@ Do not implement behavior not in this spec.
 - Email verification
 - OAuth / social login
 - Admin user management
-- Season CRUD / **Seasons** nav item ([Feature 2](feature-2-season-management.md))
-- League CRUD / **Leagues** nav item ([Feature 3](feature-3-league-management.md))
+- Semester CRUD / **Semester** nav item ([Feature 2](feature-2-semester-management.md))
+- Course CRUD / **Course** nav item ([Feature 3](feature-3-course-management.md))
+- Section CRUD / **Section** nav item ([Feature 5](feature-5-section-management.md))
 
 ---
 
 ## Delivered to Feature 2
 
 - `MenuBar` exists in `App.vue`, visible on `login` / `register` / `home`, with **Sign out** when a session exists and items filtered by `user.role`.
-- Feature 2 adds **Seasons** (allowed role `admin`) to this `MenuBar`; it MUST NOT create a second `MenuBar`.
-- Feature 3 adds **Leagues** (allowed role `admin`) to this `MenuBar`.
+- Feature 2 adds **Semester** (allowed role `student`) to this `MenuBar`; it MUST NOT create a second `MenuBar`.
+- Feature 3 adds **Courses** (allowed role `student`) to this `MenuBar`.
+- Feature 5 adds **Sections** (allowed role `faculty`) to this `MenuBar`.
+- Feature 6 adds **Enrollment** (allowed role `faculty`) to this `MenuBar`.
+- Feature 7 adds **Student Course Listing** (allowed role `faculty`) to this `MenuBar`.
+- Feature 8 adds **Section Student Listing** (allowed role `faculty`) to this `MenuBar`.
