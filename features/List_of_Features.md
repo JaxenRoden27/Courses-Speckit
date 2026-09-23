@@ -1,14 +1,12 @@
-1. User Authentication and Authorization
-2. Semester Management (CRUD)
-3. Course Management (CRUD)
-4. Faculty Management (CRUD)
-5. Section Management (CRUD)
-6. Enrollment Management (CRUD)
-7. Student Course Listing
-8. Section Student Listing
+1. User Authentication and Authorization - Grant
+2. Semester Management (CRUD) - Ana
+3. Course Management (CRUD) - Ana
+4. Faculty Management (CRUD) - Lorenzo
+5. Section Management (CRUD) - Jaxen
+6. Enrollment Management (CRUD) - Jaxen
+7. Student Course Listing - Evan
+8. Section Student Listing - Evan
 
-Ana 2,3
-Lorenzo 4
 
 Entities:
 Users
