@@ -7,8 +7,11 @@
 7. Student Course Listing
 8. Section Student Listing
 
+Grant 1
 Ana 2,3
 Lorenzo 4
+Jaxen 5,6
+Evan 7,8
 
 Entities:
 Users
