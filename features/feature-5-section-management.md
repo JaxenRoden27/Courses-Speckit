@@ -3,7 +3,7 @@
 **Feature ID:** 5
 **Branch pattern:** `feature/5-section-management` **Status:** Ready
 **Created:** 2026-09-23
-**Input:** Signed-in admin users manage a teams list and a team view. A team has a name, belongs to a league, and has players. The team view shows team info, **Edit team**, **Add Players**, and a player list. A player is a Feature 4 person on that team with a name, number, and position.
+**Input:** Signed-in faculty users manage a section and section view. A section has a time, belongs to a course, and has students. The section view shows section info, **Edit section**, and . A student is a Feature 1 person on that has a name.
 **Depends on:** [Feature 1 — User Authentication](feature-1-user-auth.md), [Feature 2 — Semester Management](feature-2-semester-management.md), [Feature 3 — Course Management](feature-3-course-management.md), [Feature 4 — Faculty Management](feature-4-faculty-management.md)
 
 ---
@@ -14,105 +14,86 @@
 
 
 
-### US-5.1: Select to work with Teams
+### US-5.1: Select to work with sections
 
-**As a** signed-in admin user  
-**I want to** open the teams view from the menu  
-**So that** I can maintain league teams
+**As a** signed-in faculty user  
+**I want to** open the section view from the menu  
+**So that** I can maintain course sections
 
 **Priority:** P1  
-**Independent test:** login, view Teams on menubar; teams view appears  
+**Independent test:** login, view sections on menubar; section view appears  
 **Acceptance scenarios:** see ### US-5.1 under Acceptance Criteria
 
-### US-5.2: Create team
+### US-5.2: Create section
 
-**As a** signed-in admin user  
-**I want to** create a team with a name in a league  
-**So that** the league has teams
+**As a** signed-in factuly user  
+**I want to** create a section with a name in a course  
+**So that** the course has sections
 
 **Priority:** P1  
-**Independent test:** Open add-team dialog, create a team for an existing league; it appears in the teams view  
+**Independent test:** Open add-team dialog, create a section for an existing course; it appears in the section view  
 **Acceptance scenarios:** see ### US-5.2 under Acceptance Criteria
 
-### US-5.3: View teams
+### US-5.3: View sections
 
-**As a** signed-in admin user  
-**I want to** see all teams on one screen  
-**So that** I can see each league's teams
+**As a** signed-in factuly user  
+**I want to** see all sections on one screen  
+**So that** I can see each course's sections
 
 **Priority:** P1  
-**Independent test:** Selecting Teams loads a screen that displays all teams  
+**Independent test:** Selecting sections loads a screen that displays all sections  
 **Acceptance scenarios:** see ### US-5.3 under Acceptance Criteria
 
-### US-5.4: Manage team rows
+### US-5.4: Manage section rows
 
-**As a** signed-in admin user  
-**I want** each team row to show a **team** icon and a **delete** action  
-**So that** I can open a team or remove it from the list
+**As a** signed-in faculty user  
+**I want** each section row to show a **section** icon and a **delete** action  
+**So that** I can open a section or remove it from the list
 
 **Priority:** P1  
-**Independent test:** Each team row shows an **Open team** icon and a delete icon action  
+**Independent test:** Each section row shows an **Open section** icon and a delete icon action  
 **Acceptance scenarios:** see ### US-5.4 under Acceptance Criteria
 
-### US-5.10: View a team
+### US-5.5: View a section
 
-**As a** signed-in admin user  
-**I want to** open a team view with team info, **Edit team**, **Add Players**, and the player list  
-**So that** I can work with one team's roster
+**As a** signed-in faculty user  
+**I want to** open a section view with section info, **Edit section**, and the student list  
+**So that** I can work with one section's roster
 
 **Priority:** P1  
-**Independent test:** From the teams list, open a team; heading shows team info and the player list  
-**Acceptance scenarios:** see ### US-5.10 under Acceptance Criteria
-
-### US-5.5: Edit a team
-
-**As a** signed-in admin user  
-**I want to** edit a team's name or league from the team view  
-**So that** I can keep team data accurate
-
-**Priority:** P2  
-**Independent test:** On the team view, **Edit team** opens the Edit Team dialog; save updates the heading  
+**Independent test:** From the sectoin list, open a section; heading shows section info and the student list  
 **Acceptance scenarios:** see ### US-5.5 under Acceptance Criteria
 
-### US-5.6: Delete a team
+### US-5.6: Edit a section
 
-**As a** signed-in admin user  
-**I want to** delete a team  
-**So that** I can remove teams that no longer belong in a league
+**As a** signed-in faculty user  
+**I want to** edit a section's time or course from the section view  
+**So that** I can keep section data accurate
 
 **Priority:** P2  
-**Independent test:** Delete a team from row actions; teams view updates  
+**Independent test:** On the section view, **Edit team** opens the Edit Section dialog; save updates the heading  
 **Acceptance scenarios:** see ### US-5.6 under Acceptance Criteria
 
-### US-5.7: Restrict team management to admins
+### US-5.7: Delete a section
 
-**As the** application  
-**I want to** allow only users with role `admin` to manage teams and players  
-**So that** students cannot create, edit, or delete teams or roster rows
+**As a** signed-in faculty user  
+**I want to** delete a section  
+**So that** I can remove sections that no longer belong in a course
 
-**Priority:** P1  
-**Independent test:** Sign in as a student — **Teams** is hidden; `POST /league/teams` returns `403`  
+**Priority:** P2  
+**Independent test:** Delete a section from row actions; sections view updates  
 **Acceptance scenarios:** see ### US-5.7 under Acceptance Criteria
 
-### US-5.8: Manage team players
-
-**As a** signed-in admin user  
-**I want to** add and edit players on the team view  
-**So that** each player is a person with a name, number, and position on that team
-
-**Priority:** P1  
-**Independent test:** On the team view, **Add Players** opens the Add Player dialog; the player appears in the list  
-**Acceptance scenarios:** see ### US-5.8 under Acceptance Criteria
-
-### US-5.9: Block delete of referenced league or person
+### US-5.8: Restrict section management to factuly
 
 **As the** application  
-**I want to** refuse delete of a league that still has teams, and of a person who is still a player  
-**So that** teams and rosters are not left pointing at missing rows
+**I want to** allow only users with role `factuly` to manage sections 
+**So that** students cannot create, edit, or delete sections or student rows
 
 **Priority:** P1  
-**Independent test:** Create a team with a player; `DELETE` of that league or person returns `400` and the parent row remains  
-**Acceptance scenarios:** see ### US-5.9 under Acceptance Criteria
+**Independent test:** Sign in as a student — **Sections** is hidden; `POST /courses-t4/courses/sections` returns `403`  
+**Acceptance scenarios:** see ### US-5.8 under Acceptance Criteria
+
 
 ## Requirements
 
