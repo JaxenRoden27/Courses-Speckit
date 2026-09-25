@@ -3,7 +3,7 @@
 **Feature ID:** 5
 **Branch pattern:** `feature/5-section-management` **Status:** Ready
 **Created:** 2026-09-23
-**Input:** Signed-in faculty users manage a section and section view. A section has a time, belongs to a course, and has students. The section view shows section info, **Edit section**, and . A student is a Feature 1 person on that has a name.
+**Input:** Signed-in faculty users manage a section and section view. A section has a time, belongs to a course, and has students. The section view shows section info, **Edit section**. A student is a Feature 1 person that has a name.
 **Depends on:** [Feature 1 — User Authentication](feature-1-user-auth.md), [Feature 2 — Semester Management](feature-2-semester-management.md), [Feature 3 — Course Management](feature-3-course-management.md), [Feature 4 — Faculty Management](feature-4-faculty-management.md)
 
 ---
@@ -26,7 +26,7 @@
 
 ### US-5.2: Create section
 
-**As a** signed-in factuly user  
+**As a** signed-in faculty user  
 **I want to** create a section with a section number in a course  
 **So that** the course has sections
 
@@ -36,7 +36,7 @@
 
 ### US-5.3: View sections
 
-**As a** signed-in factuly user  
+**As a** signed-in faculty user  
 **I want to** see all sections on one screen  
 **So that** I can see each course's sections
 
@@ -84,10 +84,10 @@
 **Independent test:** Delete a section from row actions; sections view updates  
 **Acceptance scenarios:** see ### US-5.7 under Acceptance Criteria
 
-### US-5.8: Restrict section management to factuly
+### US-5.8: Restrict section management to faculty
 
 **As the** application  
-**I want to** allow only users with role `factuly` to manage sections 
+**I want to** allow only users with role `faculty` to manage sections 
 **So that** students cannot create, edit, or delete sections or student rows
 
 **Priority:** P1  
