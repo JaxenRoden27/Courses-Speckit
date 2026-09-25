@@ -17,13 +17,13 @@ No application code may be written unless it maps to a requirement in one of the
 | ID | File | Branch | Depends on |
 |----|------|--------|------------|
 | 1 | [feature-1-user-auth.md](features/feature-1-user-auth.md) | `feature/1-user-auth` | — |
-| 2 | [feature-2-semester-management.md](features/feature-2-semester-management.md) | `feature/2-semester-management` | 1 |
-| 3 | [feature-3-course-management.md](features/feature-3-course-management.md) | `feature/3-course-management` | 1,2 |
-| 4 | [feature-4-faculty-management.md](features/feature-4-faculty-management.md) | `feature/4-faculty-management` | 1 |
-| 5 | [feature-5-section-management.md](features/feature-5-section-management.md) | `feature/5-section-management` | 1,2,3,4 |
-| 6 | [feature-6-enrollment-management.md](features/feature-6-enrollment-management.md) | `feature/6-enrollment-management` | 1,2,3,4,5 |
-| 7 | [feature-7-student-course-listing.md](features/feature-7-student-course-listing.md) | `feature/7-student-course-listing` | 1,2,3,4,5,6 |
-| 8 | [feature-8-section-student-listing.md](features/feature-8-section-student-listing.md) | `feature/8-section-student-listing` | 1,2,3,4,5,6,7 |
+| 2 | [feature-2-semester-management.md](features/feature-2-semester-management.md) | `feature/2-semester-management` | Feature 1 |
+| 3 | [feature-3-course-management.md](features/feature-3-course-management.md) | `feature/3-course-management` | Features 1,2 |
+| 4 | [feature-4-faculty-management.md](features/feature-4-faculty-management.md) | `feature/4-faculty-management` | Feature 1 |
+| 5 | [feature-5-section-management.md](features/feature-5-section-management.md) | `feature/5-section-management` | Features 1,2,3,4 |
+| 6 | [feature-6-enrollment-management.md](features/feature-6-enrollment-management.md) | `feature/6-enrollment-management` | Features 1,2,3,4,5 |
+| 7 | [feature-7-student-course-listing.md](features/feature-7-student-course-listing.md) | `feature/7-student-course-listing` | Features 1,2,3,4,5,6 |
+| 8 | [feature-8-section-student-listing.md](features/feature-8-section-student-listing.md) | `feature/8-section-student-listing` | Features 1,2,3,4,5,6,7 |
 
 New features: follow [framework.md](./framework.md#feature-spec-template) — **Status**, **Input**, **FR-00N**, **SC-00N**, **Key Entities**, Gherkin, **Agent implementation request**, **Definition of Done**.
 
