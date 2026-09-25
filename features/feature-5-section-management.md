@@ -111,6 +111,7 @@
 - **FR-008**: Section `sectionNumber` MUST be required, trimmed, and at most 10 characters. Too-long message: **"Section name must be 10 characters or fewer."** The pair (`courseID`, `sectionNumber`) MUST be unique. Duplicate message: **"Section number is already taken in this course."** `daysOfWeek` MUST be required, trimmed, and at most 10 characters. Too-long message: **"Section days of week must characters or fewer"** `startTime` MUST be required, and trimmed. Invalid time message: **"Section time must be a valid date."** `endTime` MUST be required, and trimmed. Invalid time message: **"Section time must be a valid date."**
 - **FR-009**: `courseId` MUST be a required integer that exists in `courses`. Missing course message: **"Course not found."** (HTTP `400`). A course MAY have many sections.
 - **FR-010**: `DELETE` of a course MUST fail with `400` when any section references that course. Do **not** cascade-delete sections when a course is deleted. Messages: **"Cannot delete course: sections still exist."** The parent row and its dependents MUST remain stored.
+- **FR-011**: startTime MUST be earlier than endTime. Equal or later times MUST be rejected with **"Start time must be earlier than end time."** (client block and/or `400`).
 
 ---
 
@@ -418,6 +419,18 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **And** I click **Create**
 - **Then** the API returns `400` with `{ "message": "Section numer is already taken in this course." }`
 - **And** no second section number`01` is stored in that course
+
+
+
+### Scenario: User creates a section with an end time earlier than start time
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **When** I click **+ New section**
+- **And** I enter a section end time earlier than start time
+- **And** I click **Create**
+- **Then** no API call is made
+- **And** I see the message **"Section start time must be before end time."**
 
 ---
 
