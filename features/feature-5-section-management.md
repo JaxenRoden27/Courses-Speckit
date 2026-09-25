@@ -27,11 +27,11 @@
 ### US-5.2: Create section
 
 **As a** signed-in factuly user  
-**I want to** create a section with a name in a course  
+**I want to** create a section with a section number in a course  
 **So that** the course has sections
 
 **Priority:** P1  
-**Independent test:** Open add-team dialog, create a section for an existing course; it appears in the section view  
+**Independent test:** Open add-section dialog, create a section for an existing course; it appears in the section view  
 **Acceptance scenarios:** see ### US-5.2 under Acceptance Criteria
 
 ### US-5.3: View sections
@@ -57,11 +57,11 @@
 ### US-5.5: View a section
 
 **As a** signed-in faculty user  
-**I want to** open a section view with section info, **Edit section**, and the student list  
-**So that** I can work with one section's roster
+**I want to** open a section view with section info, and **Edit section**
+**So that** I can work with section information
 
 **Priority:** P1  
-**Independent test:** From the sectoin list, open a section; heading shows section info and the student list  
+**Independent test:** From the sectoin list, open a section; heading shows section info
 **Acceptance scenarios:** see ### US-5.5 under Acceptance Criteria
 
 ### US-5.6: Edit a section
@@ -71,7 +71,7 @@
 **So that** I can keep section data accurate
 
 **Priority:** P2  
-**Independent test:** On the section view, **Edit team** opens the Edit Section dialog; save updates the heading  
+**Independent test:** On the section view, **Edit section** opens the Edit Section dialog; save updates the heading  
 **Acceptance scenarios:** see ### US-5.6 under Acceptance Criteria
 
 ### US-5.7: Delete a section
@@ -101,19 +101,16 @@
 
 ### Functional Requirements
 
-- **FR-001**: All team and player endpoints MUST require a valid session (`authenticate`). `GET` MUST be allowed for any authenticated role. `POST`, `PUT`, and `DELETE` MUST require `req.user.role` equal to `admin`.
-- **FR-002**: Teams and players MUST be a **shared catalog**. The `teams` and `players` tables MUST NOT use `userId` as ownership. The API MUST ignore any client-supplied ownership `userId`.
-- **FR-003**: Authenticated non-admin users (including `student`) MUST receive `403` with `{ "message": "Admin role required." }` on `POST`, `PUT`, and `DELETE`. `GET` MUST return `200` for any authenticated user. They MUST NOT see **Teams** in `MenuBar`.
-- **FR-004**: Required team and player fields MUST be present and trimmed; empty or whitespace-only values MUST be rejected (client block and/or `400`).
-- **FR-005**: Unauthenticated team API requests MUST return `401`. Unauthenticated navigation to `/teams` or `/teams/:teamId` MUST redirect to `login`.
-- **FR-006**: Teams MUST be ordered by related league `name`, then team `name`, in API responses. Players on a team MUST be ordered by `number`.
-- **FR-007**: This feature MUST deliver a **teams list** in `Teams.vue` and a **team view** in `Team.vue`. The team view MUST have a heading area for team info, an **Edit team** button that opens the **Edit Team** dialog, an **Add Players** button that opens the **Add Player** dialog, and a player list (name, number, position) with an **Edit player** icon that opens the **Edit Player** dialog. Team and player mutations stay dialog-based. No sidebar/main split. Player management MUST NOT live inside the **Edit Team** dialog.
-- **FR-008**: Team `name` MUST be required, trimmed, and at most 50 characters. Too-long message: **"Team name must be 50 characters or fewer."** The pair (`leagueId`, `name`) MUST be unique. Duplicate message: **"Team name is already taken in this league."** `homeField` MUST be required, trimmed, and at most 50 characters. Too-long message: **"Home field must be 50 characters or fewer."** `homeField` is the venue used as the game `location` when that team is home (Feature 6).
-- **FR-009**: `leagueId` MUST be a required integer that exists in `leagues`. Missing league message: **"League not found."** (HTTP `400`). A league MAY have many teams.
-- **FR-010**: A player MUST belong to one team and one Feature 4 person. `teamId` comes from the route. `personId` MUST be a required integer that exists in `people`. Missing person message: **"Person not found."** (HTTP `400`). The pair (`teamId`, `personId`) MUST be unique. Duplicate-person message: **"Person is already on this team."** A person MAY be on more than one team.
-- **FR-011**: Player `position` MUST be required, trimmed, and at most 30 characters. Too-long message: **"Position must be 30 characters or fewer."**
-- **FR-012**: Player `number` MUST be a required integer from `0` through `99`. Invalid message: **"Player number must be between 0 and 99."** The pair (`teamId`, `number`) MUST be unique. Duplicate-number message: **"Player number is already taken on this team."**
-- **FR-013**: `DELETE` of a league MUST fail with `400` when any team references that league. `DELETE` of a person MUST fail with `400` when any player references that person. Do **not** cascade-delete teams when a league is deleted, and do **not** delete people when a player or team is deleted. Messages: **"Cannot delete league: teams still exist."**, **"Cannot delete person: team roster still exists."** The parent row and its dependents MUST remain stored. `DELETE` of a team MUST remove that team's player rows and MUST NOT delete the people.
+- **FR-001**: All section and student endpoints MUST require a valid session (`authenticate`). `GET` MUST be allowed for any authenticated role. `POST`, `PUT`, and `DELETE` MUST require `req.user.role` equal to `faculty`.
+- **FR-002**: Section and students MUST be a **shared catalog**. The `section` and `students` tables MUST NOT use `userId` as ownership. The API MUST ignore any client-supplied ownership `userId`.
+- **FR-003**: Authenticated non-faculty users (including `student`) MUST receive `403` with `{ "message": "Faculty role required." }` on `POST`, `PUT`, and `DELETE`. `GET` MUST return `200` for any authenticated user. They MUST NOT see **Sections** in `MenuBar`.
+- **FR-004**: Required section and student fields MUST be present and trimmed; empty or whitespace-only values MUST be rejected (client block and/or `400`).
+- **FR-005**: Unauthenticated section API requests MUST return `401`. Unauthenticated navigation to `/section` or `/section/:sectionID` MUST redirect to `login`.
+- **FR-006**: Sections MUST be ordered by related course `name`, then section `sectionNumer`, in API responses.
+- **FR-007**: This feature MUST deliver a **section list** in `Sections.vue` and a **section view** in `Section.vue`. The section view MUST have a heading area for section info, an **Edit section** button that opens the **Edit Section** dialog. Section mutations stay dialog-based. No sidebar/main split.
+- **FR-008**: Section `sectionNumber` MUST be required, trimmed, and at most 10 characters. Too-long message: **"Section name must be 10 characters or fewer."** The pair (`courseID`, `sectionNumber`) MUST be unique. Duplicate message: **"Section number is already taken in this course."** `daysOfWeek` MUST be required, trimmed, and at most 10 characters. Too-long message: **"Section days of week must characters or fewer"** `startTime` MUST be required, and trimmed. Invalid time message: **"Section time must be a valid date."** `endTime` MUST be required, and trimmed. Invalid time message: **"Section time must be a valid date."**
+- **FR-009**: `courseId` MUST be a required integer that exists in `courses`. Missing course message: **"Course not found."** (HTTP `400`). A course MAY have many sections.
+- **FR-010**: `DELETE` of a course MUST fail with `400` when any section references that course. Do **not** cascade-delete sections when a course is deleted. Messages: **"Cannot delete course: sections still exist."** The parent row and its dependents MUST remain stored.
 
 ---
 
@@ -121,55 +118,43 @@
 
 ## Assumptions
 
-- Features 1–4 (auth/`MenuBar`, seasons, leagues, people) MUST be merged to `dev` before implementing this feature.
+- Features 1–4 (auth/`MenuBar`, seasons, courses, people) MUST be merged to `dev` before implementing this feature.
 - A user with role `admin` exists (Feature 1 `role`; tests may seed an admin).
-- Tests MAY seed at least one league and one person (from Features 3–4) before creating a team or player.
-- Teams belong to a **league**, not to a season and not to a signed-in user. No FK from `teams` to `seasons`.
-- A team MAY be created with an empty roster. Players are added in this feature.
-- A **player** is a roster row (person + position + number on a team), not a second copy of the person.
-- `position` is free text (not a closed list). Sports differ by league.
-- Add/Edit dialogs load leagues from `GET /league/leagues` and people from `GET /league/people`.
-- Foreign keys from `teams.leagueId` and `players.personId` MUST use **RESTRICT**. Foreign key from `players.teamId` MUST use **CASCADE** so deleting a team removes roster rows only.
-- This feature updates Feature 3–4 `DELETE` handlers for `/league/leagues/:leagueId` and `/league/people/:personId` to enforce FR-013.
-- The **teams list** creates and deletes teams. The **team view** edits one team and manages that team's players.
-- Team and player forms use **dialog-based** workflows (no split sidebar / main panel).
-- API mount for this resource is `/league/…`. Use `/league/teams`.
+- Tests MAY seed at least one course and one person (from Features 3–4) before creating a section or player.
+- Sections belong to a **course**, not to a semester and not to a signed-in user. No FK from `sections` to `semester`.
+- Add/Edit dialogs load courses from `GET /course/courses`.
+- Foreign keys from `sections.semesterId`, `sections.courseId`, and `sections.facultyId` MUST use **RESTRICT**.
+- This feature updates Feature 3–4 `DELETE` handlers for `/course/courses/:courseId` to enforce FR-010.
+- The **sections list** creates and deletes sections. The **section view** edits one section.
+- Section forms use **dialog-based** workflows (no split sidebar / main panel).
+- API mount for this resource is `/course/…`. Use `/course/sections`.
 
 
 
 ## Edge Cases
 
 - Empty or whitespace-only required field → client block; **"Required"**; no API call.
-- Team `name` longer than 50 characters → **"Team name must be 50 characters or fewer."**
-- Duplicate team `name` in the same league → `400` with `{ "message": "Team name is already taken in this league." }`
-- Same team name in a **different** league is allowed.
-- Unknown `leagueId` → `400` with `{ "message": "League not found." }`
-- Unknown `personId` → `400` with `{ "message": "Person not found." }`
-- Person already on that team → `400` with `{ "message": "Person is already on this team." }`
-- Same person on a **different** team is allowed.
-- Player `number` outside 0–99 → **"Player number must be between 0 and 99."**
-- Duplicate `number` on the same team → `400` with `{ "message": "Player number is already taken on this team." }`
-- Same number on a **different** team is allowed.
-- `position` longer than 30 characters → **"Position must be 30 characters or fewer."**
-- Unknown `teamId` or `playerId` on PUT/DELETE → `404` with `{ "message": "Team with id=<id> not found." }` or `{ "message": "Player with id=<id> not found." }`
-- `DELETE` league while teams still reference it → `400`; league and teams remain.
-- `DELETE` person while a player still references them → `400`; person and player remain.
-- `DELETE` team → team and its player rows are removed; people remain.
-- Authenticated `student` (or any non-admin) on `POST` / `PUT` / `DELETE` → `403`.
+- Section `sectionNumber` longer than 10 characters → **"Section number must be 10 characters or fewer."**
+- Duplicate section `sectionNumber` in the same course → `400` with `{ "message": "Section number is already taken in this course." }`
+- Same section number in a **different** course is allowed.
+- Unknown `courseId` → `400` with `{ "message": "Course not found." }`
+- Unknown `sectionId` on PUT/DELETE → `404` with `{ "message": "Section with id=<id> not found." }`
+- `DELETE` course while sections still reference it → `400`; course and sections remain.
+- `DELETE` section → section and its player rows are removed; people remain.
+- Authenticated `student` (or any non-faculty) on `POST` / `PUT` / `DELETE` → `403`.
 - Authenticated `student` on `GET` → `200`.
-- Unauthenticated user on `/teams`, `/teams/:teamId`, or `GET /league/teams` → redirect or `401`.
-- Unknown `teamId` on the team view → error **"Team with id= not found."**
+- Unauthenticated user on `/sections`, `/sections/:sectionId`, or `GET /course/sections` → redirect or `401`.
+- Unknown `sectionId` on the section view → error **"Section with id= not found."**
 
 
 
 ## Success Criteria
 
 - **SC-001**: Every Gherkin scenario has at least one automated test before merge.
-- **SC-002**: A signed-in admin can create and delete teams on the teams list, and edit a team from the team view.
-- **SC-003**: A signed-in admin can open a team view and add or edit players (name, number, position) from that view.
-- **SC-004**: A signed-in student MAY `GET` teams and players; they cannot open the teams manager and cannot mutate teams or players via the API.
-- **SC-005**: An admin cannot delete a league that still has teams, or a person who is still on a roster.
-- **SC-006**: `npm test` passes for team and player API and teams view behavior.
+- **SC-002**: A signed-in faculty can create and delete sections on the sections list, and edit a section from the section view.
+- **SC-003**: A signed-in student MAY `GET` sections; they cannot open the sections manager and cannot mutate sections via the API.
+- **SC-004**: A faculty cannot delete a course that still has sections.
+- **SC-005**: `npm test` passes for section API and sections view behavior.
 
 ---
 
@@ -177,19 +162,18 @@
 
 ## Data Ownership & Isolation
 
-Teams and players are a **shared catalog**. They are not owned by the signed-in admin. Only role `admin` may manage them. Any authenticated user MAY `GET` the catalog. Role `student` does not see the manager UI.
+Sections are not owned by the signed-in faculty. Only role `faculty` may manage them. Any authenticated user MAY `GET` the catalog. Role `student` does not see the manager UI.
 
 
-| Rule               | Requirement                                                                                                            |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| **Read scope**     | `GET /league/teams` returns **all** teams (with league and players) to any authenticated user.                         |
-| **Write scope**    | `POST`, `PUT`, and `DELETE` are allowed only when `req.user.role` is `admin`.                                          |
-| **Create scope**   | New teams and players have no owner. Ignore ownership `userId` if sent in the body.                                    |
-| **Missing team**   | Unknown `teamId` → `404` with `{ "message": "Team with id=<id> not found." }`. Never use ownership `404` to hide rows. |
-| **Missing player** | Unknown `playerId` → `404` with `{ "message": "Player with id=<id> not found." }`.                                     |
-| **Non-admin**      | Authenticated non-admin `GET` → `200`. `POST` / `PUT` / `DELETE` → `403` with `{ "message": "Admin role required." }`. |
-| **UI scope**       | **Teams** menu, `/teams`, and `/teams/:teamId` are admin-only. Students do not see this manager.                       |
-| **Implementation** | Use `authenticate` on all endpoints. Use `requireAdmin` after `authenticate` on `POST`, `PUT`, and `DELETE` only.      |
+| Rule                | Requirement                                                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Read scope**      | `GET /course/sections` returns **all** sections (with course) to any authenticated user.                                     |
+| **Write scope**     | `POST`, `PUT`, and `DELETE` are allowed only when `req.user.role` is `faculty`.                                              |
+| **Create scope**    | New sections and players have no owner. Ignore ownership `userId` if sent in the body.                                       |
+| **Missing section** | Unknown `sectionId` → `404` with `{ "message": "Section with id=<id> not found." }`. Never use ownership `404` to hide rows. |
+| **Non-faculty**     | Authenticated non-faculty `GET` → `200`. `POST` / `PUT` / `DELETE` → `403` with `{ "message": "Faculty role required." }`.   |
+| **UI scope**        | **Sections** menu, `/sections`, and `/sections/:sectionId` are faculty-only. Students do not see this manager.               |
+| **Implementation**  | Use `authenticate` on all endpoints. Use `requireFaculty` after `authenticate` on `POST`, `PUT`, and `DELETE` only.          |
 
 
 ---
@@ -199,89 +183,52 @@ Teams and players are a **shared catalog**. They are not owned by the signed-in 
 ## API Requirements
 
 
-| Method   | Endpoint                                  | Auth       | Purpose                                     |
-| -------- | ----------------------------------------- | ---------- | ------------------------------------------- |
-| `GET`    | `/league/teams`                           | Yes        | Fetch all teams with league and players     |
-| `POST`   | `/league/teams`                           | Yes, admin | Create a team in a league                   |
-| `PUT`    | `/league/teams/:teamId`                   | Yes, admin | Update a team's name, league, or home field |
-| `DELETE` | `/league/teams/:teamId`                   | Yes, admin | Delete a team and its player rows           |
-| `GET`    | `/league/teams/:teamId/players`           | Yes        | Fetch players on one team                   |
-| `POST`   | `/league/teams/:teamId/players`           | Yes, admin | Add a player to a team                      |
-| `PUT`    | `/league/teams/:teamId/players/:playerId` | Yes, admin | Update a player's position or number        |
-| `DELETE` | `/league/teams/:teamId/players/:playerId` | Yes, admin | Remove a player from a team                 |
+| Method   | Endpoint                                  | Auth       | Purpose                                                                 |
+| -------- | ----------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| `GET`    | `/course/sections`                        | Yes        | Fetch all sections with course                                          |
+| `POST`   | `/course/sections`                        | Yes, admin | Create a section in a course                                            |
+| `PUT`    | `/course/sections/:sectionId`             | Yes, admin | Update a section's name, course, days of week, start time, and end time |
+| `DELETE` | `/course/sections/:sectionId`             | Yes, admin | Delete a section                                                        |
 
 
-**Create team request body:**
+**Create section request body:**
 
 ```json
 {
-  "name": "OKC Strikers",
-  "leagueId": 1,
-  "homeField": "Memorial Field"
+  "sectionNumber": "01",
+  "semesterId": 1,
+  "courseId": 1,
+  "facultyId": 1,
+  "daysOfWeek": "MWF",
+  "startTime": 09:00:00,
+  "endTime": 09:50:00
 }
 ```
 
-Do not send `id` on create. Players are **not** created in this body.
+Do not send `id` on create.
 
-**Update team request body:** same fields as create (no `id`).
+**Update section request body:** same fields as create (no `id`).
 
-**Team success response** (`200` / `201`):
+**Section success response** (`200` / `201`):
 
 ```json
 {
   "id": 1,
-  "name": "OKC Strikers",
-  "leagueId": 1,
-  "homeField": "Memorial Field",
-  "league": {
-    "id": 1,
-    "name": "OKC Youth Soccer",
-    "sport": "soccer"
-  },
-  "players": [],
+  "sectionNumber": "01",
+  "semesterId": 1,
+  "courseId": 1,
+  "facultyId": 1,
+  "daysOfWeek": "MWF",
+  "startTime": 09:00:00,
+  "endTime": 09:50:00,
   "createdAt": "2026-07-02T12:00:00.000Z",
   "updatedAt": "2026-07-02T12:00:00.000Z"
 }
 ```
 
-`GET /league/teams` returns an **array** of team objects in this shape, including each team's `players` array.
+`GET /course/sections` returns an **array** of section objects in this shape.
 
-**Create player request body:**
-
-```json
-{
-  "personId": 1,
-  "position": "Forward",
-  "number": 10
-}
-```
-
-**Update player request body:** `position` and `number` (and `personId` if changing the person). Do not send `teamId` in the body.
-
-**Player success response** (`200` / `201`):
-
-```json
-{
-  "id": 1,
-  "teamId": 1,
-  "personId": 1,
-  "position": "Forward",
-  "number": 10,
-  "person": {
-    "id": 1,
-    "firstName": "Jane",
-    "lastName": "Doe"
-  },
-  "createdAt": "2026-07-02T12:00:00.000Z",
-  "updatedAt": "2026-07-02T12:00:00.000Z"
-}
-```
-
-**Error response:** `{ "message": "Human-readable explanation." }` with appropriate HTTP status.  
-**Not found:** `404` for unknown `teamId` / `playerId`.  
-**Missing parent:** `400` (FR-009 / FR-010).
-
-This feature also changes Feature 3–4 delete APIs (FR-013): `DELETE /league/leagues/:leagueId` and `DELETE /league/people/:personId` MUST return `400` with the quoted FR-013 message when teams or players still reference that row.
+This feature also changes Feature 3–4 delete APIs (FR-010): `DELETE /course/courses/:courseId` MUST return `400` with the quoted FR-013 message when sections still reference that row.
 
 ---
 
@@ -291,63 +238,59 @@ This feature also changes Feature 3–4 delete APIs (FR-013): `DELETE /league/le
 
 
 
-### [View: Teams] — route name `teams` — path `/teams` — `Teams.vue`
+### [View: Sections] — route name `sections` — path `/sections` — `Sections.vue`
 
-- Heading: **Teams**
-- Primary action: **+ New team** (`oc-cta`) opens the **Add Team** `<v-dialog>`.
-- **Add Team** fields:
-  - **Team Name** (`v-text-field`)
-  - **League** (`v-select` of existing leagues, display league `name`)
-  - **Home Field** (`v-text-field`)
-- **Add Team** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
-- List: `v-table` (or `v-list`); columns **team name**, **league**, and **players** (count); rows ordered by league name then team name (FR-006).
-- Team name is plain text (not a link).
+- Heading: **Sections**
+- Primary action: **+ New section** (`oc-cta`) opens the **Add Section** `<v-dialog>`.
+- **Add Section** fields:
+  - **Section Number** (`v-text-field`)
+  - **Course** (`v-select` of existing courses, display course `name`)
+  - **Days Of Week** (`v-text-field`)
+  - **Start Time** (`v-text-field`)
+  - **End Time** (`v-text-field`)
+- **Add Section** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
+- List: `v-table` (or `v-list`); columns **section number**, **course**; rows ordered by course name then section name (FR-006).
+- Section number is plain text (not a link).
 - Icon-only row actions use `size="small"` and accessible `aria-label`s:
-  - **Open team** — team icon (`mdi-account-group`) navigates to the **Team** view (`/teams/:teamId`)
-  - **Delete team** — opens **Delete Team** confirmation `<v-dialog>` with copy **"Delete this team?"**; **Delete Team** (`oc-cta`) / **Cancel** (secondary)
+  - **Open section** — section icon (`mdi-account-group`) navigates to the **Section** view (`/sections/:sectionId`)
+  - **Delete section** — opens **Delete Section** confirmation `<v-dialog>` with copy **"Delete this section?"**; **Delete Section** (`oc-cta`) / **Cancel** (secondary)
 - Client-side validation: required fields use inline rules (`"Required"`); invalid submit does not send an API request.
-- **Empty state:** **"No teams yet. Create your first team."** when the catalog has zero teams.
-- **Loading state:** skeleton or progress indicator while teams are fetching.
+- **Empty state:** **"No sections yet. Create your first section."** when the catalog has zero sections.
+- **Loading state:** skeleton or progress indicator while sections are fetching.
 - **Error state:** `<v-alert type="error">` for API failures.
-- Admin-only: **Teams** menu item and `/teams` are for signed-in admin users. Other roles do not see the **Teams** item. Unauthenticated navigation to `/teams` redirects to `login`.
+- Faculty-only: **Sections** menu item and `/sections` are for signed-in faculty users. Other roles do not see the **Sections** item. Unauthenticated navigation to `/sections` redirects to `login`.
 
 
 
-### [View: Team] — route name `team` — path `/teams/:teamId` — `Team.vue`
+### [View: Section] — route name `section` — path `/sections/:sectionId` — `Section.vue`
 
-This is the team view (team main).
+This is the section view (section main).
 
-- **Heading area** shows team info: team **name**, **league** name (and sport if already on the nested `league` object), and **home field**.
+- **Heading area** shows section info: section **sectionNumber**, **course** name, **daysOfWeek**, **startTime**, and **endTime**.
 - Actions in the heading area:
-  - **Edit team** (`oc-cta`) opens the **Edit Team** `<v-dialog>` pre-filled with current name, league, and home field.
-  - **Add Players** (`oc-cta`) opens the **Add Player** `<v-dialog>`.
-- **Edit Team** fields (name, league, and home field — no player list in this dialog):
-  - **Team Name** (`v-text-field`)
-  - **League** (`v-select` of existing leagues, display league `name`)
-  - **Home Field** (`v-text-field`)
-- **Edit Team** actions: **Save Team** (`oc-cta`) / **Cancel** (secondary). After a successful save, the heading area shows the updated team info and the dialog closes.
-- **Player list:** `v-table` (or `v-list`); columns **name** (person last name, first name), **number**, and **position**; rows ordered by `number` (FR-006).
-- Each player row has an icon-only **Edit player** action (`size="small"`, `aria-label` **Edit player**) that opens the **Edit Player** `<v-dialog>` pre-filled with that player's person, number, and position.
+  - **Edit section** (`oc-cta`) opens the **Edit Section** `<v-dialog>` pre-filled with current sectionNumber, course, daysOfWeek, startTime, and endTime.
+- **Edit Section** fields (sectionNumber, course, daysOfWeek, startTime, and endTime):
+  - **Section Number** (`v-text-field`)
+  - **Course** (`v-select` of existing courses, display course `name`)
+  - **Days Of Week** (`v-text-field`)
+  - **Start Time** (`v-text-field`)
+  - **End Time** (`v-text-field`)
+- **Edit Section** actions: **Save Section** (`oc-cta`) / **Cancel** (secondary). After a successful save, the heading area shows the updated section info and the dialog closes.
 - **Add Player** / **Edit Player** fields (same set; edit pre-filled):
   - **Person** (`v-select` of existing people, display last name, first name)
   - **Number** (`v-text-field` type number)
   - **Position** (`v-text-field`)
-- **Add Player** actions: **Add** (`oc-cta`) / **Cancel** (secondary).
-- **Edit Player** actions: **Save Player** (`oc-cta`) / **Cancel** (secondary).
-- Each player row also has **Remove player** (existing US-5.8): confirmation **"Remove this player from the team?"**; **Remove Player** (`oc-cta`) / **Cancel** (secondary).
-- Client-side validation: required fields use inline rules (`"Required"`); invalid submit does not send an API request.
-- **Empty roster:** **"No players yet. Add the first player."** when the team has zero players.
-- **Loading state:** skeleton or progress indicator while the team is fetching.
-- **Error state:** `<v-alert type="error">` for API failures. Unknown `teamId` shows **"Team with id= not found."**
-- Admin-only: `/teams/:teamId` is for signed-in admin users. Unauthenticated navigation redirects to `login`.
-- Team and player dialogs live in `Team.vue` (or child presentational dialogs). **Edit Team** MUST NOT contain the player list. No sidebar/main split.
+- **Loading state:** skeleton or progress indicator while the section is fetching.
+- **Error state:** `<v-alert type="error">` for API failures. Unknown `sectionId` shows **"Section with id= not found."**
+- Faculty-only: `/sections/:sectionId` is for signed-in faculty users. Unauthenticated navigation redirects to `login`.
+- Section dialogs live in `Section.vue` (or child presentational dialogs). No sidebar/main split.
 
 **App chrome**
 
 - Use the `MenuBar` introduced in [Feature 1](feature-1-user-auth.md). Do **not** create a second `MenuBar`. Do **not** hide it on `login` / `register`.
-- Add **Teams** (allowed role `admin`; navigates to `/teams`) to `MenuBar`. Keep name, **Sign out**, **Seasons**, **Leagues**, and **People** from Features 1–4.
-- Students MUST NOT see **Teams**.
-- After login, the user remains on Feature 1 `home`. Selecting **Teams** in the menu opens the teams list. Opening a team from that list shows the team view.
+- Add **Sections** (allowed role `faculty`; navigates to `/sections`) to `MenuBar`. Keep name, **Sign out**, **Semesters**, **Courses**, and **Faculty** from Features 1–4.
+- Students MUST NOT see **Sections**.
+- After login, the user remains on Feature 1 `home`. Selecting **Sections** in the menu opens the sections list. Opening a section from that list shows the section view.
 
 ---
 
@@ -355,8 +298,7 @@ This is the team view (team main).
 
 ## Key Entities
 
-- **Team**: named roster that belongs to one **League**. Shared catalog row. Not owned by a user. A league may have many teams.
-- **Player**: a **Person** on a **Team**, with a `position` and `number`. Not a second person record. Deleting a player or team does not delete the person.
+- **Section**: section number that belongs to a **Course**. Shared catalog row. Not owned by a user. A course may have many sections.
 
 ---
 
@@ -366,49 +308,31 @@ This is the team view (team main).
 
 
 
-### `teams` table
+### `sections` table
 
 
-| Field       | Type       | Rules                                    |
-| ----------- | ---------- | ---------------------------------------- |
-| `id`        | INTEGER PK | Auto-increment                           |
-| `name`      | STRING(50) | Required; trimmed; at most 50 characters |
-| `homeField` | STRING(50) | Required; trimmed; at most 50 characters |
-| `leagueId`  | INTEGER FK | Required; references `leagues.id`        |
-| `createdAt` | DATE       | Sequelize timestamps                     |
-| `updatedAt` | DATE       | Sequelize timestamps                     |
+| Field            | Type       | Rules                                                                           |
+| ---------------- | ---------- | ------------------------------------------------------------------------------- |
+| `id`             | INTEGER PK | Auto-increment                                                                  |
+| `sectionNumber`  | STRING(2)  | Required; trimmed; exactly two digits (01 - 99); unique per course and semester |
+| `semesterId`     | INTEGER FK | Required; references `semester.id`                                              |
+| `courseId`       | INTEGER FK | Required; references `course.id`                                                |
+| `facultyId`      | INTEGER FK | Required; references `faculty.id`                                               |
+| `daysOfWeek`     | STRING(10) | Required; trimmed; at most 10 characters                                        |
+| `StartTime`      | TIME       | Required; valid clock time HH:mm:ss                                             |
+| `endTime`        | TIME       | Required; valid clock time HH:mm:ss                                             |
 
 
-Unique index on (`leagueId`, `name`).  
-`leagueId` uses `ON DELETE RESTRICT`.
-
-### `players` table
-
-
-| Field       | Type       | Rules                                    |
-| ----------- | ---------- | ---------------------------------------- |
-| `id`        | INTEGER PK | Auto-increment                           |
-| `teamId`    | INTEGER FK | Required; references `teams.id`          |
-| `personId`  | INTEGER FK | Required; references `people.id`         |
-| `position`  | STRING(30) | Required; trimmed; at most 30 characters |
-| `number`    | INTEGER    | Required; integer 0–99                   |
-| `createdAt` | DATE       | Sequelize timestamps                     |
-| `updatedAt` | DATE       | Sequelize timestamps                     |
-
-
-Unique index on (`teamId`, `personId`).  
-Unique index on (`teamId`, `number`).  
-`teamId` uses `ON DELETE CASCADE`.  
-`personId` uses `ON DELETE RESTRICT`.
+Unique index on (`semesterId`, `courseId`).
+Unique index on (`facultyId`, `sectionNumber`).  
+`semesterId` uses `ON DELETE CASADE`.
+`courseId` uses `ON DELETE RESTRICT`.
+`facultyId` uses `ON DELETE RESTRICT`.
 
 ### Associations (in `models/index.js`)
 
-- `Team belongsTo League` (`leagueId`, `onDelete: 'RESTRICT'`)
-- `League hasMany Team`
-- `Player belongsTo Team` (`teamId`, `onDelete: 'CASCADE'`)
-- `Player belongsTo Person` (`personId`, `onDelete: 'RESTRICT'`)
-- `Team hasMany Player`
-- `Person hasMany Player`
+- `Section belongsTo course` (`courseID`, `onDelete: 'RESTRICT'`)
+- `Course hasMany Section`
 
 ---
 
@@ -418,41 +342,43 @@ Unique index on (`teamId`, `number`).
 
 
 
-### US-5.1 — Select to work with Teams
+### US-5.1 — Select to work with Sections
 
 
 
 #### Scenario: Menu Selection
 
-- **Given** I am signed in as a user with role `admin`
-- **When** I click **Teams** in the `MenuBar`
-- **Then** the teams view is displayed
+- **Given** I am signed in as a user with role `faculty`
+- **When** I click **Sections** in the `MenuBar`
+- **Then** the sections view is displayed
 
 
 
-### US-5.2 — Create team
+### US-5.2 — Create section
 
 
 
-#### Scenario: User creates a new team
+#### Scenario: User creates a new section
 
-- **Given** I am signed in as a user with role `admin`
-- **And** a league `OKC Youth Soccer` exists
-- **And** I am viewing the teams view
-- **When** I click **+ New team**
-- **And** I enter team name `OKC Strikers`, home field `Memorial Field`, and select league `OKC Youth Soccer`
+- **Given** I am signed in as a user with role `faculty`
+- **And** a semester `Spring 2027` exists
+- **And** a course `Programming 1` exists
+- **And** a faculty `David North` exists
+- **And** I am viewing the sections view
+- **When** I click **+ New section**
+- **And** I enter section number `01`, select semester `Spring 2027`, select course `Programming 1`, select faculty `David North`, I enter days of week `MWF`, I enter start time `09:00:00`, and I enter end time `09:50:00`.
 - **And** I click **Create**
-- **Then** the API returns `201` with a team object containing `id`, `name` `OKC Strikers`, `homeField` `Memorial Field`, and nested `league.name` `OKC Youth Soccer`
-- **And** `OKC Strikers` appears in the teams view list
-- **And** the add-team dialog closes
+- **Then** the API returns `201` with a section object containing `id`, `sectionNumber` `01`, `daysOfWeek` `MWF`, `startTime` `09:00:00`, `endTime` `09:50:00`, and nested `course.name` `Programming 1`
+- **And** `Programming 1`, `01` appears in the sections view list
+- **And** the add-section dialog closes
 
 
 
-#### Scenario: User creates a team with a missing required field
+#### Scenario: User creates a section with a missing required field
 
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **When** I click **+ New team**
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **When** I click **+ New section**
 - **And** I leave a required field empty
 - **And** I click **Create**
 - **Then** no API call is made
@@ -460,408 +386,115 @@ Unique index on (`teamId`, `number`).
 
 
 
-#### Scenario: User creates a team with a name that is too long
+#### Scenario: User creates a section with a number that is too long
 
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **When** I click **+ New team**
-- **And** I enter a team name longer than 50 characters with a valid league
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **When** I click **+ New section**
+- **And** I enter a section name longer than 10 characters with a valid course
 - **And** I click **Create**
 - **Then** no API call is made
-- **And** I see the message **"Team name must be 50 characters or fewer."**
+- **And** I see the message **"Section name must be 10 characters or fewer."**
 
 
 
-#### Scenario: User creates a team with an unknown league
+#### Scenario: User creates a section with an unknown course
 
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **When** I send `POST /league/teams` with a `leagueId` that does not exist and otherwise valid data
-- **Then** the API returns `400` with `{ "message": "League not found." }`
-- **And** no team is stored
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **When** I send `POST /course/sections` with a `courseId` that does not exist and otherwise valid data
+- **Then** the API returns `400` with `{ "message": "Course not found." }`
+- **And** no section is stored
 
 
 
-#### Scenario: User creates a team with a duplicate name in the same league
+#### Scenario: User creates a section with a duplicate number in the same course
 
-- **Given** I am signed in as a user with role `admin`
-- **And** a team named `OKC Strikers` already exists in league `OKC Youth Soccer`
-- **And** I am viewing the teams view
-- **When** I click **+ New team**
-- **And** I enter team name `OKC Strikers` and select league `OKC Youth Soccer`
+- **Given** I am signed in as a user with role `faculty`
+- **And** a section number `01` already exists in course `Programming 1`
+- **And** I am viewing the sections view
+- **When** I click **+ New section**
+- **And** I enter section number `01` and select course `Programming 1`
 - **And** I click **Create**
-- **Then** the API returns `400` with `{ "message": "Team name is already taken in this league." }`
-- **And** no second team named `OKC Strikers` is stored in that league
+- **Then** the API returns `400` with `{ "message": "Section numer is already taken in this course." }`
+- **And** no second section number`01` is stored in that course
 
 ---
 
 
 
-### US-5.3 — View teams
+### US-5.3 — View sections
 
 
 
-#### Scenario: Teams view loads with existing teams
+#### Scenario: Sections view loads with existing sections
 
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **And** teams exist
-- **When** I view the teams list
-- **Then** all the teams are displayed in the list
-
-
-
-#### Scenario: User has no teams
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **And** there are no teams
-- **When** I view the teams list
-- **Then** I see **"No teams yet. Create your first team."**
-
----
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **And** sections exist
+- **When** I view the sections list
+- **Then** all the sections are displayed in the list
 
 
 
-### US-5.4 — Manage team rows
+#### Scenario: Courses have no sections
 
-
-
-#### Scenario: team rows open the team view and show a delete action
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **When** I view a team row
-- **Then** the team name is not a link
-- **And** the team row shows an **Open team** icon action
-- **And** the team row shows a **Delete team** icon action
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **And** there are no sections
+- **When** I view the sections list
+- **Then** I see **"No sections yet. Create your first section."**
 
 ---
 
 
 
-### US-5.5 — Edit a team
+### US-5.4 — Manage section rows
 
 
 
-#### Scenario: User selects to edit a team
+#### Scenario: section rows open the section view and show a delete action
 
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **When** I click **Edit team**
-- **Then** the team edit dialog is displayed
-
-
-
-#### Scenario: User edits a team with valid values and saves
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **And** the team edit dialog is displayed
-- **When** I update values in the fields with valid values
-- **And** I click **Save Team**
-- **Then** the team data is updated
-- **And** the heading area shows the updated team info
-- **And** the dialog is closed
-
-
-
-#### Scenario: User edits a team with invalid values and saves
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **And** the team edit dialog is displayed
-- **When** I update values in the fields with invalid values
-- **And** I click **Save Team**
-- **Then** the appropriate error messages are shown
-- **And** the dialog is not closed
-
-
-
-#### Scenario: User edits a team and cancels
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **And** the team edit dialog is displayed
-- **When** I update values in the fields
-- **And** I click **Cancel**
-- **Then** the team data is not updated
-- **And** the dialog is closed
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **When** I view a section row
+- **Then** the section name is not a link
+- **And** the section row shows an **Open section** icon action
+- **And** the section row shows a **Delete section** icon action
 
 ---
 
 
-
-### US-5.6 — Delete a team
-
-
-
-#### Scenario: User selects to delete a team
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **When** I click the delete icon on a team row
-- **Then** the team delete dialog is displayed
+### US-5.5 — View a section
 
 
 
-#### Scenario: User deletes a team
+#### Scenario: User opens a section from the sections list
 
 - **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **And** the team delete dialog is displayed
-- **When** I click **Delete Team**
-- **Then** the team is deleted
-- **And** the dialog is closed
-- **And** the team is not in the teams list
+- **And** I am viewing the sections view
+- **And** a section `OKC Strikers` exists in course `OKC Youth Soccer`
+- **When** I click the **Open section** icon on the `OKC Strikers` row
+- **Then** the section view is displayed
 
 
 
-#### Scenario: User deletes a team that has players
+#### Scenario: Section view shows section info and actions
 
 - **Given** I am signed in as a user with role `admin`
-- **And** a team `OKC Strikers` has a player
-- **And** I am viewing the teams view
-- **And** the team delete dialog is displayed
-- **When** I click **Delete Team**
-- **Then** the team is deleted
-- **And** that team's player rows are deleted
-- **And** the people who were players still exist
-
-
-
-#### Scenario: User cancels deleting a team
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **And** the team delete dialog is displayed
-- **When** I click **Cancel**
-- **Then** the team is not deleted
-- **And** the dialog is closed
-- **And** the team is still in the teams list
-
----
-
-
-
-### US-5.7 — Restrict team management to admins
-
-
-
-#### Scenario: Student does not see Teams in the menu
-
-- **Given** I am signed in as a user with role `student`
-- **When** I view the `MenuBar`
-- **Then** **Teams** is not shown
-
-
-
-#### Scenario: Student can list teams via the API
-
-- **Given** I am signed in as a user with role `student`
-- **When** I request `GET /league/teams`
-- **Then** the API returns `200` with an array of team objects
-
-
-
-#### Scenario: Student cannot create a team via the API
-
-- **Given** I am signed in as a user with role `student`
-- **When** I send `POST /league/teams` with a valid team body
-- **Then** the API returns `403` with `{ "message": "Admin role required." }`
-- **And** no new team is stored
-
-
-
-#### Scenario: Student cannot add a player via the API
-
-- **Given** I am signed in as a user with role `student`
-- **And** a team exists
-- **When** I send `POST /league/teams/:teamId/players` with a valid player body
-- **Then** the API returns `403` with `{ "message": "Admin role required." }`
-- **And** no new player is stored
-
-
-
-#### Scenario: Unauthenticated API request to teams
-
-- **Given** I have no valid session token
-- **When** I request `GET /league/teams`
-- **Then** the API returns `401` with an unauthorized message
-
-
-
-#### Scenario: Unauthenticated user navigates to teams
-
-- **Given** I have no session in `localStorage`
-- **When** I navigate to `/teams`
-- **Then** I am redirected to the login page
-
-
-
-#### Scenario: Unauthenticated user navigates to a team
-
-- **Given** I have no session in `localStorage`
-- **When** I navigate to `/teams/1`
-- **Then** I am redirected to the login page
-
----
-
-
-
-### US-5.8 — Manage team players
-
-
-
-#### Scenario: User adds a player to a team
-
-- **Given** I am signed in as a user with role `admin`
-- **And** a team `OKC Strikers` exists
-- **And** a person `Jane Doe` exists
-- **And** I am viewing the team view for `OKC Strikers`
-- **When** I click **Add Players**
-- **And** I select person `Doe, Jane`, enter number `10`, and position `Forward`
-- **And** I click **Add**
-- **Then** the API returns `201` with a player object containing `personId` for `Jane Doe`, `position` `Forward`, and `number` `10`
-- **And** `Doe` appears in the team's players list with number `10` and position `Forward`
-- **And** the add-player dialog closes
-
-
-
-#### Scenario: User selects to add a player
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **When** I click **Add Players**
-- **Then** the add-player dialog is displayed
-
-
-
-#### Scenario: User adds a player with a missing required field
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **And** the add-player dialog is displayed
-- **When** I leave a required field empty
-- **And** I click **Add**
-- **Then** no API call is made
-- **And** I see the message **"Required"**
-
-
-
-#### Scenario: User adds a player who is already on the team
-
-- **Given** I am signed in as a user with role `admin`
-- **And** `Jane Doe` is already a player on team `OKC Strikers`
-- **And** I am viewing the team view for `OKC Strikers`
-- **And** the add-player dialog is displayed
-- **When** I select person `Doe, Jane` with otherwise valid data
-- **And** I click **Add**
-- **Then** the API returns `400` with `{ "message": "Person is already on this team." }`
-- **And** no second player row for `Jane Doe` is stored on that team
-
-
-
-#### Scenario: User adds a player with a number that is already taken on the team
-
-- **Given** I am signed in as a user with role `admin`
-- **And** team `OKC Strikers` already has a player with number `10`
-- **And** I am viewing the team view for `OKC Strikers`
-- **And** the add-player dialog is displayed
-- **When** I enter number `10` with otherwise valid data
-- **And** I click **Add**
-- **Then** the API returns `400` with `{ "message": "Player number is already taken on this team." }`
-- **And** no second player with number `10` is stored on that team
-
-
-
-#### Scenario: User adds a player with an unknown person
-
-- **Given** I am signed in as a user with role `admin`
-- **When** I send `POST /league/teams/:teamId/players` with a `personId` that does not exist and otherwise valid data
-- **Then** the API returns `400` with `{ "message": "Person not found." }`
-- **And** no player is stored
-
-
-
-#### Scenario: User selects to edit a player
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **And** a player is in the players list
-- **When** I click the edit icon on that player row
-- **Then** the player edit dialog is displayed
-
-
-
-#### Scenario: User edits a player with valid values and saves
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view
-- **And** the player edit dialog is displayed
-- **When** I update number and position with valid values
-- **And** I click **Save Player**
-- **Then** the player data is updated
-- **And** the players list shows the updated number and position
-- **And** the dialog is closed
-
-
-
-#### Scenario: User removes a player from a team
-
-- **Given** I am signed in as a user with role `admin`
-- **And** `Jane Doe` is a player on team `OKC Strikers`
-- **And** I am viewing the team view for `OKC Strikers`
-- **And** the remove-player dialog is displayed
-- **When** I click **Remove Player**
-- **Then** the player row is deleted
-- **And** `Jane Doe` is not in that team's players list
-- **And** the person `Jane Doe` still exists
-
-
-
-#### Scenario: Team with no players shows empty roster
-
-- **Given** I am signed in as a user with role `admin`
-- **And** team `OKC Strikers` has no players
-- **And** I am viewing the team view for `OKC Strikers`
-- **When** I view the players list
-- **Then** I see **"No players yet. Add the first player."**
-
----
-
-
-
-### US-5.10 — View a team
-
-
-
-#### Scenario: User opens a team from the teams list
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the teams view
-- **And** a team `OKC Strikers` exists in league `OKC Youth Soccer`
-- **When** I click the **Open team** icon on the `OKC Strikers` row
-- **Then** the team view is displayed
-
-
-
-#### Scenario: Team view shows team info and actions
-
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the team view for `OKC Strikers` in league `OKC Youth Soccer`
-- **Then** the heading area shows team name `OKC Strikers`
-- **And** the heading area shows league `OKC Youth Soccer`
-- **And** **Edit team** is shown
+- **And** I am viewing the section view for `OKC Strikers` in course `OKC Youth Soccer`
+- **Then** the heading area shows section name `OKC Strikers`
+- **And** the heading area shows course `OKC Youth Soccer`
+- **And** **Edit section** is shown
 - **And** **Add Players** is shown
 
 
 
-#### Scenario: Team view lists players with name, number, and position
+#### Scenario: Section view lists players with name, number, and position
 
 - **Given** I am signed in as a user with role `admin`
-- **And** `Jane Doe` is a player on team `OKC Strikers` with number `10` and position `Forward`
-- **And** I am viewing the team view for `OKC Strikers`
+- **And** `Jane Doe` is a player on section `OKC Strikers` with number `10` and position `Forward`
+- **And** I am viewing the section view for `OKC Strikers`
 - **When** I view the players list
 - **Then** the list shows name `Doe, Jane`, number `10`, and position `Forward`
 - **And** the player row shows an **Edit player** icon action
@@ -870,29 +503,147 @@ Unique index on (`teamId`, `number`).
 
 
 
-### US-5.9 — Block delete of referenced league or person
+### US-5.6 — Edit a section
 
 
 
-#### Scenario: User cannot delete a league that has a team
+#### Scenario: User selects to edit a section
 
-- **Given** I am signed in as a user with role `admin`
-- **And** a team exists in league `OKC Youth Soccer`
-- **When** I send `DELETE /league/leagues/:leagueId` for that league
-- **Then** the API returns `400` with `{ "message": "Cannot delete league: teams still exist." }`
-- **And** the league is still stored
-- **And** the team is still stored
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the section view
+- **When** I click **Edit section**
+- **Then** the section edit dialog is displayed
 
 
 
-#### Scenario: User cannot delete a person who is a player
+#### Scenario: User edits a section with valid values and saves
 
-- **Given** I am signed in as a user with role `admin`
-- **And** `Jane Doe` is a player on a team
-- **When** I send `DELETE /league/people/:personId` for that person
-- **Then** the API returns `400` with `{ "message": "Cannot delete person: team roster still exists." }`
-- **And** the person is still stored
-- **And** the player row is still stored
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the section view
+- **And** the section edit dialog is displayed
+- **When** I update values in the fields with valid values
+- **And** I click **Save Section**
+- **Then** the section data is updated
+- **And** the heading area shows the updated section info
+- **And** the dialog is closed
+
+
+
+#### Scenario: User edits a section with invalid values and saves
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the section view
+- **And** the section edit dialog is displayed
+- **When** I update values in the fields with invalid values
+- **And** I click **Save Section**
+- **Then** the appropriate error messages are shown
+- **And** the dialog is not closed
+
+
+
+#### Scenario: User edits a section and cancels
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the section view
+- **And** the section edit dialog is displayed
+- **When** I update values in the fields
+- **And** I click **Cancel**
+- **Then** the section data is not updated
+- **And** the dialog is closed
+
+---
+
+
+
+### US-5.7 — Delete a section
+
+
+
+#### Scenario: User selects to delete a section
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **When** I click the delete icon on a section row
+- **Then** the section delete dialog is displayed
+
+
+
+#### Scenario: User deletes a section
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **And** the section delete dialog is displayed
+- **When** I click **Delete Section**
+- **Then** the section is deleted
+- **And** the dialog is closed
+- **And** the section is not in the sections list
+
+
+
+#### Scenario: User cancels deleting a section
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the sections view
+- **And** the section delete dialog is displayed
+- **When** I click **Cancel**
+- **Then** the section is not deleted
+- **And** the dialog is closed
+- **And** the section is still in the sections list
+
+---
+
+
+
+### US-5.8 — Restrict section management to faculty
+
+
+
+#### Scenario: Student does not see Sections in the menu
+
+- **Given** I am signed in as a user with role `student`
+- **When** I view the `MenuBar`
+- **Then** **Sections** is not shown
+
+
+
+#### Scenario: Student can list sections via the API
+
+- **Given** I am signed in as a user with role `student`
+- **When** I request `GET /course/sections`
+- **Then** the API returns `200` with an array of section objects
+
+
+
+#### Scenario: Student cannot create a section via the API
+
+- **Given** I am signed in as a user with role `student`
+- **When** I send `POST /course/sections` with a valid section body
+- **Then** the API returns `403` with `{ "message": "Faculty role required." }`
+- **And** no new section is stored
+
+
+
+#### Scenario: Unauthenticated API request to sections
+
+- **Given** I have no valid session token
+- **When** I request `GET /course/sections`
+- **Then** the API returns `401` with an unauthorized message
+
+
+
+#### Scenario: Unauthenticated user navigates to sections
+
+- **Given** I have no session in `localStorage`
+- **When** I navigate to `/sections`
+- **Then** I am redirected to the login page
+
+
+
+#### Scenario: Unauthenticated user navigates to a section
+
+- **Given** I have no session in `localStorage`
+- **When** I navigate to `/sections/1`
+- **Then** I am redirected to the login page
 
 ---
 
@@ -901,47 +652,33 @@ Unique index on (`teamId`, `number`).
 ## Test Coverage Map
 
 
-| Story   | Scenario                                                           | Test file                                                        | Test name                                                            |
-| ------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------- |
-| US-5.1  | Menu Selection                                                     | `frontend/tests/MenuBar.test.js`, `frontend/tests/Teams.test.js` | `Menu Selection`                                                     |
-| US-5.2  | User creates a new team                                            | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User creates a new team`                                            |
-| US-5.2  | User creates a team with a missing required field                  | `frontend/tests/Teams.test.js`                                   | `User creates a team with a missing required field`                  |
-| US-5.2  | User creates a team with a name that is too long                   | `frontend/tests/Teams.test.js`                                   | `User creates a team with a name that is too long`                   |
-| US-5.2  | User creates a team with an unknown league                         | `backend/tests/teams.test.js`                                    | `User creates a team with an unknown league`                         |
-| US-5.2  | User creates a team with a duplicate name in the same league       | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User creates a team with a duplicate name in the same league`       |
-| US-5.3  | Teams view loads with existing teams                               | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `Teams view loads with existing teams`                               |
-| US-5.3  | User has no teams                                                  | `frontend/tests/Teams.test.js`                                   | `User has no teams`                                                  |
-| US-5.4  | team rows open the team view and show a delete action              | `frontend/tests/Teams.test.js`                                   | `team rows open the team view and show a delete action`              |
-| US-5.5  | User selects to edit a team                                        | `frontend/tests/Teams.test.js`                                   | `User selects to edit a team`                                        |
-| US-5.5  | User edits a team with valid values and saves                      | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User edits a team with valid values and saves`                      |
-| US-5.5  | User edits a team with invalid values and saves                    | `frontend/tests/Teams.test.js`                                   | `User edits a team with invalid values and saves`                    |
-| US-5.5  | User edits a team and cancels                                      | `frontend/tests/Teams.test.js`                                   | `User edits a team and cancels`                                      |
-| US-5.6  | User selects to delete a team                                      | `frontend/tests/Teams.test.js`                                   | `User selects to delete a team`                                      |
-| US-5.6  | User deletes a team                                                | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User deletes a team`                                                |
-| US-5.6  | User deletes a team that has players                               | `backend/tests/teams.test.js`                                    | `User deletes a team that has players`                               |
-| US-5.6  | User cancels deleting a team                                       | `frontend/tests/Teams.test.js`                                   | `User cancels deleting a team`                                       |
-| US-5.7  | Student does not see Teams in the menu                             | `frontend/tests/MenuBar.test.js`                                 | `Student does not see Teams in the menu`                             |
-| US-5.7  | Student can list teams via the API                                 | `backend/tests/teams.test.js`                                    | `Student can list teams via the API`                                 |
-| US-5.7  | Student cannot create a team via the API                           | `backend/tests/teams.test.js`                                    | `Student cannot create a team via the API`                           |
-| US-5.7  | Student cannot add a player via the API                            | `backend/tests/teams.test.js`                                    | `Student cannot add a player via the API`                            |
-| US-5.7  | Unauthenticated API request to teams                               | `backend/tests/teams.test.js`                                    | `Unauthenticated API request to teams`                               |
-| US-5.7  | Unauthenticated user navigates to teams                            | `frontend/tests/router.test.js`                                  | `Unauthenticated user navigates to teams`                            |
-| US-5.7  | Unauthenticated user navigates to a team                           | `frontend/tests/router.test.js`                                  | `Unauthenticated user navigates to a team`                           |
-| US-5.8  | User adds a player to a team                                       | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User adds a player to a team`                                       |
-| US-5.8  | User selects to add a player                                       | `frontend/tests/Teams.test.js`                                   | `User selects to add a player`                                       |
-| US-5.8  | User adds a player with a missing required field                   | `frontend/tests/Teams.test.js`                                   | `User adds a player with a missing required field`                   |
-| US-5.8  | User adds a player who is already on the team                      | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User adds a player who is already on the team`                      |
-| US-5.8  | User adds a player with a number that is already taken on the team | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User adds a player with a number that is already taken on the team` |
-| US-5.8  | User adds a player with an unknown person                          | `backend/tests/teams.test.js`                                    | `User adds a player with an unknown person`                          |
-| US-5.8  | User selects to edit a player                                      | `frontend/tests/Teams.test.js`                                   | `User selects to edit a player`                                      |
-| US-5.8  | User edits a player with valid values and saves                    | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User edits a player with valid values and saves`                    |
-| US-5.8  | User removes a player from a team                                  | `backend/tests/teams.test.js`, `frontend/tests/Teams.test.js`    | `User removes a player from a team`                                  |
-| US-5.8  | Team with no players shows empty roster                            | `frontend/tests/Teams.test.js`                                   | `Team with no players shows empty roster`                            |
-| US-5.10 | User opens a team from the teams list                              | `frontend/tests/Teams.test.js`                                   | `User opens a team from the teams list`                              |
-| US-5.10 | Team view shows team info and actions                              | `frontend/tests/Teams.test.js`                                   | `Team view shows team info and actions`                              |
-| US-5.10 | Team view lists players with name, number, and position            | `frontend/tests/Teams.test.js`                                   | `Team view lists players with name, number, and position`            |
-| US-5.9  | User cannot delete a league that has a team                        | `backend/tests/leagues.test.js`, `backend/tests/teams.test.js`   | `User cannot delete a league that has a team`                        |
-| US-5.9  | User cannot delete a person who is a player                        | `backend/tests/people.test.js`, `backend/tests/teams.test.js`    | `User cannot delete a person who is a player`                        |
+| Story  | Scenario | Test file | Test name |
+| ------ | -------- | --------- | --------- |
+| US-5.1 | Menu Selection | `frontend/tests/MenuBar.test.js`, `frontend/tests/Sections.test.js` | `Menu Selection` |
+| US-5.2 | User creates a new section | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `User creates a new section` |
+| US-5.2 | User creates a section with a missing required field | `frontend/tests/Sections.test.js` | `User creates a section with a missing required field` |
+| US-5.2 | User creates a section with a number that is too long | `frontend/tests/Sections.test.js` | `User creates a section with a number that is too long` |
+| US-5.2 | User creates a section with an unknown course | `backend/tests/sections.test.js` | `User creates a section with an unknown course` |
+| US-5.2 | User creates a section with a duplicate number in the same course | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `User creates a section with a duplicate number in the same course` |
+| US-5.3 | Sections view loads with existing sections | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `Sections view loads with existing sections` |
+| US-5.3 | Courses have no sections | `frontend/tests/Sections.test.js` | `Courses have no sections` |
+| US-5.4 | section rows open the section view and show a delete action | `frontend/tests/Sections.test.js` | `section rows open the section view and show a delete action` |
+| US-5.5 | User opens a section from the sections list | `frontend/tests/Sections.test.js` | `User opens a section from the sections list` |
+| US-5.5 | Section view shows section info and actions | `frontend/tests/Section.test.js` | `Section view shows section info and actions` |
+| US-5.5 | Section view lists players with name, number, and position | `frontend/tests/Section.test.js` | `Section view lists players with name, number, and position` |
+| US-5.6 | User selects to edit a section | `frontend/tests/Section.test.js` | `User selects to edit a section` |
+| US-5.6 | User edits a section with valid values and saves | `backend/tests/sections.test.js`, `frontend/tests/Section.test.js` | `User edits a section with valid values and saves` |
+| US-5.6 | User edits a section with invalid values and saves | `frontend/tests/Section.test.js` | `User edits a section with invalid values and saves` |
+| US-5.6 | User edits a section and cancels | `frontend/tests/Section.test.js` | `User edits a section and cancels` |
+| US-5.7 | User selects to delete a section | `frontend/tests/Sections.test.js` | `User selects to delete a section` |
+| US-5.7 | User deletes a section | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `User deletes a section` |
+| US-5.7 | User cancels deleting a section | `frontend/tests/Sections.test.js` | `User cancels deleting a section` |
+| US-5.8 | Student does not see Sections in the menu | `frontend/tests/MenuBar.test.js` | `Student does not see Sections in the menu` |
+| US-5.8 | Student can list sections via the API | `backend/tests/sections.test.js` | `Student can list sections via the API` |
+| US-5.8 | Student cannot create a section via the API | `backend/tests/sections.test.js` | `Student cannot create a section via the API` |
+| US-5.8 | Unauthenticated API request to sections | `backend/tests/sections.test.js` | `Unauthenticated API request to sections` |
+| US-5.8 | Unauthenticated user navigates to sections | `frontend/tests/router.test.js` | `Unauthenticated user navigates to sections` |
+| US-5.8 | Unauthenticated user navigates to a section | `frontend/tests/router.test.js` | `Unauthenticated user navigates to a section` |
 
 
 
@@ -955,7 +692,7 @@ Unique index on (`teamId`, `number`).
 Copy when asking Cursor to implement this feature (`@` this file):
 
 ```text
-Implement Feature 5 from @features/feature-5-team-management.md on branch `feature/5-team-management`.
+Implement Feature 5 from @features/feature-5-section-management.md on branch `feature/5-section-management`.
 
 Follow layer order in @features/framework.md (models → routes → backend tests → frontend → frontend tests).
 Map every Gherkin scenario in the Test Coverage Map; run `npm test` before finishing.
@@ -986,13 +723,10 @@ Do not implement behavior not in this spec.
 
 ## Out of Scope
 
-- Student-facing team or roster UI (API `GET` is in this feature)
-- Assigning a team to a season
-- Coaches, staff, or captains as separate roles ([Feature 9](feature-9-team-manager.md) adds an optional team **manager** person)
-- A closed list of positions
-- Creating people from the add-player dialog (people stay in [Feature 4](feature-4-people-management.md))
-- Non-admin team management UI
-- Creating `MenuBar` (introduced in [Feature 1](feature-1-user-auth.md); this feature only adds **Teams** for role `admin`)
+- Student-facing section or roster UI (API `GET` is in this feature)
+- Assigning a section to a season
+- Non-faculty section management UI
+- Creating `MenuBar` (introduced in [Feature 1](feature-1-user-auth.md); this feature only adds **Sections** for role `faculty`)
 
 ---
 
@@ -1000,11 +734,10 @@ Do not implement behavior not in this spec.
 
 ## Delivered to later features
 
-- `MenuBar` is Feature 1 chrome; Features 2–4 added **Seasons**, **Leagues**, and **People**; this feature added **Teams** for `admin`.
+- `MenuBar` is Feature 1 chrome; Features 2–4 added **Semesters**, **Courses**, and **Faculty**; this feature added **Sections** for `faculty`.
 - A later feature MUST add its nav item to this `MenuBar`; it MUST NOT create a second `MenuBar`.
-- The `teams` table belongs to `leagues`. The `players` table attaches Feature 4 **people** to a team with position and number.
-- [Feature 6](feature-6-game-management.md) attaches games to teams. A team MAY have many games. Feature 6 MUST reject `DELETE /league/teams/:teamId` with `400` when games still reference that team.
-- [Feature 9](feature-9-team-manager.md) adds optional `managerId` (a Feature 4 person) on the team.
+- The `sections` table belongs to `courses`.
+- [Feature 6](feature-6-enrollment-management.md) enrolls users to sections. A section MAY have many enrolled users. Feature 6 MUST reject `DELETE /course/sections/:sectionId` with `400` when enrolled users still reference that section.
 
 ---
 
