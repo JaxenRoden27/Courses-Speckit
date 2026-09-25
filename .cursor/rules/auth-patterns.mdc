@@ -8,18 +8,18 @@ globs: "frontend/src/**/*, backend/app/controllers/auth.*, backend/app/models/se
 *   Fields: `token`, `email`, `expirationDate`, `userId` (FK to users).
 *   Token stored server-side; client sends it as Bearer header on each request.
 *   Session TTL: 24 hours (`expiresIn: 86400` on JWT; matching `expirationDate` on row).
-*   On login, reuse non-expired session for same email before issuing a new token.
+*   On login, reuse a non-expired session for the same `userId` before issuing a new token.
 
 ## Login Response Payload
 Return flat JSON (not wrapped):
 ```json
 {
   "userId": 1,
-  "username": "jdoe",
+  "universityId": "ST1111",
   "email": "jdoe@example.com",
   "fName": "Jane",
   "lName": "Doe",
-  "role": "worker",
+  "role": "student",
   "token": "<jwt>"
 }
 ```
