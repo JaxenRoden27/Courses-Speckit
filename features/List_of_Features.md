@@ -22,7 +22,7 @@ Users
 • lastName
 • email
 • universityId
-• userName
+• userName      -- actually just going to use universityId instead
 • password
 • role
 
