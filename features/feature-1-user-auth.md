@@ -418,7 +418,6 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **When** I view the `MenuBar`
 - **Then** **Faculty** is not shown
 - **And** **Section** is not shown
-- **And** **Enrollment** is not shown
 - **And** **Student Course Listing** is not shown
 - **And** **Section Student Listing** is not shown
 
@@ -529,6 +528,6 @@ Do not implement behavior not in this spec.
 - Feature 3 adds **Course** (allowed role `student`) to this `MenuBar`.
 - Feature 4 adds **Faculty** (allowed role `faculty`) to this `MenuBar`.
 - Feature 5 adds **Section** (allowed role `faculty`) to this `MenuBar`.
-- Feature 6 adds **Enrollment** (allowed role `faculty`) to this `MenuBar`.
+- Feature 6 adds **Enrollment** (allowed role `faculty` && `student`) to this `MenuBar`.
 - Feature 7 adds **Student Course Listing** (allowed role `faculty`) to this `MenuBar`.
 - Feature 8 adds **Section Student Listing** (allowed role `faculty`) to this `MenuBar`.
