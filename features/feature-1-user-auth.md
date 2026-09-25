@@ -1,7 +1,7 @@
 # Feature: User Authentication & Session Management
 
 **Feature ID:** 1
-**Branch pattern:** `feature-1-user-auth`
+**Branch pattern:** `feature/1-user-auth`
 **Status:** Ready
 **Created:** 2026-09-23
 **Input:** Multi-user authentication and session management so each user can sign in and access private role based data
@@ -14,8 +14,8 @@
 ### US-1.1: Register an account
 
 **As a** new user  
-**I want to** create an account with my name, email, username, and password  
-**So that** I can sign in and do the activites allowed for my role
+**I want to** create an account with my name, email, universityId, and password  
+**So that** I can sign in and do the activities allowed for my role
 
 **Priority:** P1  
 **Independent test:** Submit valid registration and land on protected home with `user` with their role in `localStorage`  
@@ -24,7 +24,7 @@
 ### US-1.2: Sign in
 
 **As a** registered user  
-**I want to** sign in with my username and password  
+**I want to** sign in with my universityId and password  
 **So that** I can access the application dashboard securely
 
 **Priority:** P1  
@@ -77,18 +77,20 @@
 
 ### Functional Requirements
 
-- **FR-001**: Users MUST authenticate with **username** + **password** (not email-only login).
-- **FR-002**: Registration MUST collect first name, last name, email, username, and password.
+- **FR-001**: Users MUST authenticate with **universityId** + **password** (not email-only login). universityId MUST be trimmed and stored lowercase.
+- **FR-002**: Registration MUST collect first name, last name, email, universityId, password, and confirm password. Confirm password MUST match password and MUST NOT be stored.
 - **FR-003**: Passwords MUST be hashed with **bcrypt** (`SALT_ROUNDS = 10`) before persistence; hashes MUST never be returned by the API.
-- **FR-004**: Sessions MUST use a **JWT + Session table** pattern: token stored server-side; client sends `Authorization: Bearer <token>`.
+- **FR-004**: Sessions MUST use a **JWT + Session table** pattern: token stored server-side; client sends `Authorization: Bearer <token>`. Successful registration MUST create a session and return the same payload as login, with HTTP `201`.
 - **FR-005**: Session lifetime MUST be **24 hours** from creation.
-- **FR-006**: Login MUST reuse a non-expired session for the same user when one already exists.
-- **FR-007**: Allowed roles are `student` and `faculty`. Registration MUST NOT accept a role from the client. New users MUST be stored with role `student`.
+- **FR-006**: Login MUST reuse a non-expired session for the same user (`userId`) when one already exists.
+- **FR-007**: Allowed roles are `student` and `faculty`. Registration MUST NOT accept a role from the client. New users MUST be stored with role `student`. This feature has no way to create a `faculty` user; tests that need one insert the row directly.
 - **FR-008**: Every authenticated request MUST resolve to exactly one user via `req.user.id` from the session token (foundation for later features that need the signed-in user).
-- **FR-009**: Registration MUST use shared `emailRules` from `frontend/src/config/validation.js` — required plus regex (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`); invalid format message: **"Enter a valid email address."**
+- **FR-009**: Registration MUST use shared `emailRules` from `frontend/src/config/validation.js` — required plus regex (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`); invalid format message: **"Enter a valid email address."** Required-field messages: **"First name is required."**, **"Last name is required."**, **"Email is required."**, **"University ID is required."**, **"Password is required."**
 - **FR-010**: This feature MUST **introduce** `MenuBar` in `App.vue` (`<MenuBar />` above `<v-main>`). `MenuBar` MUST be visible on `login`, `register`, and `home`.
-- **FR-011**: `MenuBar` MUST show **Sign out** when a session exists (including if the user is on `login`). When there is no session, **Sign out** MUST be hidden.
-- **FR-012**: `MenuBar` nav items MUST be filtered by the signed-in user's `role` field from the `users` table / `localStorage` `user` payload. An item is shown only when `user.role` is in that item's allowed roles. Feature 1 ships **Sign out** (all authenticated roles) and no catalog links;
+- **FR-011**: `MenuBar` MUST show **Sign out** when a session exists and the user is on a page they are allowed to stay on (`home`). When there is no session, **Sign out** MUST be hidden. A signed-in user who opens `login` MUST be redirected to `home`.
+- **FR-012**: `MenuBar` nav items MUST be filtered by the signed-in user's `role` from the `users` table / `localStorage` `user` payload. An item is shown only when `user.role` is in that item's allowed roles. Feature 1 ships **Sign out** for every authenticated role and no catalog links.
+- **FR-013**: Password length MUST be at least 8 characters. The client MUST block a shorter password with **"Password must be at least 8 characters."** The server MUST reject a shorter password with `400` and that same message.
+- **FR-014**: Whitespace-only required fields MUST be rejected on the client and on the server.
 
 ---
 
@@ -96,13 +98,16 @@
 
 - Greenfield app — no existing users or external identity provider.
 - Single browser `localStorage` session per device (no multi-tab sync beyond shared storage).
-- Semester catalog UI is deferred to Feature 2; Courses catalog is deferred to Feature 2. Feature 1 delivers auth, a minimal protected home, and `MenuBar` (role-based items + **Sign out**).
+- Product roles are `student` and `faculty`. The starter role `worker` in ADR-0002 does not apply.
+- A `faculty` user in US-1.6 is test data. Registration always stores `student`. Feature 4 manages Faculty records, not user accounts.
+- Semester catalog UI is deferred to Feature 2; course catalog UI is deferred to Feature 3. Feature 1 delivers auth, a minimal protected home, and `MenuBar` (**Sign out** only).
+- University IDs for students are in the form ST####, Faculty are FA#### and Admin are AD####
 
 ## Edge Cases
 
-- Duplicate username or email on register → `400` with clear message.
-- Invalid login credentials → `401` (same message for wrong username or password).
-- Missing or expired token on protected API → `401`; frontend clears session and redirects to login.
+- Duplicate universityId or email on register → `400` with clear message.
+- Unknown universityId or wrong password on login → `401` with `{ "message": "Invalid University ID or password." }`.
+- Missing token on a protected API → `401` with `{ "message": "Unauthorized! No token provided." }`. Expired or revoked token → `401` with `{ "message": "Unauthorized! Invalid or expired token." }`. The frontend clears `localStorage` key `user` and redirects to login.
 - Whitespace-only required fields → rejected (client and/or server).
 
 ## Success Criteria
@@ -128,7 +133,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 
 | Method | Endpoint            | Auth | Purpose                                 |
 | ------ | ------------------- | ---- | --------------------------------------- |
-| `POST` | `/courses/register` | No   | Create a new user account               |
+| `POST` | `/courses/register` | No   | Create a user, start a session, return `201` |
 | `POST` | `/courses/login`    | No   | Authenticate and return session payload |
 | `POST` | `/courses/logout`   | Yes  | Invalidate current session token        |
 
@@ -137,7 +142,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 ```json
 {
   "userId": 1,
-  "username": "jdoe",
+  "universityId": "ST1111",
   "email": "jdoe@example.com",
   "fName": "Jane",
   "lName": "Doe",
@@ -155,7 +160,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 ### [View: Login Page] — route name `login`
 
 - Auth form with `MenuBar` visible (this feature introduces `MenuBar`; do not hide it on login).
-- Fields: username, password.
+- Fields: universityId, password.
 - Primary action: **Sign in** (`v-btn`, shows `:loading` while request is in flight).
 - Link or button to navigate to registration.
 - Inline error via `<v-alert type="error">` on failed login.
@@ -163,7 +168,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 ### [View: Register Page] — route name `register`
 
 - Auth form with `MenuBar` visible.
-- Fields: first name, last name, email, username, password, confirm password.
+- Fields: first name, last name, email, universityId, password, confirm password.
 - No role field. The server assigns `student`.
 - Email field uses shared `emailRules` from `frontend/src/config/validation.js` (required + regex format).
 - Primary action: **Create account**.
@@ -173,22 +178,22 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 ### [View: Home placeholder] — route name `home`
 
 - Minimal protected landing page shown after successful login or registration. This is **not** the semester list (`/semester` is Feature 2) or the courses list (`/course` is Feature 3).
-- Displays a welcome message using the user's first name.
+- Displays **"Welcome, {first name}."** using the signed-in user's first name.
 - No on-page **Sign out** button — sign-out is only in `MenuBar`.
 
 **App chrome**
 
 - **Introduce** `MenuBar` in this feature. Mount it in `App.vue` (`<MenuBar />` above `<v-main>`).
-- `MenuBar` is visible on `login`, `register`, and `home` (deviation from hide-on-login in `ui-style-system.mdc`).
-- No session: `MenuBar` shows with no catalog items and **no** **Sign out**.
-- Session exists: `MenuBar` shows the signed-in user's name, **Sign out**, and only nav items allowed for `user.role`.
-- Feature 1 catalog items: none. Later features register items against roles (`student` → **Semester** in Feature 2, **Course** in Feature 3, `faculty` → **Faculty** in Feature 4, **Section** in Feature 5, **Enrollment** in Feature 6, **Student Course Listing** in Feature 7, **Section Student Listing** in Feature 8).
+- `MenuBar` is visible on `login`, `register`, and `home`.
+- No session: `MenuBar` shows with no catalog items and no **Sign out**.
+- Session exists on `home`: `MenuBar` shows the signed-in user's name, **Sign out**, and only nav items allowed for `user.role`.
+- Feature 1 catalog items: none. Later features add one item each: **Semester** (Feature 2, `student`), **Course** (Feature 3, `student`), **Faculty** (Feature 4, `faculty`), **Section** (Feature 5, `faculty`), **Enrollment** (Feature 6, `faculty`), **Student Course Listing** (Feature 7, `faculty`), **Section Student Listing** (Feature 8, `faculty`).
 
 ---
 
 ## Key Entities
 
-- **User**: registered account (name, email, username, role);
+- **User**: registered account (name, email, universityId, role).
 - **Session**: server-side record tying a JWT token to a user; expires after 24 hours.
 
 ---
@@ -197,15 +202,15 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 
 ### `users` table
 
-| Field      | Type        | Rules                              |
-| ---------- | ----------- | ---------------------------------- |
-| `id`       | INTEGER PK  | Auto-increment                     |
-| `fName`    | STRING      | Required                           |
-| `lName`    | STRING      | Required                           |
-| `email`    | STRING      | Required, unique                   |
-| `username` | STRING(100) | Required, unique; stored lowercase |
-| `password` | STRING(255) | Required; bcrypt hash only         |
-| `role`     | STRING(20)  | `student` or `faculty`; default `student`; registration ignores a client-supplied role |
+| Field         | Type        | Rules                              |
+| ------------- | ----------- | ---------------------------------- |
+| `id`          | INTEGER PK  | Auto-increment                     |
+| `fName`       | STRING      | Required                           |
+| `lName`       | STRING      | Required                           |
+| `email`       | STRING      | Required, unique                   |
+| `universityId` | STRING(6)   | Required, unique; trim and store lowercase |
+| `password`    | STRING(255) | Required; bcrypt hash only         |
+| `role`        | STRING(20)  | `student` or `faculty`; default `student`; registration ignores a client-supplied role |
 
 ### `sessions` table
 
@@ -213,7 +218,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 | ---------------- | ---------- | ------------------------------- |
 | `id`             | INTEGER PK | Auto-increment                  |
 | `token`          | STRING     | Required                        |
-| `email`          | STRING     | Required                        |
+| `email`          | STRING     | Required; copy of the user's email. Reuse looks up `userId`, not email |
 | `expirationDate` | DATE       | Required                        |
 | `userId`         | INTEGER FK | Required, references `users.id` |
 
@@ -226,9 +231,9 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 #### Scenario: User registers with valid information
 
 - **Given** I am on the registration page
-- **When** I enter valid first name, last name, email, username, password, and matching confirm password
+- **When** I enter valid first name, last name, email, universityId, password, and matching confirm password
 - **And** I submit the form
-- **Then** the API returns `201` with a user payload including `userId`, `username`, `email`, `token`, and `role`
+- **Then** the API returns `201` with a user payload including `userId`, `universityId`, `email`, `token`, and `role`
 - **And** `role` is `student`
 - **And** my user record is stored in the database with a bcrypt password hash
 - **And** I am redirected to the home page
@@ -252,13 +257,13 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **And** I see the message **"Enter a valid email address."**
 - **And** no API request is sent
 
-#### Scenario: User submits registration with missing username
+#### Scenario: User submits registration with missing universityId
 
 - **Given** I am on the registration page
-- **When** I leave the username field empty
+- **When** I leave the universityId field empty
 - **And** I submit the form
 - **Then** inline validation blocks the request
-- **And** I see the message **"Username is required."**
+- **And** I see the message **"University ID is required."**
 - **And** no API request is sent
 
 #### Scenario: User submits registration with password too short
@@ -268,6 +273,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **And** I submit the form
 - **Then** inline validation blocks the request
 - **And** I see the message **"Password must be at least 8 characters."**
+- **And** no API request is sent
 
 #### Scenario: User submits registration with mismatched passwords
 
@@ -276,12 +282,13 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **And** I submit the form
 - **Then** inline validation blocks the request
 - **And** I see the message **"Passwords do not match."**
+- **And** no API request is sent
 
-#### Scenario: User registers with a duplicate username
+#### Scenario: User registers with a duplicate universityId
 
-- **Given** a user with username `jdoe` already exists
-- **When** I submit registration with username `jdoe`
-- **Then** the API returns `400` with `{ "message": "Username is already taken." }`
+- **Given** a user with universityId `ST1111` already exists
+- **When** I submit registration with universityId `ST1111`
+- **Then** the API returns `400` with `{ "message": "University ID is already in use." }`
 - **And** the error is displayed in a `<v-alert type="error">`
 
 #### Scenario: User registers with a duplicate email
@@ -298,10 +305,10 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 #### Scenario: User signs in with valid credentials
 
 - **Given** I am on the login page
-- **And** a registered user exists with username `jdoe` and a known password
-- **When** I enter username `jdoe` and the correct password
+- **And** a registered user exists with universityId `ST2222` and a known password
+- **When** I enter universityId `ST2222` and the correct password
 - **And** I click **Sign in**
-- **Then** the API returns `200` with a payload containing `userId`, `username`, `token`, and `role`
+- **Then** the API returns `200` with a payload containing `userId`, `universityId`, `token`, and `role`
 - **And** a session row is created or reused in the database
 - **And** I am redirected to the home page
 - **And** my session is stored in `localStorage` under the key `user`
@@ -309,20 +316,20 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 #### Scenario: User signs in with invalid password
 
 - **Given** I am on the login page
-- **And** a registered user exists with username `jdoe`
-- **When** I enter username `jdoe` and an incorrect password
+- **And** a registered user exists with universityId `ST2222`
+- **When** I enter universityId `ST2222` and an incorrect password
 - **And** I click **Sign in**
-- **Then** the API returns `401` with `{ "message": "Invalid username or password." }`
+- **Then** the API returns `401` with `{ "message": "Invalid University ID or password." }`
 - **And** I remain on the login page
 - **And** the error is displayed in a `<v-alert type="error">`
 
-#### Scenario: User signs in with missing username
+#### Scenario: User signs in with missing universityId
 
 - **Given** I am on the login page
-- **When** I leave the username field empty
+- **When** I leave the universityId field empty
 - **And** I click **Sign in**
 - **Then** inline validation blocks the request
-- **And** I see the message **"Username is required."**
+- **And** I see the message **"University ID is required."**
 - **And** no API request is sent
 
 #### Scenario: User signs in with missing password
@@ -355,7 +362,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **Given** I am signed in as a user with role `student`
 - **And** my session token is expired or revoked
 - **When** the frontend makes an authenticated API request
-- **Then** the API returns `401` with an unauthorized message
+- **Then** the API returns `401` with `{ "message": "Unauthorized! Invalid or expired token." }`
 - **And** `localStorage` key `user` is cleared
 - **And** I am redirected to the login page
 
@@ -383,6 +390,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **Given** I have no session in `localStorage`
 - **When** I navigate directly to the home page
 - **Then** I am redirected to the login page
+- **And** a protected API request with no token returns `401` with `{ "message": "Unauthorized! No token provided." }`
 
 ---
 
@@ -394,7 +402,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **When** I am on the login page
 - **Then** the `MenuBar` is displayed
 - **And** **Sign out** is not shown
-- **And** **Semester** and **Courses** are not shown
+- **And** **Semester** and **Course** are not shown
 
 #### Scenario: Signed-in user sees Sign out in MenuBar
 
@@ -408,8 +416,9 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 
 - **Given** I am signed in as a user with role `student`
 - **When** I view the `MenuBar`
-- **Then** **Section Management** is not shown
-- **And** **Enrollment Management** is not shown
+- **Then** **Faculty** is not shown
+- **And** **Section** is not shown
+- **And** **Enrollment** is not shown
 - **And** **Student Course Listing** is not shown
 - **And** **Section Student Listing** is not shown
 
@@ -420,8 +429,9 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - **Then** **Sign out** is shown
 - **And** **Semester** is not shown
 - **And** **Course** is not shown
-- **And** **Section Management** is not shown
-- **And** **Enrollment Management** is not shown
+- **And** **Faculty** is not shown
+- **And** **Section** is not shown
+- **And** **Enrollment** is not shown
 - **And** **Student Course Listing** is not shown
 - **And** **Section Student Listing** is not shown
 
@@ -444,14 +454,14 @@ Each scenario above must map to at least one automated test.
 | US-1.1 | User registers with valid information                            | `backend/tests/auth.test.js`                                          | `User registers with valid information`                            |
 | US-1.1 | User submits registration with missing email                     | `backend/tests/auth.test.js`                                          | `User submits registration with missing email`                     |
 | US-1.1 | User submits registration with invalid email format              | `frontend/tests/Register.test.js`                                     | `User submits registration with invalid email format`              |
-| US-1.1 | User submits registration with missing username                  | `frontend/tests/Register.test.js`                                     | `User submits registration with missing username`                  |
+| US-1.1 | User submits registration with missing universityId              | `frontend/tests/Register.test.js`                                     | `User submits registration with missing universityId`                  |
 | US-1.1 | User submits registration with password too short                | `backend/tests/auth.test.js`, `frontend/tests/Register.test.js`       | `User submits registration with password too short`                |
 | US-1.1 | User submits registration with mismatched passwords              | `frontend/tests/Register.test.js`                                     | `User submits registration with mismatched passwords`              |
-| US-1.1 | User registers with a duplicate username                         | `backend/tests/auth.test.js`                                          | `User registers with a duplicate username`                         |
+| US-1.1 | User registers with a duplicate universityId                         | `backend/tests/auth.test.js`                                          | `User registers with a duplicate universityId`                         |
 | US-1.1 | User registers with a duplicate email                            | `backend/tests/auth.test.js`                                          | `User registers with a duplicate email`                            |
 | US-1.2 | User signs in with valid credentials                             | `backend/tests/auth.test.js`                                          | `User signs in with valid credentials`                             |
 | US-1.2 | User signs in with invalid password                              | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js`          | `User signs in with invalid password`                              |
-| US-1.2 | User signs in with missing username                              | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js`          | `User signs in with missing username`                              |
+| US-1.2 | User signs in with missing universityId                              | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js`          | `User signs in with missing universityId`                              |
 | US-1.2 | User signs in with missing password                              | `backend/tests/auth.test.js`, `frontend/tests/Login.test.js`          | `User signs in with missing password`                              |
 | US-1.3 | Signed-in user visits login page                                 | `frontend/tests/router.test.js`                                       | `Signed-in user visits login page`                                 |
 | US-1.3 | API request includes session token                               | `backend/tests/authenticate.test.js`                                  | `API request includes session token`                               |
@@ -504,7 +514,11 @@ Do not implement behavior not in this spec.
 - Admin user management
 - Semester CRUD / **Semester** nav item ([Feature 2](feature-2-semester-management.md))
 - Course CRUD / **Course** nav item ([Feature 3](feature-3-course-management.md))
+- Faculty CRUD / **Faculty** nav item ([Feature 4](feature-4-faculty-management.md))
 - Section CRUD / **Section** nav item ([Feature 5](feature-5-section-management.md))
+- Enrollment CRUD / **Enrollment** nav item ([Feature 6](feature-6-enrollment-management.md))
+- Student course listing / **Student Course Listing** nav item ([Feature 7](feature-7-student-course-listing.md))
+- Section student listing / **Section Student Listing** nav item ([Feature 8](feature-8-section-student-listing.md))
 
 ---
 
@@ -512,8 +526,9 @@ Do not implement behavior not in this spec.
 
 - `MenuBar` exists in `App.vue`, visible on `login` / `register` / `home`, with **Sign out** when a session exists and items filtered by `user.role`.
 - Feature 2 adds **Semester** (allowed role `student`) to this `MenuBar`; it MUST NOT create a second `MenuBar`.
-- Feature 3 adds **Courses** (allowed role `student`) to this `MenuBar`.
-- Feature 5 adds **Sections** (allowed role `faculty`) to this `MenuBar`.
+- Feature 3 adds **Course** (allowed role `student`) to this `MenuBar`.
+- Feature 4 adds **Faculty** (allowed role `faculty`) to this `MenuBar`.
+- Feature 5 adds **Section** (allowed role `faculty`) to this `MenuBar`.
 - Feature 6 adds **Enrollment** (allowed role `faculty`) to this `MenuBar`.
 - Feature 7 adds **Student Course Listing** (allowed role `faculty`) to this `MenuBar`.
 - Feature 8 adds **Section Student Listing** (allowed role `faculty`) to this `MenuBar`.
