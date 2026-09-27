@@ -22,7 +22,13 @@ const confirmPassword = ref("");
 const role = ref("student");
 const fNameRules = [(value) => !!value?.trim() || "First name is required."];
 const lNameRules = [(value) => !!value?.trim() || "Last name is required."];
-const universityIdRules = [(value) => !!value?.trim() || "University ID is required."];
+const universityIdRules = [
+  (value) => !!value?.trim() || "University ID is required.",
+  (value) =>
+    !value?.trim() ||
+    /^(ST|FA)\d{4}$/i.test(value.trim()) ||
+    "University ID must be ST#### for students or FA#### for faculty.",
+];
 const passwordRules = [
   (value) =>
     !value || value.length >= 8 || "Password must be at least 8 characters.",

@@ -10,7 +10,13 @@ const password = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
 
-const universityIdRules = [(value) => !!value?.trim() || "University ID is required."];
+const universityIdRules = [
+  (value) => !!value?.trim() || "University ID is required.",
+  (value) =>
+    !value?.trim() ||
+    /^(ST|FA)\d{4}$/i.test(value.trim()) ||
+    "University ID must be ST#### for students or FA#### for faculty.",
+];
 const passwordRules = [(value) => !!value || "Password is required."];
 
 const handleSubmit = async () => {
