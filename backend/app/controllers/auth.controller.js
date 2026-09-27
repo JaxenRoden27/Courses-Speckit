@@ -99,14 +99,6 @@ exports.register = async (req, res) => {
       password: hashedPassword,
     });
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const matchingPeople = (await db.person.findAll()).filter((person) =>
-      person.email.trim().toLowerCase() === normalizedEmail
-    );
-    if (matchingPeople.length === 1 && matchingPeople[0].userId == null) {
-      await matchingPeople[0].update({ userId: user.id });
-    }
-
     const token = await createOrReuseSession(user);
 
     return res.status(201).send(buildAuthResponse(user, token));
