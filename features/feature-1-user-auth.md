@@ -187,7 +187,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - `MenuBar` is visible on `login`, `register`, and `home`.
 - No session: `MenuBar` shows with no catalog items and no **Sign out**.
 - Session exists on `home`: `MenuBar` shows the signed-in user's name, **Sign out**, and only nav items allowed for `user.role`.
-- Feature 1 catalog items: none. Later features add one item each: **Semester** (Feature 2, `student`), **Course** (Feature 3, `student`), **Faculty** (Feature 4, `faculty`), **Section** (Feature 5, `faculty`), **Enrollment** (Feature 6, `faculty`), **Student Course Listing** (Feature 7, `faculty`), **Section Student Listing** (Feature 8, `faculty`).
+- Feature 1 catalog items: none. Later features add one item each: **Semesters** (Feature 2, `student` and `faculty`), **Course** (Feature 3, `student`), **Faculty** (Feature 4, `faculty`), **Section** (Feature 5, `faculty`), **Enrollment** (Feature 6, `faculty`), **Student Course Listing** (Feature 7, `faculty`), **Section Student Listing** (Feature 8, `faculty`).
 
 ---
 
@@ -524,7 +524,7 @@ Do not implement behavior not in this spec.
 ## Delivered to Feature 2
 
 - `MenuBar` exists in `App.vue`, visible on `login` / `register` / `home`, with **Sign out** when a session exists and items filtered by `user.role`.
-- Feature 2 adds **Semester** (allowed role `student`) to this `MenuBar`; it MUST NOT create a second `MenuBar`.
+- Feature 2 adds **Semesters** (allowed roles `student` and `faculty`) to this `MenuBar`; it MUST NOT create a second `MenuBar`.
 - Feature 3 adds **Course** (allowed role `student`) to this `MenuBar`.
 - Feature 4 adds **Faculty** (allowed role `faculty`) to this `MenuBar`.
 - Feature 5 adds **Section** (allowed role `faculty`) to this `MenuBar`.
