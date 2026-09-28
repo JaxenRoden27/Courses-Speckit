@@ -187,7 +187,7 @@ Feature 1 establishes identity. Later features decide which data a signed-in use
 - `MenuBar` is visible on `login`, `register`, and `home`.
 - No session: `MenuBar` shows with no catalog items and no **Sign out**.
 - Session exists on `home`: `MenuBar` shows the signed-in user's name, **Sign out**, and only nav items allowed for `user.role`.
-- Feature 1 catalog items: none. Later features add one item each: **Semesters** (Feature 2, `student` and `faculty`), **Course** (Feature 3, `student`), **Faculty** (Feature 4, `faculty`), **Section** (Feature 5, `faculty`), **Enrollment** (Feature 6, `faculty`), **Student Course Listing** (Feature 7, `faculty`), **Section Student Listing** (Feature 8, `faculty`).
+- Feature 1 catalog items: none. Later features add one item each: **Semesters** (Feature 2, `student` and `faculty`), **Course** (Feature 3, `student`), **Faculty** (Feature 4, `faculty`), **Section** (Feature 5, `faculty`), **Enrollment** (Feature 6, `faculty` and `student`), **Student Course Listing** (Feature 7, `faculty`), **Section Student Listing** (Feature 8, `faculty`).
 
 ---
 
