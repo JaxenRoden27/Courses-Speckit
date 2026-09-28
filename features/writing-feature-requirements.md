@@ -160,7 +160,7 @@ It answers three questions:
 | Line | Question | Example (US-1.2) |
 |------|----------|------------------|
 | **As a** … | *Who* cares? | registered user |
-| **I want to** … | *What* can they do? | sign in with username and password |
+| **I want to** … | *What* can they do? | sign in with universityId and password |
 | **So that** … | *Why* does it matter? | access the dashboard securely |
 
 Stories describe **outcomes**, not implementation. They drive FRs (rules), Gherkin AC (proof), and later tests. If you cannot name an **Independent test** for the story alone, the story is too vague or too big.
@@ -225,7 +225,7 @@ List every meaningful outcome this feature delivers. Number them **`US-<feature-
 ```markdown
 ### US-1.2: Sign in
 **As a** registered user
-**I want to** sign in with my username and password
+**I want to** sign in with my universityId and password
 **So that** I can access the application dashboard securely
 
 **Priority:** P1
@@ -273,7 +273,7 @@ Restart numbering at **FR-001** in every feature file.
 | Be specific enough to fail a test | “Auth must be secure” with no rule |
 | Cover validation, ownership, and key behaviors from the stories | Duplicate the entire story text |
 
-**Good:** `Users MUST authenticate with username + password (not email-only login).`  
+**Good:** `Users MUST authenticate with universityId + password (not email-only login).`  
 **Weak:** `Login should feel secure and fast.`
 
 While drafting, mark unknowns:
@@ -349,7 +349,7 @@ Turn entities into **tables and fields** this feature will persist. This is stil
 | Field | Type | Rules |
 |-------|------|-------|
 | `id` | INTEGER PK | Auto-increment |
-| `username` | STRING(100) | Required, unique; stored lowercase |
+| `universityId` | STRING(100) | Required, unique; stored lowercase |
 | `password` | STRING(255) | Required; bcrypt hash only |
 | … | … | … |
 
@@ -435,7 +435,7 @@ AC proves each user story with concrete scenarios. Group scenarios under a headi
 
 | Step | Use for | Example |
 |------|---------|---------|
-| **Given** | Preconditions | “I am on the login page”, “a user with username `jdoe` exists” |
+| **Given** | Preconditions | “I am on the login page”, “a user with universityId `jdoe` exists” |
 | **When** | The action under test | “I click **Sign in**”, “I send `POST /todo/login` …” |
 | **Then** | Pass/fail outcome | “the API returns `401`”, “I am redirected to home” |
 | **And** | Extra outcomes on the same scenario | “the error is displayed in a `<v-alert type="error">`” |
@@ -457,18 +457,18 @@ AC proves each user story with concrete scenarios. Group scenarios under a headi
 
 #### Scenario: User signs in with valid credentials
 *   **Given** I am on the login page
-*   **And** a registered user exists with username `jdoe` and a known password
-*   **When** I enter username `jdoe` and the correct password
+*   **And** a registered user exists with universityId `ST1111` and a known password
+*   **When** I enter universityId `ST1111` and the correct password
 *   **And** I click **Sign in**
-*   **Then** the API returns `200` with a payload containing `userId`, `username`, `token`, and `role`
+*   **Then** the API returns `200` with a payload containing `userId`, `universityId`, `token`, and `role`
 *   **And** I am redirected to the home page
 
 #### Scenario: User signs in with invalid password
 *   **Given** I am on the login page
-*   **And** a registered user exists with username `jdoe`
-*   **When** I enter username `jdoe` and an incorrect password
+*   **And** a registered user exists with universityId `ST1111`
+*   **When** I enter universityId `ST1111` and an incorrect password
 *   **And** I click **Sign in**
-*   **Then** the API returns `401` with `{ "message": "Invalid username or password." }`
+*   **Then** the API returns `401` with `{ "message": "Invalid universityId or password." }`
 *   **And** I remain on the login page
 ```
 

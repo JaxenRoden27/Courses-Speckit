@@ -126,6 +126,18 @@ function parseArgs(argv) {
       options.upsert = true;
       continue;
     }
+
+    // npm on Windows consumes `--feature` and forwards only the number.
+    if (/^[1-9]\d*$/.test(arg)) {
+      options.featureNums.push(Number.parseInt(arg, 10));
+    }
+  }
+
+  if (options.featureNums.length === 0) {
+    const fromNpm = process.env.npm_config_feature;
+    if (fromNpm && /^[1-9]\d*$/.test(fromNpm)) {
+      options.featureNums.push(Number.parseInt(fromNpm, 10));
+    }
   }
 
   if (options.upsert && options.featureNums.length === 0) {

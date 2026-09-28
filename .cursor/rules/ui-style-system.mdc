@@ -67,7 +67,7 @@ Map low → light chrome (list rows, subtle panels); medium → cards and primar
   <v-main><router-view /></v-main>
 </v-app>
 ```
-Hide `MenuBar` on login and register routes (Feature 1). Introduce `MenuBar` in Feature 2.
+Feature 1 introduces `MenuBar` and shows it on login, register, and home.
 
 ## Form Components
 *   Reusable forms use `v-model` via `defineProps({ modelValue })` + `emit("update:modelValue")`.
