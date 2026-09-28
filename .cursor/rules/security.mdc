@@ -1,11 +1,11 @@
 ---
 description: Authentication, session management, data scoping, and role-based access.
-globs: "backend/app/**/*"
+alwaysApply: false
 ---
 # Security & Access Control
 
 ## Authentication Flow
-1.  `POST /login` — validate `username` + `password`; normalize username: `trim().toLowerCase()`.
+1.  `POST /login` — validate `universityId` + `password`; normalize universityId: `trim().toLowerCase()`.
 2.  Look up user; compare password with `bcrypt.compare()` against hash from `User.unscoped()`.
 3.  Reuse valid Session row if token not expired; otherwise create new JWT + Session row.
 4.  Return user payload including `token`, `userId`, `role` (never return password hash).
