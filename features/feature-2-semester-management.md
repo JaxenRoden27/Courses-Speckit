@@ -12,7 +12,6 @@
 ## User Stories
 
 ### US-2.1: Open the semesters view
-
 **As a** signed-in student or faculty user
 **I want to** open the semesters view from the menu
 **So that** I can see the semesters I am allowed to work with
@@ -22,7 +21,6 @@
 **Acceptance scenarios:** see ### US-2.1 under Acceptance Criteria
 
 ### US-2.2: Create a semester
-
 **As a** signed-in student
 **I want to** create a semester by choosing a term and year (for example "Fall 2026" or "Spring 2025")
 **So that** I can track that semester
@@ -32,7 +30,6 @@
 **Acceptance scenarios:** see ### US-2.2 under Acceptance Criteria
 
 ### US-2.3: View semesters as cards
-
 **As a** signed-in student
 **I want to** see each of my semesters as a card on one screen
 **So that** I can see my semester catalog
@@ -42,7 +39,6 @@
 **Acceptance scenarios:** see ### US-2.3 under Acceptance Criteria
 
 ### US-2.4: See semester card details
-
 **As a** signed-in student
 **I want to** see the title (for example "Fall 2026" or "Spring 2025"), class count, start date, and end date on each semester card
 **So that** I can identify a semester without opening it
@@ -52,7 +48,6 @@
 **Acceptance scenarios:** see ### US-2.4 under Acceptance Criteria
 
 ### US-2.5: Enlarge a semester card
-
 **As a** signed-in student
 **I want to** open a semester card and see its full details
 **So that** I can review that semester
@@ -62,7 +57,6 @@
 **Acceptance scenarios:** see ### US-2.5 under Acceptance Criteria
 
 ### US-2.6: Manage a semester from the card
-
 **As a** signed-in student
 **I want** each of my semester cards to show **edit** and **delete**
 **So that** I can manage a semester without leaving the semesters view
@@ -72,7 +66,6 @@
 **Acceptance scenarios:** see ### US-2.6 under Acceptance Criteria
 
 ### US-2.7: Manage a semester from the enlarged view
-
 **As a** signed-in student
 **I want** the enlarged semester view to show **edit** and **delete**
 **So that** I can manage that semester from its details
@@ -82,7 +75,6 @@
 **Acceptance scenarios:** see ### US-2.7 under Acceptance Criteria
 
 ### US-2.8: Edit a semester
-
 **As a** signed-in student
 **I want to** change a semester's term and year
 **So that** I can keep the semester accurate
@@ -92,7 +84,6 @@
 **Acceptance scenarios:** see ### US-2.8 under Acceptance Criteria
 
 ### US-2.9: Delete a semester
-
 **As a** signed-in student
 **I want to** delete a semester
 **So that** I can remove a semester I no longer need
@@ -102,7 +93,6 @@
 **Acceptance scenarios:** see ### US-2.9 under Acceptance Criteria
 
 ### US-2.10: Show each role only the semesters they may see
-
 **As the** application
 **I want to** show a student only their own semesters, and show a faculty user every student's semesters with the student's name
 **So that** a student cannot view another student's catalog and faculty can review the full catalog
@@ -119,10 +109,9 @@
 - **FR-002**: Each semester belongs to exactly one student. `studentId` is that student's `users.id`. The API MUST ignore any client-supplied `id`, `userId`, `studentId`, `name`, `startDate`, `endDate`, and `classCount`.
 - **FR-003**: A student MAY create, view, edit, and delete only their own semesters. `studentId` in the path MUST equal the signed-in user's id. Another student's id returns `403` with `{ "message": "You can only access your own semesters." }`.
 - **FR-004**: A faculty user MAY view every student's semesters. Faculty MUST NOT create, edit, or delete a semester. `POST`, `PUT`, and `DELETE` by faculty return `403` with `{ "message": "Only the owning student can change this semester." }`.
-- **FR-005**: There is no `admin` role. Product roles remain Feature 1's `student` and `faculty`.
-- **FR-006**: Create and update send `term` and `year` only. `term` MUST be `Fall`, `Winter`, `Spring`, or `Summer`. `year` MUST be a four-digit integer. The stored `name` MUST be `"{term} {year}"` (for example `Fall 2026`).
-- **FR-007**: The server MUST set `startDate` and `endDate` from `term` and `year`. The client MUST NOT accept typed dates. `endDate` MUST be after `startDate`.
-- **FR-008**: A month's **week 1** is the Monday–Sunday period that contains the 1st. The next weeks follow in seven-day steps. **Nth weekday** means the nth time that weekday occurs in the month.
+- **FR-005**: Create and update send `term` and `year` only. `term` MUST be `Fall`, `Winter`, `Spring`, or `Summer`. `year` MUST be a four-digit integer. The stored `name` MUST be `"{term} {year}"` (for example `Fall 2026`).
+- **FR-006**: The server MUST set `startDate` and `endDate` from `term` and `year`. The client MUST NOT accept typed dates. `endDate` MUST be after `startDate`.
+- **FR-007**: A month's **week 1** is the Monday–Sunday period that contains the 1st. The next weeks follow in seven-day steps. **Nth weekday** means the nth time that weekday occurs in the month.
 
   | Term | Start | End |
   | ---- | ----- | --- |
@@ -132,12 +121,12 @@
   | Winter | 4th Monday of December of `year` | 1st Thursday of January of `year + 1` |
 
   Worked examples: Fall 2026 is `2026-08-27` through `2026-12-18`. Spring 2026 is `2026-01-05` through `2026-05-07`. Summer 2026 is `2026-05-11` through `2026-08-06`. Winter 2026 is `2026-12-28` through `2027-01-07`.
-- **FR-009**: The same student MUST NOT have two semesters with the same `term` and `year`. The duplicate response is `400` with `{ "message": "Semester already exists." }`.
-- **FR-010**: An unknown `studentId`, or a `studentId` whose user is not role `student`, returns `404` with `{ "message": "Student not found." }`. An unknown `semesterId`, or a semester that does not belong to that `studentId`, returns `404` with `{ "message": "Semester not found." }`.
-- **FR-011**: List responses MUST be ordered by `startDate` ascending, then `id` ascending.
-- **FR-012**: `classCount` is the number of courses in the semester. This feature stores no courses, so `classCount` MUST be `0`. It is not a column.
-- **FR-013**: Unauthenticated navigation to `/semesters` MUST redirect to `login`.
-- **FR-014**: **Semesters** in `MenuBar` is visible to `student` and `faculty`. **+ New Semester**, **Edit semester**, and **Delete semester** are visible only to the owning student.
+- **FR-008**: The same student MUST NOT have two semesters with the same `term` and `year`. The duplicate response is `400` with `{ "message": "Semester already exists." }`.
+- **FR-09**: An unknown `studentId`, or a `studentId` whose user is not role `student`, returns `404` with `{ "message": "Student not found." }`. An unknown `semesterId`, or a semester that does not belong to that `studentId`, returns `404` with `{ "message": "Semester not found." }`.
+- **FR-010**: List responses MUST be ordered by `startDate` ascending, then `id` ascending.
+- **FR-011**: `classCount` is the number of courses in the semester. This feature stores no courses, so `classCount` MUST be `0`.
+- **FR-012**: Unauthenticated navigation to `/semesters` MUST redirect to `login`.
+- **FR-013**: **Semesters** in `MenuBar` is visible to `student` and `faculty`. **+ New Semester**, **Edit semester**, and **Delete semester** are visible only to the owning student.
 
 ---
 
@@ -241,7 +230,7 @@ A semester is owned by the student who created it. Faculty may read every semest
 - **Add Semester** and **Edit Semester** fields:
   - **Term** (`v-select`): `Fall`, `Winter`, `Spring`, `Summer`
   - **Year** (`v-text-field`): four-digit year
-  - **Start date** and **End date**: read-only text, filled from FR-008 as soon as term and year are both valid. The user cannot type these dates.
+  - **Start date** and **End date**: read-only text, filled from FR-008 as soon as term and year are both valid. The user cannot type or edit these dates.
 - **Add Semester** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
 - **Edit Semester** actions: **Save Semester** (`oc-cta`) / **Cancel** (secondary). The dialog opens pre-filled with the semester's term and year.
 - Cards, not a table. One card per semester the caller is allowed to see, in `startDate` order.
@@ -253,7 +242,7 @@ A semester is owned by the student who created it. Faculty may read every semest
   - **Delete semester** — opens **Delete Semester** with the copy **"Delete this semester?"**; actions **Delete Semester** (`oc-cta`) / **Cancel** (secondary)
 - Client-side validation: empty term or year shows **"Required"** and does not send a request.
 - **Empty state (student):** **"No semesters yet. Create your first semester."**
-- **Empty state (faculty):** **"No semesters yet."**
+- **Empty state (faculty):** **"No semesters yet. No students have semesters yet."**
 - **Loading state:** skeleton or progress indicator while semesters are fetching.
 - **Error state:** `<v-alert type="error">` for API failures, including **"Semester already exists."**
 - Dialogs live in `Semesters.vue` (or child presentational dialogs). No sidebar/main split.
@@ -263,13 +252,13 @@ A semester is owned by the student who created it. Faculty may read every semest
 - Use the `MenuBar` from [Feature 1](feature-1-user-auth.md). Do not create a second `MenuBar`. Do not hide it on `login` / `register`.
 - Add **Semesters** (roles `student` and `faculty`; navigates to `/semesters`). Keep the signed-in name and **Sign out** from Feature 1.
 - After login the user remains on Feature 1 `home`. US-2.1 is choosing **Semesters** in the menu.
-- **Courses** is not on `MenuBar` yet. Feature 3 adds that item.
+- **Courses** is not on `MenuBar` yet. Feature 3 adds that item so don't add that.
 
 ---
 
 ## Key Entities
 
-- **Semester**: a term and year owned by one student (`users.id`), with a server-calculated start date and end date. A student may have many semesters. Courses are not stored yet.
+- **Semester**: a term and year owned by one student (`users.id`), with a server-calculated start date and end date. A student may have many semesters. Courses and sections of courses are not stored yet but when they do the course will get added to a semester but not owned by that semester.
 
 ---
 
@@ -662,7 +651,7 @@ Do not implement behavior not in this spec.
 
 ## Out of Scope
 
-- Courses in a semester ([Feature 3](feature-3-course-management.md))
+- Courses that are in a semester ([Feature 3](feature-3-course-management.md))
 - Sections inside a course ([Feature 5](feature-5-section-management.md))
 - Enrolling a student in a section ([Feature 6](feature-6-enrollment-management.md))
 - **Courses** menu item and courses view ([Feature 3](feature-3-course-management.md))
@@ -677,5 +666,6 @@ Do not implement behavior not in this spec.
 - `MenuBar` is Feature 1 chrome. Feature 2 added **Semesters** for `student` and `faculty`.
 - A semester is owned by one student and is addressed at `/students/:studentId/semesters`.
 - Feature 3 adds **Courses** to this `MenuBar` and adds courses inside a semester. It MUST NOT create a second `MenuBar`. `classCount` on a semester becomes the number of those courses.
+- [Feature 4](feature-4-faculty-management.md) adds faculty.
 - [Feature 5](feature-5-section-management.md) adds sections inside a course.
 - [Feature 6](feature-6-enrollment-management.md) enrolls a student in a section for a semester.
