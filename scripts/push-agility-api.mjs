@@ -126,6 +126,18 @@ function parseArgs(argv) {
       options.upsert = true;
       continue;
     }
+
+    // npm on Windows consumes `--feature` and forwards only the number.
+    if (/^[1-9]\d*$/.test(arg)) {
+      options.featureNums.push(Number.parseInt(arg, 10));
+    }
+  }
+
+  if (options.featureNums.length === 0) {
+    const fromNpm = process.env.npm_config_feature;
+    if (fromNpm && /^[1-9]\d*$/.test(fromNpm)) {
+      options.featureNums.push(Number.parseInt(fromNpm, 10));
+    }
   }
 
   if (options.upsert && options.featureNums.length === 0) {
@@ -370,7 +382,7 @@ async function resolveEpicOid(feature, scopeRef, { createIfMissing }) {
   }
 
   console.log(`  Epic not found — creating: ${feature.epic.name}`);
-  const epicResult = await apiPost("/courses-t4/courses/asset", [buildEpicPayload(feature, scopeRef)], "Epic create");
+  const epicResult = await apiPost("/api/asset", [buildEpicPayload(feature, scopeRef)], "Epic create");
   if (epicResult.created.length !== 1) {
     throw new Error(
       `Expected 1 epic OID, got ${epicResult.created.length}: ${epicResult.created.join(", ")}`,
@@ -388,7 +400,7 @@ async function pushStoriesForFeature(feature, scopeRef, epicOid) {
   );
 
   const storyResult = await apiPost(
-    "/courses-t4/courses/asset",
+    "/api/asset",
     storyPayloads,
     `Stories for ${feature.epic.name}`,
   );
@@ -409,7 +421,7 @@ async function upsertStoriesForFeature(feature, scopeRef, epicOid) {
     return summary;
   }
 
-  const result = await apiPost("/courses-t4/courses/asset", plan.payloads, `Upsert ${feature.epic.name}`);
+  const result = await apiPost("/api/asset", plan.payloads, `Upsert ${feature.epic.name}`);
 
   console.log(
     `  Result: ${result.created.length} created, ${result.modified.length} modified`,
@@ -446,7 +458,7 @@ async function verifyPush(scopeRef) {
 }
 
 async function printUpsertDryRun(backlog, scopeRef) {
-  console.log("DRY RUN — upsert plan (lookups + payloads for /courses-t4/courses/asset)\n");
+  console.log("DRY RUN — upsert plan (lookups + payloads for /api/asset)\n");
   console.log("Mode: feature upsert (update existing; create missing)\n");
 
   for (const feature of backlog.features) {
@@ -468,7 +480,7 @@ async function printUpsertDryRun(backlog, scopeRef) {
 }
 
 function printDryRun(backlog, scopeRef, featureOnly) {
-  console.log("DRY RUN — payloads that would be POSTed to /courses-t4/courses/asset\n");
+  console.log("DRY RUN — payloads that would be POSTed to /api/asset\n");
 
   if (featureOnly) {
     console.log("Mode: feature push (stories + tests only)\n");
@@ -496,7 +508,7 @@ async function pushFullBacklog(backlog, scopeRef) {
   console.log("Mode: full push (epics + stories + tests)\n");
   console.log("Phase 1: Creating epics…");
   const epicPayloads = buildEpicPayloads(backlog, scopeRef);
-  const epicResult = await apiPost("/courses-t4/courses/asset", epicPayloads, "Epic create");
+  const epicResult = await apiPost("/api/asset", epicPayloads, "Epic create");
   if (epicResult.created.length !== backlog.features.length) {
     throw new Error(
       `Expected ${backlog.features.length} epic OIDs, got ${epicResult.created.length}: ${epicResult.created.join(", ")}`,

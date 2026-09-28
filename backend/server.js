@@ -40,13 +40,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", routes);
+app.use("/courses", routes);
 
 const PORT = process.env.PORT || 3200;
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
-    logger.info(`Courses Speckit App API running on port ${PORT}`);
+    logger.info(`Courses Speckit App running on port ${PORT}`);
   });
 }
 
