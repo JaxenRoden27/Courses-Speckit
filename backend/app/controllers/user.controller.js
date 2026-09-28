@@ -77,7 +77,7 @@ exports.update = async (req, res) => {
       },
     });
     if (existingUniversityId) {
-      return res.status(400).send({ message: "University ID is already taken." });
+      return res.status(400).send({ message: "University ID is already in use." });
     }
 
     const existingEmail = await db.user.findOne({

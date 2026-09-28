@@ -16,9 +16,24 @@ vi.mock("../src/services/authServices.js", () => ({
   },
 }));
 
-const fillLoginForm = async (wrapper, { username = "jdoe", password = "password123" } = {}) => {
-  await wrapper.get('input[autocomplete="username"]').setValue(username);
-  await wrapper.get('input[autocomplete="current-password"]').setValue(password);
+const setField = async (wrapper, label, value) => {
+  const field = wrapper
+    .findAllComponents({ name: "VTextField" })
+    .find((component) => component.props("label") === label);
+
+  if (!field) {
+    throw new Error(`Field not found: ${label}`);
+  }
+
+  await field.find("input").setValue(value);
+};
+
+const fillLoginForm = async (
+  wrapper,
+  { universityId = "ST2222", password = "password123" } = {}
+) => {
+  await setField(wrapper, "University ID", universityId);
+  await setField(wrapper, "Password", password);
 };
 
 const submitForm = async (wrapper) => {
@@ -31,6 +46,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -40,7 +56,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
   describe("US-1.2 — Sign in", () => {
     it("User signs in with invalid password", async () => {
       authServices.loginUser.mockRejectedValue({
-        response: { data: { message: "Invalid username or password." } },
+        response: { data: { message: "Invalid University ID or password." } },
       });
 
       const router = await createTestRouter("/login");
@@ -49,27 +65,36 @@ describe("Feature 1 — User Authentication & Session Management", () => {
         attachTo: document.body,
       }));
 
-      await fillLoginForm(wrapper, { username: "jdoe", password: "wrong-password" });
+      await fillLoginForm(wrapper, {
+        universityId: "ST2222",
+        password: "wrong-password",
+      });
       await submitForm(wrapper);
 
-      expect(authServices.loginUser).toHaveBeenCalled();
+      expect(authServices.loginUser).toHaveBeenCalledWith({
+        universityId: "ST2222",
+        password: "wrong-password",
+      });
       expect(router.currentRoute.value.name).toBe("login");
-      expect(wrapper.find(".v-alert").exists()).toBe(true);
-      expect(wrapper.text()).toContain("Invalid username or password.");
+      const alert = wrapper.findComponent({ name: "VAlert" });
+      expect(alert.exists()).toBe(true);
+      expect(alert.props("type")).toBe("error");
+      expect(alert.text()).toContain("Invalid University ID or password.");
+      expect(localStorage.getItem("user")).toBeNull();
     });
 
-    it("User signs in with missing username", async () => {
+    it("User signs in with missing universityId", async () => {
       const router = await createTestRouter("/login");
       ({ wrapper } = await mountWithPlugins(Login, {
         router,
         attachTo: document.body,
       }));
 
-      await fillLoginForm(wrapper, { username: "", password: "password123" });
+      await fillLoginForm(wrapper, { universityId: "", password: "password123" });
       await submitForm(wrapper);
 
       expect(authServices.loginUser).not.toHaveBeenCalled();
-      expect(wrapper.text()).toContain("Username is required.");
+      expect(wrapper.text()).toContain("University ID is required.");
     });
 
     it("User signs in with missing password", async () => {
@@ -79,7 +104,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
         attachTo: document.body,
       }));
 
-      await fillLoginForm(wrapper, { username: "jdoe", password: "" });
+      await fillLoginForm(wrapper, { universityId: "ST2222", password: "" });
       await submitForm(wrapper);
 
       expect(authServices.loginUser).not.toHaveBeenCalled();

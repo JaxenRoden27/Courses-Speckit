@@ -80,7 +80,7 @@ exports.register = async (req, res) => {
       where: { universityId: normalizedUniversityId },
     });
     if (existingUniversityId) {
-      return res.status(400).send({ message: "University ID is already taken." });
+      return res.status(400).send({ message: "University ID is already in use." });
     }
 
     const existingEmail = await db.user.findOne({
@@ -125,12 +125,12 @@ exports.login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).send({ message: "Invalid university ID or password." });
+      return res.status(401).send({ message: "Invalid University ID or password." });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).send({ message: "Invalid university ID or password." });
+      return res.status(401).send({ message: "Invalid University ID or password." });
     }
 
     const token = await createOrReuseSession(user);

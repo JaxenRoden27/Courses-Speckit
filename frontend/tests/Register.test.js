@@ -6,7 +6,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { flushPromises } from "@vue/test-utils";
 import Register from "../src/views/Register.vue";
 import authServices from "../src/services/authServices.js";
-import Utils from "../src/config/utils.js";
 import { mountWithPlugins, createTestRouter } from "./testUtils.js";
 
 vi.mock("../src/services/authServices.js", () => ({
@@ -17,25 +16,35 @@ vi.mock("../src/services/authServices.js", () => ({
   },
 }));
 
+const setField = async (wrapper, label, value) => {
+  const field = wrapper
+    .findAllComponents({ name: "VTextField" })
+    .find((component) => component.props("label") === label);
+
+  if (!field) {
+    throw new Error(`Field not found: ${label}`);
+  }
+
+  await field.find("input").setValue(value);
+};
+
 const fillRegisterForm = async (wrapper, overrides = {}) => {
   const values = {
     fName: "Jane",
     lName: "Doe",
     email: "jane@example.com",
-    username: "jdoe",
+    universityId: "ST1111",
     password: "password123",
     confirmPassword: "password123",
     ...overrides,
   };
 
-  await wrapper.get('input[autocomplete="given-name"]').setValue(values.fName);
-  await wrapper.get('input[autocomplete="family-name"]').setValue(values.lName);
-  await wrapper.get('input[autocomplete="email"]').setValue(values.email);
-  await wrapper.get('input[autocomplete="username"]').setValue(values.username);
-
-  const passwordInputs = wrapper.findAll('input[autocomplete="new-password"]');
-  await passwordInputs[0].setValue(values.password);
-  await passwordInputs[1].setValue(values.confirmPassword);
+  await setField(wrapper, "First name", values.fName);
+  await setField(wrapper, "Last name", values.lName);
+  await setField(wrapper, "Email", values.email);
+  await setField(wrapper, "University ID", values.universityId);
+  await setField(wrapper, "Password", values.password);
+  await setField(wrapper, "Confirm password", values.confirmPassword);
 };
 
 const submitForm = async (wrapper) => {
@@ -48,6 +57,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -69,18 +79,18 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expect(wrapper.text()).toContain("Enter a valid email address.");
     });
 
-    it("User submits registration with missing username", async () => {
+    it("User submits registration with missing universityId", async () => {
       const router = await createTestRouter("/register");
       ({ wrapper } = await mountWithPlugins(Register, {
         router,
         attachTo: document.body,
       }));
 
-      await fillRegisterForm(wrapper, { username: "" });
+      await fillRegisterForm(wrapper, { universityId: "" });
       await submitForm(wrapper);
 
       expect(authServices.registerUser).not.toHaveBeenCalled();
-      expect(wrapper.text()).toContain("Username is required.");
+      expect(wrapper.text()).toContain("University ID is required.");
     });
 
     it("User submits registration with password too short", async () => {
@@ -115,34 +125,6 @@ describe("Feature 1 — User Authentication & Session Management", () => {
 
       expect(authServices.registerUser).not.toHaveBeenCalled();
       expect(wrapper.text()).toContain("Passwords do not match.");
-    });
-  });
-
-  describe("US-9.3 — Default new-user role is manager", () => {
-    it("User registers with role manager", async () => {
-      const router = await createTestRouter("/register");
-      authServices.registerUser.mockResolvedValue({
-        data: {
-          userId: 1,
-          username: "jdoe",
-          email: "jane@example.com",
-          fName: "Jane",
-          lName: "Doe",
-          role: "manager",
-          token: "token",
-        },
-      });
-
-      ({ wrapper } = await mountWithPlugins(Register, {
-        router,
-        attachTo: document.body,
-      }));
-
-      await fillRegisterForm(wrapper);
-      await submitForm(wrapper);
-
-      expect(authServices.registerUser).toHaveBeenCalled();
-      expect(Utils.getStore("user").role).toBe("manager");
     });
   });
 });

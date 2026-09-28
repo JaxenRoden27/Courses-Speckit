@@ -28,23 +28,22 @@ vi.mock("../src/services/userServices.js", () => ({
 
 const studentUser = {
   userId: 1,
-  username: "jdoe",
-  email: "jdoe@example.com",
+  universityId: "st2222",
+  email: "sam@example.com",
   fName: "Jane",
   lName: "Doe",
   role: "student",
   token: "student-token",
 };
 
-const adminUser = {
-  ...studentUser,
+const facultyUser = {
   userId: 2,
-  username: "admin",
-  email: "admin@example.com",
+  universityId: "fa0001",
+  email: "faculty@example.com",
   fName: "Alex",
-  lName: "Admin",
-  role: "admin",
-  token: "admin-token",
+  lName: "Faculty",
+  role: "faculty",
+  token: "faculty-token",
 };
 
 const MenuStub = {
@@ -57,14 +56,18 @@ const MenuStub = {
   `,
 };
 
+const mountOptions = {
+  attachTo: document.body,
+  global: {
+    stubs: { VMenu: MenuStub },
+  },
+};
+
 const mountApp = async (path) => {
   const router = await createTestRouter(path);
   return mountWithPlugins(App, {
     router,
-    attachTo: document.body,
-    global: {
-      stubs: { VMenu: MenuStub },
-    },
+    ...mountOptions,
   });
 };
 
@@ -77,12 +80,27 @@ const mountMenuBar = async (path = "/") => {
 
   return mountWithPlugins(Shell, {
     router,
-    attachTo: document.body,
-    global: {
-      stubs: { VMenu: MenuStub },
-    },
+    ...mountOptions,
   });
 };
+
+const navLinkLabels = (wrapper) =>
+  wrapper
+    .findAllComponents({ name: "VBtn" })
+    .filter((btn) => btn.props("to"))
+    .map((btn) => btn.text().trim());
+
+const expectLabelAbsent = (wrapper, label) => {
+  const matches = navLinkLabels(wrapper).filter((item) =>
+    item.toLowerCase().includes(label.toLowerCase())
+  );
+  expect(matches).toEqual([]);
+};
+
+const findSignOut = (wrapper) =>
+  wrapper.findAllComponents({ name: "VListItem" }).find((item) => {
+    return item.props("title") === "Sign out" || item.text().includes("Sign out");
+  });
 
 describe("Feature 1 — User Authentication & Session Management", () => {
   let wrapper;
@@ -110,7 +128,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
         await router.push("/login");
       });
 
-      const signOut = wrapper.findAll(".v-list-item").find((item) => item.text().includes("Sign out"));
+      const signOut = findSignOut(wrapper);
       expect(signOut).toBeTruthy();
       await signOut.trigger("click");
       await flushPromises();
@@ -122,7 +140,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expect(Utils.getStore("user")).toBeNull();
       expect(router.currentRoute.value.name).toBe("login");
       expect(wrapper.find(".v-app-bar").exists()).toBe(true);
-      expect(wrapper.text()).not.toContain("Sign out");
+      expect(findSignOut(wrapper)).toBeUndefined();
     });
   });
 
@@ -132,12 +150,10 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       wrapper = mounted.wrapper;
 
       expect(wrapper.findComponent(MenuBar).exists()).toBe(true);
-      expect(wrapper.text()).not.toContain("Sign out");
-      expect(wrapper.text()).not.toContain("Seasons");
-      expect(wrapper.text()).not.toContain("Leagues");
-      expect(wrapper.text()).not.toContain("People");
-      expect(wrapper.text()).not.toContain("Teams");
-      expect(wrapper.text()).not.toContain("Games");
+      expect(findSignOut(wrapper)).toBeUndefined();
+      expectLabelAbsent(wrapper, "Semester");
+      expectLabelAbsent(wrapper, "Course");
+      expect(navLinkLabels(wrapper)).toEqual([]);
     });
 
     it("Signed-in user sees Sign out in MenuBar", async () => {
@@ -146,300 +162,46 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       wrapper = mounted.wrapper;
 
       expect(wrapper.find(".v-app-bar").exists()).toBe(true);
-      expect(wrapper.text()).toContain("Sign out");
+      expect(findSignOut(wrapper)).toBeTruthy();
       expect(wrapper.text()).toContain("Jane Doe");
     });
 
-    it("Student does not see admin-only menu items", async () => {
+    it("Student does not see faculty-only menu items", async () => {
       Utils.setStore("user", studentUser);
       const mounted = await mountMenuBar("/");
       wrapper = mounted.wrapper;
 
-      expect(wrapper.text()).not.toContain("Seasons");
-      expect(wrapper.text()).not.toContain("Leagues");
-      expect(wrapper.text()).not.toContain("People");
-      expect(wrapper.text()).not.toContain("Teams");
-      expect(wrapper.text()).not.toContain("Games");
+      expectLabelAbsent(wrapper, "Faculty");
+      expectLabelAbsent(wrapper, "Section");
+      expectLabelAbsent(wrapper, "Student Course Listing");
+      expectLabelAbsent(wrapper, "Section Student Listing");
     });
 
-    it("Admin MenuBar in Feature 1 has Sign out but no catalog links yet", async () => {
-      Utils.setStore("user", adminUser);
+    it("Faculty MenuBar in Feature 1 has Sign out but no catalog links yet", async () => {
+      Utils.setStore("user", facultyUser);
       const mounted = await mountMenuBar("/");
       wrapper = mounted.wrapper;
 
-      expect(wrapper.text()).toContain("Sign out");
-      const catalogOrder = wrapper
-        .findAll("a, button")
-        .map((item) => item.text().trim())
-        .filter((label) =>
-          ["Leagues", "Teams", "Games", "People", "Seasons"].includes(label)
-        );
-      expect(catalogOrder).toEqual(["Leagues", "Teams", "Games", "People", "Seasons"]);
+      expect(findSignOut(wrapper)).toBeTruthy();
+      expectLabelAbsent(wrapper, "Semester");
+      expectLabelAbsent(wrapper, "Course");
+      expectLabelAbsent(wrapper, "Faculty");
+      expectLabelAbsent(wrapper, "Section");
+      expectLabelAbsent(wrapper, "Enrollment");
+      expectLabelAbsent(wrapper, "Student Course Listing");
+      expectLabelAbsent(wrapper, "Section Student Listing");
+      expect(navLinkLabels(wrapper)).toEqual([]);
     });
-  });
-});
 
-describe("Feature 2 — Season Management", () => {
-  let wrapper;
-  let router;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-  });
-
-  describe("US-2.1 — Select to work with Seasons", () => {
-    it("Menu Selection", async () => {
-      Utils.setStore("user", adminUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-      router = mounted.router;
-
-      const seasonsBtn = wrapper.findAllComponents({ name: "VBtn" }).find((btn) =>
-        btn.text().includes("Seasons")
-      );
-      expect(seasonsBtn).toBeTruthy();
-      expect(seasonsBtn.props("to")).toBe("/seasons");
-
-      const link = seasonsBtn.find("a");
-      if (link.exists()) {
-        link.element.click();
-      } else {
-        seasonsBtn.element.click();
-      }
-      await flushPromises();
-
-      await vi.waitFor(() => {
-        expect(router.currentRoute.value.name).toBe("seasons");
-      });
-    });
-  });
-
-  describe("US-2.7 — Restrict season management to admins", () => {
-    it("Student does not see Seasons in the menu", async () => {
+    it("Signed-in student MenuBar has Sign out but no catalog links yet", async () => {
       Utils.setStore("user", studentUser);
       const mounted = await mountMenuBar("/");
       wrapper = mounted.wrapper;
 
-      expect(wrapper.text()).not.toContain("Seasons");
-    });
-  });
-});
-
-describe("Feature 3 — League Management", () => {
-  let wrapper;
-  let router;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-  });
-
-  describe("US-3.1 — Select to work with Leagues", () => {
-    it("Menu Selection", async () => {
-      Utils.setStore("user", adminUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-      router = mounted.router;
-
-      const leaguesBtn = wrapper.findAllComponents({ name: "VBtn" }).find((btn) =>
-        btn.text().includes("Leagues")
-      );
-      expect(leaguesBtn).toBeTruthy();
-      expect(leaguesBtn.props("to")).toBe("/leagues");
-
-      const link = leaguesBtn.find("a");
-      if (link.exists()) {
-        link.element.click();
-      } else {
-        leaguesBtn.element.click();
-      }
-      await flushPromises();
-
-      await vi.waitFor(() => {
-        expect(router.currentRoute.value.name).toBe("leagues");
-      });
-    });
-  });
-
-  describe("US-3.7 — Restrict league management to admins", () => {
-    it("Student does not see Leagues in the menu", async () => {
-      Utils.setStore("user", studentUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-
-      expect(wrapper.text()).not.toContain("Leagues");
-    });
-  });
-});
-
-describe("Feature 4 — People Management", () => {
-  let wrapper;
-  let router;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-  });
-
-  describe("US-4.1 — Select to work with People", () => {
-    it("Menu Selection", async () => {
-      Utils.setStore("user", adminUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-      router = mounted.router;
-
-      const peopleBtn = wrapper.findAllComponents({ name: "VBtn" }).find((btn) =>
-        btn.text().includes("People")
-      );
-      expect(peopleBtn).toBeTruthy();
-      expect(peopleBtn.props("to")).toBe("/people");
-
-      const link = peopleBtn.find("a");
-      if (link.exists()) {
-        link.element.click();
-      } else {
-        peopleBtn.element.click();
-      }
-      await flushPromises();
-
-      await vi.waitFor(() => {
-        expect(router.currentRoute.value.name).toBe("people");
-      });
-    });
-  });
-
-  describe("US-4.7 — Restrict people management to admins", () => {
-    it("Student does not see People in the menu", async () => {
-      Utils.setStore("user", studentUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-
-      expect(wrapper.text()).not.toContain("People");
-    });
-  });
-});
-
-describe("Feature 5 — Team Management", () => {
-  let wrapper;
-  let router;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-  });
-
-  describe("US-5.1 — Select to work with Teams", () => {
-    it("Menu Selection", async () => {
-      Utils.setStore("user", adminUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-      router = mounted.router;
-
-      const teamsBtn = wrapper.findAllComponents({ name: "VBtn" }).find((btn) =>
-        btn.text().includes("Teams")
-      );
-      expect(teamsBtn).toBeTruthy();
-      expect(teamsBtn.props("to")).toBe("/teams");
-
-      const link = teamsBtn.find("a");
-      if (link.exists()) {
-        link.element.click();
-      } else {
-        teamsBtn.element.click();
-      }
-      await flushPromises();
-
-      await vi.waitFor(() => {
-        expect(router.currentRoute.value.name).toBe("teams");
-      });
-    });
-  });
-
-  describe("US-5.7 — Restrict team management to admins", () => {
-    it("Student does not see Teams in the menu", async () => {
-      Utils.setStore("user", studentUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-
-      expect(wrapper.text()).not.toContain("Teams");
-    });
-
-    it("Manager sees Teams in the menu", async () => {
-      Utils.setStore("user", { ...studentUser, role: "manager" });
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-
-      expect(wrapper.text()).toContain("Teams");
-      expect(wrapper.text()).not.toContain("Leagues");
-      expect(wrapper.text()).not.toContain("People");
-    });
-  });
-});
-
-describe("Feature 6 — Game Management", () => {
-  let wrapper;
-  let router;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-  });
-
-  describe("US-6.1 — Select to work with Games", () => {
-    it("Menu Selection", async () => {
-      Utils.setStore("user", adminUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-      router = mounted.router;
-
-      const gamesBtn = wrapper.findAllComponents({ name: "VBtn" }).find((btn) =>
-        btn.text().includes("Games")
-      );
-      expect(gamesBtn).toBeTruthy();
-      expect(gamesBtn.props("to")).toBe("/games");
-
-      const link = gamesBtn.find("a");
-      if (link.exists()) {
-        link.element.click();
-      } else {
-        gamesBtn.element.click();
-      }
-      await flushPromises();
-
-      await vi.waitFor(() => {
-        expect(router.currentRoute.value.name).toBe("games");
-      });
-    });
-  });
-
-  describe("US-6.7 — Restrict game management to admins", () => {
-    it("Student does not see Games in the menu", async () => {
-      Utils.setStore("user", studentUser);
-      const mounted = await mountMenuBar("/");
-      wrapper = mounted.wrapper;
-
-      expect(wrapper.text()).not.toContain("Games");
+      expect(findSignOut(wrapper)).toBeTruthy();
+      expectLabelAbsent(wrapper, "Semester");
+      expectLabelAbsent(wrapper, "Course");
+      expect(navLinkLabels(wrapper)).toEqual([]);
     });
   });
 });

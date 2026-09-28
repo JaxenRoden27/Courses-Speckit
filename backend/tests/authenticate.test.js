@@ -5,7 +5,17 @@
 import request from "supertest";
 import app from "../server.js";
 import db from "../app/models/index.js";
-import { syncTestDatabase, registerUser, authHeader } from "./helpers.js";
+import { syncTestDatabase, authHeader } from "./helpers.js";
+
+const registerStudent = () =>
+  request(app).post("/courses/register").send({
+    fName: "Sam",
+    lName: "Student",
+    email: "sam@example.com",
+    universityId: "ST2222",
+    password: "password123",
+    role: "faculty",
+  });
 
 describe("Feature 1 — User Authentication & Session Management", () => {
   beforeEach(async () => {
@@ -14,53 +24,61 @@ describe("Feature 1 — User Authentication & Session Management", () => {
 
   describe("US-1.3 — Stay signed in across page loads", () => {
     it("API request includes session token", async () => {
-      const { response: registerResponse } = await registerUser(app, {
-        username: "adminuser",
-        email: "admin@example.com",
-      });
-      const stored = await db.user.findByPk(registerResponse.body.userId);
-      stored.role = "admin";
-      await stored.save();
+      const registered = await registerStudent();
+      const { token, userId } = registered.body;
+
+      expect(registered.body.role).toBe("student");
 
       const response = await request(app)
-        .get(`/league/users/${registerResponse.body.userId}`)
-        .set(authHeader(registerResponse.body.token));
+        .get(`/courses/users/${userId}`)
+        .set(authHeader(token));
 
       expect(response.status).toBe(200);
-      expect(response.req.getHeader("authorization")).toBe(
-        `Bearer ${registerResponse.body.token}`
-      );
+      expect(response.req.getHeader("authorization")).toBe(`Bearer ${token}`);
+      expect(response.body.id).toBe(userId);
+      expect(response.body.role).toBe("student");
+      expect(response.body.password).toBeUndefined();
     });
 
     it("Expired or invalid session token", async () => {
-      const { response: registerResponse } = await registerUser(app, {
-        username: "adminuser",
-        email: "admin@example.com",
-      });
-      const stored = await db.user.findByPk(registerResponse.body.userId);
-      stored.role = "admin";
-      await stored.save();
+      const registered = await registerStudent();
+      const { token, userId } = registered.body;
 
       await db.session.update(
-        { expirationDate: new Date(Date.now() - 1000) },
-        { where: { token: registerResponse.body.token } }
+        { expirationDate: new Date(Date.now() - 60 * 1000) },
+        { where: { token } }
       );
 
-      const response = await request(app)
-        .get(`/league/users/${registerResponse.body.userId}`)
-        .set(authHeader(registerResponse.body.token));
+      const expired = await request(app)
+        .get(`/courses/users/${userId}`)
+        .set(authHeader(token));
 
-      expect(response.status).toBe(401);
-      expect(response.body.message).toMatch(/Unauthorized/i);
+      expect(expired.status).toBe(401);
+      expect(expired.body).toEqual({
+        message: "Unauthorized! Invalid or expired token.",
+      });
+
+      await db.session.update({ token: "" }, { where: { userId } });
+
+      const revoked = await request(app)
+        .get(`/courses/users/${userId}`)
+        .set(authHeader(token));
+
+      expect(revoked.status).toBe(401);
+      expect(revoked.body).toEqual({
+        message: "Unauthorized! Invalid or expired token.",
+      });
     });
   });
 
   describe("US-1.5 — Block unauthenticated access", () => {
     it("Unauthenticated user accesses a protected route", async () => {
-      const response = await request(app).get("/league/users/1");
+      const response = await request(app).get("/courses/users/1");
 
       expect(response.status).toBe(401);
-      expect(response.body.message).toMatch(/Unauthorized/i);
+      expect(response.body).toEqual({
+        message: "Unauthorized! No token provided.",
+      });
     });
   });
 });
