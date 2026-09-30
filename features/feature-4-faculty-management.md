@@ -117,3 +117,22 @@
 - Feature 1 university IDs for faculty logins are `FA####`. That identifier lives on `users.universityId`, not on the faculty catalog row.
 
 ---
+
+## Edge Cases
+
+- Empty or whitespace-only required field → client block; **"Required"**; no API call.
+- `firstName` longer than 50 characters → **"First name must be 50 characters or fewer."**
+- `lastName` longer than 50 characters → **"Last name must be 50 characters or fewer."**
+- `dept` longer than 50 characters → **"Department must be 50 characters or fewer."**
+- `userId` omitted → faculty member is stored with no linked user.
+- Unknown `userId` → `400` with `{ "message": "User not found." }`
+- `userId` whose role is `student` (or any non-`faculty` role) → `400` with `{ "message": "User must have role faculty." }`
+- `userId` already linked to another faculty member → `400` with `{ "message": "User is already linked to a faculty member." }`
+- Unknown `facultyId` on PUT/DELETE → `404` with `{ "message": "Faculty with id=<id> not found." }`
+- Delete faculty member that has a linked user → faculty row is deleted; the Feature 1 user remains.
+- Authenticated `student` on `POST` / `PUT` / `DELETE` or `GET /courses/users` → `403`.
+- Authenticated `student` on `GET /courses/faculty` → `200` with the shared catalog.
+- Unauthenticated user on `/faculty` or `GET /courses/faculty` → redirect or `401`.
+
+---
+
