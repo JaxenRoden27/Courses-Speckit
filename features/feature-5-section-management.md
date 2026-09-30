@@ -3,7 +3,7 @@
 **Feature ID:** 5
 **Branch pattern:** `feature/5-section-management` **Status:** Ready
 **Created:** 2026-09-23
-**Input:** Signed-in faculty users manage a section and section view. A section has a time, belongs to a course, and has students. The section view shows section info, **Edit section**. A student is a Feature 1 person that has a name.
+**Input:** Signed-in faculty users manage a section and section view. A section has a time, belongs to a course, and has students. The section view shows section info, **Edit section**. A student is a Feature 1 person that has a name and id.
 **Depends on:** [Feature 1 — User Authentication](feature-1-user-auth.md), [Feature 2 — Semester Management](feature-2-semester-management.md), [Feature 3 — Course Management](feature-3-course-management.md), [Feature 4 — Faculty Management](feature-4-faculty-management.md)
 
 ---
@@ -37,11 +37,11 @@
 ### US-5.3: View sections
 
 **As a** signed-in faculty user  
-**I want to** see all sections on one screen  
+**I want to** see each course's sections on one screen  
 **So that** I can see each course's sections
 
 **Priority:** P1  
-**Independent test:** Selecting sections loads a screen that displays all sections  
+**Independent test:** Selecting sections loads a screen that groups sections under each course  
 **Acceptance scenarios:** see ### US-5.3 under Acceptance Criteria
 
 ### US-5.4: Manage section rows
@@ -88,10 +88,10 @@
 
 **As the** application  
 **I want to** allow only users with role `faculty` to manage sections 
-**So that** students cannot create, edit, or delete sections or student rows
+**So that** students cannot create, edit, or delete sections
 
 **Priority:** P1  
-**Independent test:** Sign in as a student — **Sections** is hidden; `POST /courses-t4/courses/sections` returns `403`  
+- **FR-005**: Unauthenticated section API requests MUST return `401`. Unauthenticated navigation to `/sections` or `/sections/:sectionId` MUST redirect to `login`.
 **Acceptance scenarios:** see ### US-5.8 under Acceptance Criteria
 
 
@@ -102,12 +102,12 @@
 ### Functional Requirements
 
 - **FR-001**: All section and student endpoints MUST require a valid session (`authenticate`). `GET` MUST be allowed for any authenticated role. `POST`, `PUT`, and `DELETE` MUST require `req.user.role` equal to `faculty`.
-- **FR-002**: Section and students MUST be a **shared catalog**. The `section` and `students` tables MUST NOT use `userId` as ownership. The API MUST ignore any client-supplied ownership `userId`.
+- **FR-002**: Sections MUST be a **shared catalog**. The `section` table MUST NOT use `userId` as ownership. The API MUST ignore any client-supplied ownership `userId`.
 - **FR-003**: Authenticated non-faculty users (including `student`) MUST receive `403` with `{ "message": "Faculty role required." }` on `POST`, `PUT`, and `DELETE`. `GET` MUST return `200` for any authenticated user. They MUST NOT see **Sections** in `MenuBar`.
 - **FR-004**: Required section and student fields MUST be present and trimmed; empty or whitespace-only values MUST be rejected (client block and/or `400`).
 - **FR-005**: Unauthenticated section API requests MUST return `401`. Unauthenticated navigation to `/section` or `/section/:sectionID` MUST redirect to `login`.
-- **FR-006**: Sections MUST be ordered by related course `name`, then section `sectionNumer`, in API responses.
-- **FR-007**: This feature MUST deliver a **section list** in `Sections.vue` and a **section view** in `Section.vue`. The section view MUST have a heading area for section info, an **Edit section** button that opens the **Edit Section** dialog. Section mutations stay dialog-based. No sidebar/main split.
+- **FR-006**: Sections MUST be ordered by related course `name`, then section `sectionNumber`, in API responses.
+- **FR-007**: The sections list MUST render one group per course. Each section MUST appear only under its course. **+ New section** on a group MUST create a section for that course.
 - **FR-008**: Section `sectionNumber` MUST be required, trimmed, and at most 10 characters. Too-long message: **"Section name must be 10 characters or fewer."** The pair (`courseID`, `sectionNumber`) MUST be unique. Duplicate message: **"Section number is already taken in this course."** `daysOfWeek` MUST be required, trimmed, and at most 10 characters. Too-long message: **"Section days of week must characters or fewer"** `startTime` MUST be required, and trimmed. Invalid time message: **"Section time must be a valid date."** `endTime` MUST be required, and trimmed. Invalid time message: **"Section time must be a valid date."**
 - **FR-009**: `courseId` MUST be a required integer that exists in `courses`. Missing course message: **"Course not found."** (HTTP `400`). A course MAY have many sections.
 - **FR-010**: `DELETE` of a course MUST fail with `400` when any section references that course. Do **not** cascade-delete sections when a course is deleted. Messages: **"Cannot delete course: sections still exist."** The parent row and its dependents MUST remain stored.
@@ -119,16 +119,16 @@
 
 ## Assumptions
 
-- Features 1–4 (auth/`MenuBar`, seasons, courses, people) MUST be merged to `dev` before implementing this feature.
-- A user with role `admin` exists (Feature 1 `role`; tests may seed an admin).
-- Tests MAY seed at least one course and one person (from Features 3–4) before creating a section or player.
+- Features 1–4 (auth/`MenuBar`, semesters, courses, faculty) MUST be merged to `dev` before implementing this feature.
+- A user with role `faculty` exists (Feature 1 `role`; tests may seed an faculty).
+- Tests MAY seed at least one course and one faculty (from Features 3–4) before creating a section or faculty.
 - Sections belong to a **course**, not to a semester and not to a signed-in user. No FK from `sections` to `semester`.
-- Add/Edit dialogs load courses from `GET /course/courses`.
+- The sections list loads courses from `GET /courses/courses` and sections from `GET /courses/sections`, then shows each section under its course. The section view still loads courses from `GET /courses/courses` for **Edit Section**. Express is already mounted at `/courses`, so these are the full paths.
 - Foreign keys from `sections.semesterId`, `sections.courseId`, and `sections.facultyId` MUST use **RESTRICT**.
-- This feature updates Feature 3–4 `DELETE` handlers for `/course/courses/:courseId` to enforce FR-010.
+- This feature updates Feature 3–4 `DELETE` handlers for `/courses/courses/:courseId` to enforce FR-010.
 - The **sections list** creates and deletes sections. The **section view** edits one section.
 - Section forms use **dialog-based** workflows (no split sidebar / main panel).
-- API mount for this resource is `/course/…`. Use `/course/sections`.
+- API mount is the existing `/courses` prefix in `backend/server.js`. Register this resource at `/sections` (`GET /courses/sections`, and the same prefix for `POST`, `PUT`, and `DELETE`).
 
 
 
@@ -141,10 +141,9 @@
 - Unknown `courseId` → `400` with `{ "message": "Course not found." }`
 - Unknown `sectionId` on PUT/DELETE → `404` with `{ "message": "Section with id=<id> not found." }`
 - `DELETE` course while sections still reference it → `400`; course and sections remain.
-- `DELETE` section → section and its player rows are removed; people remain.
 - Authenticated `student` (or any non-faculty) on `POST` / `PUT` / `DELETE` → `403`.
 - Authenticated `student` on `GET` → `200`.
-- Unauthenticated user on `/sections`, `/sections/:sectionId`, or `GET /course/sections` → redirect or `401`.
+- Unauthenticated user on `/sections`, `/sections/:sectionId`, or `GET /courses/sections` → redirect or `401`.
 - Unknown `sectionId` on the section view → error **"Section with id= not found."**
 
 
@@ -168,9 +167,9 @@ Sections are not owned by the signed-in faculty. Only role `faculty` may manage 
 
 | Rule                | Requirement                                                                                                                  |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Read scope**      | `GET /course/sections` returns **all** sections (with course) to any authenticated user.                                     |
+| **Read scope**      | `GET /courses/sections` returns **all** sections (with course) to any authenticated user.                                     |
 | **Write scope**     | `POST`, `PUT`, and `DELETE` are allowed only when `req.user.role` is `faculty`.                                              |
-| **Create scope**    | New sections and players have no owner. Ignore ownership `userId` if sent in the body.                                       |
+| **Create scope**    | New sections have no owner. Ignore ownership `userId` if sent in the body.                                       |
 | **Missing section** | Unknown `sectionId` → `404` with `{ "message": "Section with id=<id> not found." }`. Never use ownership `404` to hide rows. |
 | **Non-faculty**     | Authenticated non-faculty `GET` → `200`. `POST` / `PUT` / `DELETE` → `403` with `{ "message": "Faculty role required." }`.   |
 | **UI scope**        | **Sections** menu, `/sections`, and `/sections/:sectionId` are faculty-only. Students do not see this manager.               |
@@ -186,10 +185,10 @@ Sections are not owned by the signed-in faculty. Only role `faculty` may manage 
 
 | Method   | Endpoint                                  | Auth       | Purpose                                                                 |
 | -------- | ----------------------------------------- | ---------- | ----------------------------------------------------------------------- |
-| `GET`    | `/course/sections`                        | Yes        | Fetch all sections with course                                          |
-| `POST`   | `/course/sections`                        | Yes, admin | Create a section in a course                                            |
-| `PUT`    | `/course/sections/:sectionId`             | Yes, admin | Update a section's name, course, days of week, start time, and end time |
-| `DELETE` | `/course/sections/:sectionId`             | Yes, admin | Delete a section                                                        |
+| `GET`    | `/courses/sections`                        | Yes        | Fetch all sections with course                                          |
+| `POST`   | `/courses/sections`                        | Yes, faculty | Create a section in a course                                            |
+| `PUT`    | `/courses/sections/:sectionId`             | Yes, faculty | Update a section's name, course, days of week, start time, and end time |
+| `DELETE` | `/courses/sections/:sectionId`             | Yes, faculty | Delete a section                                                        |
 
 
 **Create section request body:**
@@ -229,7 +228,7 @@ Do not send `id` on create.
 
 `GET /course/sections` returns an **array** of section objects in this shape.
 
-This feature also changes Feature 3–4 delete APIs (FR-010): `DELETE /course/courses/:courseId` MUST return `400` with the quoted FR-013 message when sections still reference that row.
+This feature also changes Feature 3–4 delete APIs (FR-010): `DELETE /courses/courses/:courseId` MUST return `400` with the quoted FR-013 message when sections still reference that row.
 
 ---
 
@@ -242,24 +241,26 @@ This feature also changes Feature 3–4 delete APIs (FR-010): `DELETE /course/co
 ### [View: Sections] — route name `sections` — path `/sections` — `Sections.vue`
 
 - Heading: **Sections**
-- Primary action: **+ New section** (`oc-cta`) opens the **Add Section** `<v-dialog>`.
+- The page is grouped by course. One group per course from `GET /courses/courses`, ordered by course `name`.
+- Each group heading is the course `name`.
+- Primary action on each group: **+ New section** (`oc-cta`) opens **Add Section** for that course only.
 - **Add Section** fields:
   - **Section Number** (`v-text-field`)
-  - **Course** (`v-select` of existing courses, display course `name`)
+  - **Course** — read-only text of that group's course `name` (submit its `courseId`; the user does not pick a different course)
   - **Days Of Week** (`v-text-field`)
   - **Start Time** (`v-text-field`)
   - **End Time** (`v-text-field`)
 - **Add Section** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
-- List: `v-table` (or `v-list`); columns **section number**, **course**; rows ordered by course name then section name (FR-006).
+- Under each course: `v-table` of that course's sections only. Columns **section number**, **days of week**, **start time**, **end time**. Rows ordered by `sectionNumber`. No course column — the group heading is the course.
 - Section number is plain text (not a link).
+- A course with zero sections shows **"No sections for this course."** inside that group.
 - Icon-only row actions use `size="small"` and accessible `aria-label`s:
   - **Open section** — section icon (`mdi-account-group`) navigates to the **Section** view (`/sections/:sectionId`)
   - **Delete section** — opens **Delete Section** confirmation `<v-dialog>` with copy **"Delete this section?"**; **Delete Section** (`oc-cta`) / **Cancel** (secondary)
 - Client-side validation: required fields use inline rules (`"Required"`); invalid submit does not send an API request.
-- **Empty state:** **"No sections yet. Create your first section."** when the catalog has zero sections.
-- **Loading state:** skeleton or progress indicator while sections are fetching.
+- **Empty state:** **"No courses yet."** when the catalog has zero courses. There is no **+ New section** in that state.
+- **Loading state:** skeleton or progress indicator while courses and sections are fetching.
 - **Error state:** `<v-alert type="error">` for API failures.
-- Faculty-only: **Sections** menu item and `/sections` are for signed-in faculty users. Other roles do not see the **Sections** item. Unauthenticated navigation to `/sections` redirects to `login`.
 
 
 
@@ -277,10 +278,6 @@ This is the section view (section main).
   - **Start Time** (`v-text-field`)
   - **End Time** (`v-text-field`)
 - **Edit Section** actions: **Save Section** (`oc-cta`) / **Cancel** (secondary). After a successful save, the heading area shows the updated section info and the dialog closes.
-- **Add Player** / **Edit Player** fields (same set; edit pre-filled):
-  - **Person** (`v-select` of existing people, display last name, first name)
-  - **Number** (`v-text-field` type number)
-  - **Position** (`v-text-field`)
 - **Loading state:** skeleton or progress indicator while the section is fetching.
 - **Error state:** `<v-alert type="error">` for API failures. Unknown `sectionId` shows **"Section with id= not found."**
 - Faculty-only: `/sections/:sectionId` is for signed-in faculty users. Unauthenticated navigation redirects to `login`.
@@ -289,7 +286,7 @@ This is the section view (section main).
 **App chrome**
 
 - Use the `MenuBar` introduced in [Feature 1](feature-1-user-auth.md). Do **not** create a second `MenuBar`. Do **not** hide it on `login` / `register`.
-- Add **Sections** (allowed role `faculty`; navigates to `/sections`) to `MenuBar`. Keep name, **Sign out**, **Semesters**, **Courses**, and **Faculty** from Features 1–4.
+- Add **Sections** (allowed role `faculty`; navigates to `/sections`) to `MenuBar`. Keep the signed-in name and **Sign out** from Feature 1, and **Semesters** (`student` and `faculty`; `/semesters`) from Feature 2. Do not add **Courses** or **Faculty** in this feature.
 - Students MUST NOT see **Sections**.
 - After login, the user remains on Feature 1 `home`. Selecting **Sections** in the menu opens the sections list. Opening a section from that list shows the section view.
 
@@ -337,15 +334,10 @@ Unique index on (`facultyId`, `sectionNumber`).
 
 ---
 
-
-
 ## Acceptance Criteria (Gherkin)
 
 
-
 ### US-5.1 — Select to work with Sections
-
-
 
 #### Scenario: Menu Selection
 
@@ -353,11 +345,7 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **When** I click **Sections** in the `MenuBar`
 - **Then** the sections view is displayed
 
-
-
 ### US-5.2 — Create section
-
-
 
 #### Scenario: User creates a new section
 
@@ -366,14 +354,12 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **And** a course `Programming 1` exists
 - **And** a faculty `David North` exists
 - **And** I am viewing the sections view
-- **When** I click **+ New section**
-- **And** I enter section number `01`, select semester `Spring 2027`, select course `Programming 1`, select faculty `David North`, I enter days of week `MWF`, I enter start time `09:00:00`, and I enter end time `09:50:00`.
+- **When** I click **+ New section** on the `Programming 1` group
+- **And** I enter section number `01`, select semester `Spring 2027`, select faculty `David North`, I enter days of week `MWF`, I enter start time `09:00:00`, and I enter end time `09:50:00`.
 - **And** I click **Create**
 - **Then** the API returns `201` with a section object containing `id`, `sectionNumber` `01`, `daysOfWeek` `MWF`, `startTime` `09:00:00`, `endTime` `09:50:00`, and nested `course.name` `Programming 1`
-- **And** `Programming 1`, `01` appears in the sections view list
+- **And** section `01` appears under the course group `Programming 1`
 - **And** the add-section dialog closes
-
-
 
 #### Scenario: User creates a section with a missing required field
 
@@ -385,8 +371,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **Then** no API call is made
 - **And** I see the message **"Required"**
 
-
-
 #### Scenario: User creates a section with a number that is too long
 
 - **Given** I am signed in as a user with role `faculty`
@@ -397,8 +381,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **Then** no API call is made
 - **And** I see the message **"Section name must be 10 characters or fewer."**
 
-
-
 #### Scenario: User creates a section with an unknown course
 
 - **Given** I am signed in as a user with role `faculty`
@@ -407,20 +389,16 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **Then** the API returns `400` with `{ "message": "Course not found." }`
 - **And** no section is stored
 
-
-
 #### Scenario: User creates a section with a duplicate number in the same course
 
 - **Given** I am signed in as a user with role `faculty`
 - **And** a section number `01` already exists in course `Programming 1`
 - **And** I am viewing the sections view
-- **When** I click **+ New section**
-- **And** I enter section number `01` and select course `Programming 1`
+- **When** I click **+ New section** on the `Programming 1` group
+- **And** I enter section number `01`
 - **And** I click **Create**
 - **Then** the API returns `400` with `{ "message": "Section numer is already taken in this course." }`
 - **And** no second section number`01` is stored in that course
-
-
 
 ### Scenario: User creates a section with an end time earlier than start time
 
@@ -434,37 +412,40 @@ Unique index on (`facultyId`, `sectionNumber`).
 
 ---
 
-
-
 ### US-5.3 — View sections
 
+#### Scenario: Sections are shown under their course
 
+- **Given** I am signed in as a user with role `faculty`
+- **And** course `Programming 1` has section `01`
+- **And** course `Programming 2` has section `02`
+- **And** I am viewing the sections view
+- **When** I view the sections list
+- **Then** `Programming 1` and `Programming 2` are group headings, in course-name order
+- **And** section `01` appears only under `Programming 1`
+- **And** section `02` appears only under `Programming 2`
 
-#### Scenario: Sections view loads with existing sections
+#### Scenario: A course has no sections
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** course `Programming 1` exists
+- **And** that course has no sections
+- **And** I am viewing the sections view
+- **When** I view the sections list
+- **Then** I see the group `Programming 1`
+- **And** I see **"No sections for this course."**
+
+#### Scenario: There are no courses
 
 - **Given** I am signed in as a user with role `faculty`
 - **And** I am viewing the sections view
-- **And** sections exist
+- **And** there are no courses
 - **When** I view the sections list
-- **Then** all the sections are displayed in the list
-
-
-
-#### Scenario: Courses have no sections
-
-- **Given** I am signed in as a user with role `faculty`
-- **And** I am viewing the sections view
-- **And** there are no sections
-- **When** I view the sections list
-- **Then** I see **"No sections yet. Create your first section."**
+- **Then** I see **"No courses yet."**
 
 ---
 
-
-
 ### US-5.4 — Manage section rows
-
-
 
 #### Scenario: section rows open the section view and show a delete action
 
@@ -477,48 +458,27 @@ Unique index on (`facultyId`, `sectionNumber`).
 
 ---
 
-
 ### US-5.5 — View a section
-
-
 
 #### Scenario: User opens a section from the sections list
 
-- **Given** I am signed in as a user with role `admin`
+- **Given** I am signed in as a user with role `faculty`
 - **And** I am viewing the sections view
-- **And** a section `OKC Strikers` exists in course `OKC Youth Soccer`
-- **When** I click the **Open section** icon on the `OKC Strikers` row
+- **And** a section `1` exists in course `Programming 1`
+- **When** I click the **Open section** icon on the `1` row
 - **Then** the section view is displayed
-
-
 
 #### Scenario: Section view shows section info and actions
 
-- **Given** I am signed in as a user with role `admin`
-- **And** I am viewing the section view for `OKC Strikers` in course `OKC Youth Soccer`
-- **Then** the heading area shows section name `OKC Strikers`
-- **And** the heading area shows course `OKC Youth Soccer`
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the section view for `1` in course `Programming 1`
+- **Then** the heading area shows section number `1`
+- **And** the heading area shows course `Programming 1`
 - **And** **Edit section** is shown
-- **And** **Add Players** is shown
-
-
-
-#### Scenario: Section view lists players with name, number, and position
-
-- **Given** I am signed in as a user with role `admin`
-- **And** `Jane Doe` is a player on section `OKC Strikers` with number `10` and position `Forward`
-- **And** I am viewing the section view for `OKC Strikers`
-- **When** I view the players list
-- **Then** the list shows name `Doe, Jane`, number `10`, and position `Forward`
-- **And** the player row shows an **Edit player** icon action
 
 ---
 
-
-
 ### US-5.6 — Edit a section
-
-
 
 #### Scenario: User selects to edit a section
 
@@ -526,8 +486,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **And** I am viewing the section view
 - **When** I click **Edit section**
 - **Then** the section edit dialog is displayed
-
-
 
 #### Scenario: User edits a section with valid values and saves
 
@@ -540,8 +498,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **And** the heading area shows the updated section info
 - **And** the dialog is closed
 
-
-
 #### Scenario: User edits a section with invalid values and saves
 
 - **Given** I am signed in as a user with role `faculty`
@@ -551,8 +507,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **And** I click **Save Section**
 - **Then** the appropriate error messages are shown
 - **And** the dialog is not closed
-
-
 
 #### Scenario: User edits a section and cancels
 
@@ -566,11 +520,7 @@ Unique index on (`facultyId`, `sectionNumber`).
 
 ---
 
-
-
 ### US-5.7 — Delete a section
-
-
 
 #### Scenario: User selects to delete a section
 
@@ -578,8 +528,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **And** I am viewing the sections view
 - **When** I click the delete icon on a section row
 - **Then** the section delete dialog is displayed
-
-
 
 #### Scenario: User deletes a section
 
@@ -590,8 +538,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **Then** the section is deleted
 - **And** the dialog is closed
 - **And** the section is not in the sections list
-
-
 
 #### Scenario: User cancels deleting a section
 
@@ -605,11 +551,7 @@ Unique index on (`facultyId`, `sectionNumber`).
 
 ---
 
-
-
 ### US-5.8 — Restrict section management to faculty
-
-
 
 #### Scenario: Student does not see Sections in the menu
 
@@ -617,15 +559,11 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **When** I view the `MenuBar`
 - **Then** **Sections** is not shown
 
-
-
 #### Scenario: Student can list sections via the API
 
 - **Given** I am signed in as a user with role `student`
 - **When** I request `GET /course/sections`
 - **Then** the API returns `200` with an array of section objects
-
-
 
 #### Scenario: Student cannot create a section via the API
 
@@ -634,23 +572,17 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **Then** the API returns `403` with `{ "message": "Faculty role required." }`
 - **And** no new section is stored
 
-
-
 #### Scenario: Unauthenticated API request to sections
 
 - **Given** I have no valid session token
 - **When** I request `GET /course/sections`
 - **Then** the API returns `401` with an unauthorized message
 
-
-
 #### Scenario: Unauthenticated user navigates to sections
 
 - **Given** I have no session in `localStorage`
 - **When** I navigate to `/sections`
 - **Then** I am redirected to the login page
-
-
 
 #### Scenario: Unauthenticated user navigates to a section
 
@@ -659,8 +591,6 @@ Unique index on (`facultyId`, `sectionNumber`).
 - **Then** I am redirected to the login page
 
 ---
-
-
 
 ## Test Coverage Map
 
@@ -673,12 +603,12 @@ Unique index on (`facultyId`, `sectionNumber`).
 | US-5.2 | User creates a section with a number that is too long | `frontend/tests/Sections.test.js` | `User creates a section with a number that is too long` |
 | US-5.2 | User creates a section with an unknown course | `backend/tests/sections.test.js` | `User creates a section with an unknown course` |
 | US-5.2 | User creates a section with a duplicate number in the same course | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `User creates a section with a duplicate number in the same course` |
-| US-5.3 | Sections view loads with existing sections | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `Sections view loads with existing sections` |
-| US-5.3 | Courses have no sections | `frontend/tests/Sections.test.js` | `Courses have no sections` |
+| US-5.3 | Sections are shown under their course | `backend/tests/sections.test.js`, `frontend/tests/Sections.test.js` | `Sections are shown under their course` |
+| US-5.3 | A course has no sections | `frontend/tests/Sections.test.js` | `A course has no sections` |
+| US-5.3 | There are no courses | `frontend/tests/Sections.test.js` | `There are no courses` |
 | US-5.4 | section rows open the section view and show a delete action | `frontend/tests/Sections.test.js` | `section rows open the section view and show a delete action` |
 | US-5.5 | User opens a section from the sections list | `frontend/tests/Sections.test.js` | `User opens a section from the sections list` |
 | US-5.5 | Section view shows section info and actions | `frontend/tests/Section.test.js` | `Section view shows section info and actions` |
-| US-5.5 | Section view lists players with name, number, and position | `frontend/tests/Section.test.js` | `Section view lists players with name, number, and position` |
 | US-5.6 | User selects to edit a section | `frontend/tests/Section.test.js` | `User selects to edit a section` |
 | US-5.6 | User edits a section with valid values and saves | `backend/tests/sections.test.js`, `frontend/tests/Section.test.js` | `User edits a section with valid values and saves` |
 | US-5.6 | User edits a section with invalid values and saves | `frontend/tests/Section.test.js` | `User edits a section with invalid values and saves` |
@@ -736,7 +666,7 @@ Do not implement behavior not in this spec.
 
 ## Out of Scope
 
-- Student-facing section or roster UI (API `GET` is in this feature)
+- Student-facing section UI (API `GET` is in this feature)
 - Assigning a section to a season
 - Non-faculty section management UI
 - Creating `MenuBar` (introduced in [Feature 1](feature-1-user-auth.md); this feature only adds **Sections** for role `faculty`)
@@ -747,10 +677,10 @@ Do not implement behavior not in this spec.
 
 ## Delivered to later features
 
-- `MenuBar` is Feature 1 chrome; Features 2–4 added **Semesters**, **Courses**, and **Faculty**; this feature added **Sections** for `faculty`.
+- `MenuBar` is Feature 1 chrome. Feature 2 adds **Semesters**. This feature adds **Sections** for `faculty`.
 - A later feature MUST add its nav item to this `MenuBar`; it MUST NOT create a second `MenuBar`.
 - The `sections` table belongs to `courses`.
-- [Feature 6](feature-6-enrollment-management.md) enrolls users to sections. A section MAY have many enrolled users. Feature 6 MUST reject `DELETE /course/sections/:sectionId` with `400` when enrolled users still reference that section.
+- [Feature 6](feature-6-enrollment-management.md) enrolls users to sections. A section MAY have many enrolled users. Feature 6 MUST reject `DELETE /courses/sections/:sectionId` with `400` when enrolled users still reference that section.
 
 ---
 
