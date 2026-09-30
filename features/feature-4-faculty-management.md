@@ -103,3 +103,17 @@
 - **FR-013**: `GET /courses/users` (existing starter list) MUST return only users whose `role` is `faculty`, as an array of `{ "id", "universityId", "fName", "lName" }`. It MUST NOT include `password`. Listing students is [Feature 7](feature-7-student-course-listing.md).
 
 ---
+
+## Assumptions
+
+- Feature 1 auth/`MenuBar` MUST be merged to `dev` before implementing this feature.
+- A user with role `faculty` exists (Feature 1 `role`; tests may seed a faculty user by inserting the row — registration always stores `student`).
+- Faculty members are a shared catalog. **Feature 2** and **Feature 3** are not schema dependencies. If they are already on `dev`, keep **Semesters** and **Course** on `MenuBar`. This feature MUST NOT create a second `MenuBar`. No FK from `faculties` to `semesters` or courses in this feature.
+- A faculty member **may** have one Feature 1 user (`userId`) whose role is `faculty`. A faculty member with no user is valid (catalog-only instructor). Linking is optional on create and edit. This feature does **not** register login accounts and does **not** change Feature 1 registration.
+- Faculty catalog names (`firstName` / `lastName`) are independent of the linked user's `fName` / `lName`. Duplicate names in the catalog are allowed. Uniqueness is on optional `userId`, not on name.
+- `dept` is free text (not a closed department list). Course department values, if Feature 3 adds them, are a separate field.
+- Faculty use **dialog-based** workflows (no split sidebar / main panel).
+- API mount for this app is `/courses/…`. Use `/courses/faculty`.
+- Feature 1 university IDs for faculty logins are `FA####`. That identifier lives on `users.universityId`, not on the faculty catalog row.
+
+---
