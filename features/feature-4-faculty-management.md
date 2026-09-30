@@ -584,3 +584,35 @@ Do not implement behavior not in this spec.
 6. Living reference (`api.md`, `data-model.md`, `behavior.md`)
 
 ---
+
+## Definition of Done
+
+- [ ] Backend and frontend implemented per this spec (**FR-00N** satisfied)
+- [ ] **Success Criteria (SC-00N)** met
+- [ ] All mapped tests pass (`npm test`)
+- [ ] Test Coverage Map complete
+- [ ] `features/reference/data-model.md` updated (if schema changed)
+- [ ] `features/reference/api.md` updated (if API changed)
+- [ ] `features/reference/behavior.md` updated (if product rules changed)
+
+---
+
+## Out of Scope
+
+- Creating Feature 1 user accounts from the faculty form (register stays in Feature 1; faculty logins are still seeded in tests)
+- A faculty member having more than one user
+- Assigning faculty to sections ([Feature 5](feature-5-section-management.md) adds `facultyId` on a section)
+- Student-facing faculty catalog UI (API `GET` is in this feature)
+- Non-faculty faculty-management UI
+- Listing students on `GET /courses/users` ([Feature 7](feature-7-student-course-listing.md))
+- Creating `MenuBar` (introduced in [Feature 1](feature-1-user-auth.md); this feature only adds **Faculty** for role `faculty`)
+- Semester CRUD ([Feature 2](feature-2-semester-management.md)) and course CRUD ([Feature 3](feature-3-course-management.md))
+- An `admin` role (this product uses `student` and `faculty` only)
+
+---
+
+## Delivered to Feature 5
+
+- `MenuBar` is Feature 1 chrome; Feature 2 added **Semesters**; Feature 3 adds **Course**; this feature added **Faculty** for `faculty`.
+- Feature 5 adds **Section** to this `MenuBar` and MUST use this faculty catalog for a section's instructor (`facultyId`); it MUST NOT create a second `MenuBar` or a second faculty list.
+- [Feature 5](feature-5-section-management.md) MUST reject `DELETE /courses/faculty/:facultyId` with `400` when that faculty member is still assigned to a section.
