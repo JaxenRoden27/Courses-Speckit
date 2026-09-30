@@ -146,3 +146,18 @@
 
 ---
 
+## Data Ownership & Isolation
+
+Faculty members are a **shared catalog**. They are not owned by the signed-in faculty user. Only role `faculty` may manage them. Any authenticated user MAY `GET` the catalog. Role `student` does not see the manager UI. Optional `userId` links a faculty member to a login account; it is not used as an ownership filter.
+
+| Rule               | Requirement                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Read scope**     | `GET /courses/faculty` returns **all** faculty members to any authenticated user.                                                    |
+| **Write scope**    | `POST`, `PUT`, and `DELETE` are allowed only when `req.user.role` is `faculty`.                                                      |
+| **Create scope**   | New faculty members have no owner. Optional `userId` links to `users.id` when provided.                                              |
+| **Missing faculty**| Unknown `facultyId` → `404` with `{ "message": "Faculty with id=<id> not found." }`. Never use ownership `404` to hide rows.         |
+| **Non-faculty**    | Authenticated non-faculty `GET /courses/faculty` → `200`. Mutations and `GET /courses/users` → `403` with `{ "message": "Faculty role required." }`. |
+| **UI scope**       | **Faculty** menu and `/faculty` are faculty-only. Students do not see this manager.                                                  |
+| **Implementation** | Use `authenticate` on all endpoints. Use `requireFaculty` after `authenticate` on `POST`, `PUT`, `DELETE`, and `GET /courses/users`. |
+
+---
