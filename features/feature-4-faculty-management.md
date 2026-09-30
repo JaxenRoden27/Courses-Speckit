@@ -161,3 +161,56 @@ Faculty members are a **shared catalog**. They are not owned by the signed-in fa
 | **Implementation** | Use `authenticate` on all endpoints. Use `requireFaculty` after `authenticate` on `POST`, `PUT`, `DELETE`, and `GET /courses/users`. |
 
 ---
+
+## API Requirements
+
+| Method   | Endpoint                      | Auth         | Purpose                                              |
+| -------- | ----------------------------- | ------------ | ---------------------------------------------------- |
+| `GET`    | `/courses/faculty`            | Yes          | Fetch all faculty members in the shared catalog      |
+| `POST`   | `/courses/faculty`            | Yes, faculty | Create a faculty member in the shared catalog        |
+| `PUT`    | `/courses/faculty/:facultyId` | Yes, faculty | Update a faculty member                              |
+| `DELETE` | `/courses/faculty/:facultyId` | Yes, faculty | Delete a faculty member                              |
+| `GET`    | `/courses/users`              | Yes, faculty | List faculty-role users for the optional faculty–user link |
+
+**Create faculty request body:**
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "dept": "Computer Science",
+  "userId": 2
+}
+```
+
+`userId` MAY be omitted or `null` when the faculty member has no login account. Do not send `id` on create.
+
+**Update faculty request body:** same fields as create (no `id`). Sending `userId` `null` unlinks the user.
+
+**Faculty success response** (`200` / `201`):
+
+```json
+{
+  "id": 1,
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "dept": "Computer Science",
+  "userId": 2,
+  "createdAt": "2026-07-02T12:00:00.000Z",
+  "updatedAt": "2026-07-02T12:00:00.000Z"
+}
+```
+
+When the faculty member has no linked user, `userId` is `null`.
+
+`GET /courses/faculty` returns an **array** of faculty objects in the success shape above, ordered by `lastName` then `firstName`.
+
+`DELETE` returns `200` with `{ "message": "Faculty deleted." }`.
+
+**User list success response** (`200` on `GET /courses/users`): an array of `{ "id", "universityId", "fName", "lName" }` for users whose `role` is `faculty`. Do **not** include `password`.
+
+**Error response:** `{ "message": "Human-readable explanation." }` with appropriate HTTP status.
+**Not found:** `404` (do not use `403` for missing faculty id).
+
+---
+
