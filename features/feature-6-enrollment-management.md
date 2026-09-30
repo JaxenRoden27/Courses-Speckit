@@ -24,11 +24,11 @@
 ### US-6.2: Create enrollment
 
 **As a** signed-in student user  
-**I want to** create a enrollment with a section, and student Id  
+**I want to** create an enrollment with a section, and student Id  
 **So that** sections have enrollments
 
 **Priority:** P1  
-**Independent test:** Open add-enrollment dialog, create a enrollment for an existing section and student; it appears in the enrollments view  
+**Independent test:** Open add-enrollment dialog, create an enrollment for an existing section and student; it appears in the enrollments view  
 **Acceptance scenarios:** see ### US-6.2 under Acceptance Criteria
 
 ### US-6.3: Student View enrollments
@@ -61,24 +61,24 @@
 **Independent test:** Each enrollment row exposes edit and delete icon actions  
 **Acceptance scenarios:** see ### US-6.4 under Acceptance Criteria
 
-### US-6.6: Edit a enrollment
+### US-6.6: Edit an enrollment
 
 **As a** signed-in student user  
 **I want to** edit enrollment data  
 **So that** I can keep enrollment data accurate
 
 **Priority:** P2  
-**Independent test:** Edit a enrollment from row actions; enrollments view updates  
+**Independent test:** Edit an enrollment from row actions; enrollments view updates  
 **Acceptance scenarios:** see ### US-6.5 under Acceptance Criteria
 
-### US-6.7: Delete a enrollment
+### US-6.7: Delete an enrollment
 
 **As a** signed-in student user  
-**I want to** delete a enrollment  
+**I want to** delete an enrollment  
 **So that** I can remove enrollments that should not stay on the schedule
 
 **Priority:** P2  
-**Independent test:** Delete a enrollment from row actions; enrollments view updates  
+**Independent test:** Delete an enrollment from row actions; enrollments view updates  
 **Acceptance scenarios:** see ### US-6.6 under Acceptance Criteria
 
 ### US-6.8: Restrict enrollment management to students
@@ -91,14 +91,14 @@
 **Independent test:** Sign in as a student — **Enrollments** is visible; `POST /courses/students/:studentId/enrollments` returns `201`  
 **Acceptance scenarios:** see ### US-6.7 under Acceptance Criteria
 
-### US-6.9: Block delete of a section or student that has a enrollment
+### US-6.9: Block delete of a section or student that has an enrollment
 
 **As the** application  
 **I want to** refuse delete of a section or student that still has enrollments  
 **So that** enrollments are not left pointing at missing rows
 
 **Priority:** P1  
-**Independent test:** Create a enrollment; `DELETE` of that section or student returns `400` and the parent row remains  
+**Independent test:** Create an enrollment; `DELETE` of that section or student returns `400` and the parent row remains  
 **Acceptance scenarios:** see ### US-6.8 under Acceptance Criteria
 
 ## Requirements
@@ -122,8 +122,8 @@
 
 - Features 1–5 (auth/`MenuBar`, semesters, courses, faculty, sections) MUST be merged to `dev` before implementing this feature.
 - A user with role `student` exists (Feature 1 `role`; tests may seed an student).
-- Tests MAY seed at least one course, one semester, and two sections in that semester's course before creating a enrollment.
-- A enrollment belongs to one **Section**. Sections belong to one **Course** each. The semester's `courseId` is the course both sections MUST use.
+- Tests MAY seed at least one course, one semester, and two sections in that semester's course before creating an enrollment.
+- An enrollment belongs to one **Section**. Sections belong to one **Course** each. The semester's `courseId` is the course both sections MUST use.
 - A section MAY appear in many enrollments. A section MAY be in one students enrollment and in another.
 - Add/Edit dialogs load that course's sections from `GET /courses/sections?courseId=<courseId>`.
 - Foreign keys from `enrollments.sectionId` and `enrollments.studentId` MUST use **RESTRICT**.
@@ -291,17 +291,16 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 #### Scenario: User creates a new enrollment
 
 - **Given** I am signed in as a user with role `student`
-- **And** a semester `2026 Fall` exists
-- **And** sections `OKC Strikers` and `Tulsa FC` exist in that semester's course
+- **And** a section `1` exists
 - **And** I am viewing the enrollments view
 - **When** I click **+ New enrollment**
-- **And** I select semester `2026 Fall`, date `2026-09-12`, start time `18:00`, home section `OKC Strikers`, and visiting section `Tulsa FC`
+- **And** I select section `1`
 - **And** I click **Create**
-- **Then** the API returns `201` with a enrollment object containing `id`, nested `semester.name` `2026 Fall`, `homeSection.name` `OKC Strikers`, and `visitingSection.name` `Tulsa FC`
-- **And** `OKC Strikers` appears in the enrollments view list
+- **Then** the API returns `201` with an enrollment object containing `id`, nested `section.sectionId`, and `user.id`
+- **And** Enrollment for the section appears in the enrollments view list
 - **And** the add-enrollment dialog closes
 
-#### Scenario: User creates a enrollment with a missing required field
+#### Scenario: User creates an enrollment with a missing required field
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -311,29 +310,24 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **Then** no API call is made
 - **And** I see the message **"Required"**
 
-#### Scenario: User creates a enrollment with the same home and visiting section
+#### Scenario: User creates an enrollment with an unknown section
 
 - **Given** I am signed in as a user with role `student`
+- **When** I send `POST /courses/students/:studentId/enrollments` with a `sectionId` that does not exist and otherwise valid data
+- **Then** the API returns `400` with `{ "message": "Section not found." }`
+- **And** no enrollment is stored
+
+#### Scenario: User creates an enrollment with a faculty account
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** a section `1` exists
 - **And** I am viewing the enrollments view
-- **When** I send `POST /course/enrollments` with the same `homeSectionId` and `visitingSectionId` and otherwise valid data
-- **Then** the API returns `400` with `{ "message": "Home section and visiting section must be different." }`
-- **And** no enrollment is stored
-
-#### Scenario: User creates a enrollment with an unknown semester
-
-- **Given** I am signed in as a user with role `student`
-- **When** I send `POST /course/enrollments` with a `semesterId` that does not exist and otherwise valid data
-- **Then** the API returns `400` with `{ "message": "Semester not found." }`
-- **And** no enrollment is stored
-
-#### Scenario: User creates a enrollment with a section that is not in the semester's course
-
-- **Given** I am signed in as a user with role `student`
-- **And** semester `2026 Fall` belongs to course `OKC Youth Soccer`
-- **And** section `Metro Sluggers` belongs to a different course
-- **When** I send `POST /course/enrollments` with that semester and `Metro Sluggers` as a section
-- **Then** the API returns `400` with `{ "message": "Home section and visiting section must be in the semester's course." }`
-- **And** no enrollment is stored
+- **When** I click **+ New enrollment**
+- **And** I select section `1`
+- **And** I click **Create**
+- **Then** the API returns `403` with `{ "message": "Student role required." }`
+- **And** No enrollment is stored
+- **And** the add-enrollment dialog closes
 
 ---
 
@@ -345,13 +339,13 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **And** I am viewing the enrollments view
 - **And** enrollments exist
 - **When** I view the enrollments list
-- **Then** all the enrollments are displayed in the list
+- **Then** all enrollments for that user are displayed in the list
 
 #### Scenario: User has no enrollments
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
-- **And** there are no enrollments
+- **And** there are no enrollments for that user
 - **When** I view the enrollments list
 - **Then** I see **"No enrollments yet. Create your first enrollment."**
 
@@ -361,19 +355,19 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 #### Scenario: Enrollments view loads with existing enrollments
 
-- **Given** I am signed in as a user with role `student`
+- **Given** I am signed in as a user with role `faulty`
 - **And** I am viewing the enrollments view
 - **And** enrollments exist
-- **When** I view the enrollments list
-- **Then** all the enrollments are displayed in the list
+- **When** I view the enrollments list for students
+- **Then** all the enrollments are displayed in a list for each student
 
 #### Scenario: User has no enrollments
 
-- **Given** I am signed in as a user with role `student`
+- **Given** I am signed in as a user with role `faculty`
 - **And** I am viewing the enrollments view
 - **And** there are no enrollments
 - **When** I view the enrollments list
-- **Then** I see **"No enrollments yet. Create your first enrollment."**
+- **Then** I see **"No enrollments yet for students."**
 
 ---
 
@@ -383,32 +377,40 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
-- **When** I view a enrollment row
+- **When** I view an enrollment row
 - **Then** the enrollment row shows an **Edit enrollment** icon action
 - **And** the enrollment row shows a **Delete enrollment** icon action
 
+#### Scenario: enrollment rows show edit and delete actions
+
+- **Given** I am signed in as a user with role `faculty`
+- **And** I am viewing the enrollments view
+- **When** I view an enrollment row
+- **Then** the enrollment row does not show an **Edit enrollment** icon action
+- **And** the enrollment row does not show a **Delete enrollment** icon action
+
 ---
 
-### US-6.6 — Edit a enrollment
+### US-6.6 — Edit an enrollment
 
-#### Scenario: User selects to edit a enrollment
+#### Scenario: User selects to edit an enrollment
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
-- **When** I click the edit icon on a enrollment row
+- **When** I click the edit icon on an enrollment row
 - **Then** the enrollment edit dialog is displayed
 
-#### Scenario: User edits a enrollment with valid values and saves
+#### Scenario: User edits an enrollment with valid values and saves
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
 - **And** the enrollment edit dialog is displayed
-- **When** I update values in the fields with valid values including location `North Field` and scores `2` and `1`
+- **When** I update values in the fields with valid values including section `2`
 - **And** I click **Save Enrollment**
 - **Then** the enrollment data is updated
 - **And** the dialog is closed
 
-#### Scenario: User edits a enrollment with invalid values and saves
+#### Scenario: User edits an enrollment with invalid values and saves
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -418,7 +420,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **Then** the appropriate error messages are shown
 - **And** the dialog is not closed
 
-#### Scenario — User edits a enrollment and cancels
+#### Scenario — User edits an enrollment and cancels
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -430,16 +432,16 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ---
 
-### US-6.7 — Delete a enrollment
+### US-6.7 — Delete an enrollment
 
-#### Scenario: User selects to delete a enrollment
+#### Scenario: User selects to delete an enrollment
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
-- **When** I click the delete icon on a enrollment row
+- **When** I click the delete icon on an enrollment row
 - **Then** the enrollment delete dialog is displayed
 
-#### Scenario: User deletes a enrollment
+#### Scenario: User deletes an enrollment
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -449,7 +451,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **And** the dialog is closed
 - **And** the enrollment is not in the enrollments list
 
-#### Scenario: User cancels deleting a enrollment
+#### Scenario: User cancels deleting an enrollment
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -463,29 +465,29 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ### US-6.8 — Restrict enrollment management to students
 
-#### Scenario: Student does not see Enrollments in the menu
+#### Scenario: Student can GET enrollments via the API
 
 - **Given** I am signed in as a user with role `student`
-- **When** I view the `MenuBar`
-- **Then** **Enrollments** is not shown
+- **When** I request `GET /courses/students/:studentId/enrollments`
+- **Then** the API returns `200` with an array of enrollment objects for that student
 
-#### Scenario: Student can list enrollments via the API
+#### Scenario: Faculty can GET enrollments via the API
 
-- **Given** I am signed in as a user with role `student`
-- **When** I request `GET /course/enrollments`
-- **Then** the API returns `200` with an array of enrollment objects
+- **Given** I am signed in as a user with role `faculty`
+- **When** I request `GET /courses/enrollments`
+- **Then** the API returns `200` with an array of enrollment objects for each student
 
-#### Scenario: Student cannot create a enrollment via the API
+#### Scenario: Faculty cannot create an enrollment via the API
 
-- **Given** I am signed in as a user with role `student`
-- **When** I send `POST /course/enrollments` with a valid enrollment body
+- **Given** I am signed in as a user with role `faculty`
+- **When** I send `POST /courses/students/:studentId/enrollments` with a valid enrollment body
 - **Then** the API returns `403` with `{ "message": "Student role required." }`
 - **And** no new enrollment is stored
 
 #### Scenario: Unauthenticated API request to enrollments
 
 - **Given** I have no valid session token
-- **When** I request `GET /course/enrollments`
+- **When** I request `GET /courses/students/:studentId/enrollments`
 - **Then** the API returns `401` with an unauthorized message
 
 #### Scenario: Unauthenticated user navigates to enrollments
@@ -496,55 +498,58 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ---
 
-### US-6.9 — Block delete of a section or student that has a enrollment
+### US-6.9 — Block delete of a section or student that has an enrollment
 
-#### Scenario: User cannot delete a semester that has a enrollment
-
-- **Given** I am signed in as a user with role `student`
-- **And** a enrollment exists in semester `2026 Fall`
-- **When** I send `DELETE /course/semesters/:semesterId` for that semester
-- **Then** the API returns `400` with `{ "message": "Cannot delete semester: enrollments still exist." }`
-- **And** the semester is still stored
-- **And** the enrollment is still stored
-
-#### Scenario: User cannot delete a section that has a enrollment
+#### Scenario: User cannot delete a semester that has an enrollment
 
 - **Given** I am signed in as a user with role `student`
-- **And** a enrollment exists with home section `OKC Strikers`
-- **When** I send `DELETE /course/sections/:sectionId` for that section
+- **And** an enrollment exists in section `1`
+- **When** I send `DELETE /courses/sections/:sectionId` for that section
 - **Then** the API returns `400` with `{ "message": "Cannot delete section: enrollments still exist." }`
 - **And** the section is still stored
+- **And** the enrollment is still stored
+
+#### Scenario: User cannot delete a student that has an enrollment
+
+- **Given** I am signed in as a user with role `student`
+- **And** an enrollment exists with student `4`
+- **When** I send `DELETE /course/students/:studentId` for that student
+- **Then** the API returns `400` with `{ "message": "Cannot delete student: enrollments still exist." }`
+- **And** the student is still stored
 - **And** the enrollment is still stored
 
 ---
 
 ## Test Coverage Map
 
-| Story  | Scenario                                                      | Test file                                                          | Test name                                                       |
-| ------ | ------------------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
-| US-6.1 | Menu Selection                                                | `frontend/tests/MenuBar.test.js`, `frontend/tests/Enrollments.test.js`   | `Menu Selection`                                                |
-| US-6.2 | User creates a new enrollment                                       | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js`      | `User creates a new enrollment`                                       |
-| US-6.2 | User creates a enrollment with a missing required field             | `frontend/tests/Enrollments.test.js`                                     | `User creates a enrollment with a missing required field`             |
-| US-6.2 | User creates a enrollment with the same home and visiting section      | `backend/tests/enrollments.test.js`                                      | `User creates a enrollment with the same home and visiting section`      |
-| US-6.2 | User creates a enrollment with an unknown semester                    | `backend/tests/enrollments.test.js`                                      | `User creates a enrollment with an unknown semester`                    |
-| US-6.2 | User creates a enrollment with a section that is not in the semester's course | `backend/tests/enrollments.test.js`                                 | `User creates a enrollment with a section that is not in the semester's course` |
-| US-6.3 | Enrollments view loads with existing enrollments                          | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js`      | `Enrollments view loads with existing enrollments`                          |
-| US-6.3 | User has no enrollments                                             | `frontend/tests/Enrollments.test.js`                                     | `User has no enrollments`                                             |
-| US-6.4 | enrollment rows show edit and delete actions                        | `frontend/tests/Enrollments.test.js`                                     | `enrollment rows show edit and delete actions`                        |
-| US-6.5 | User selects to edit a enrollment                                   | `frontend/tests/Enrollments.test.js`                                     | `User selects to edit a enrollment`                                   |
-| US-6.5 | User edits a enrollment with valid values and saves                 | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js`      | `User edits a enrollment with valid values and saves`                 |
-| US-6.5 | User edits a enrollment with invalid values and saves               | `frontend/tests/Enrollments.test.js`                                     | `User edits a enrollment with invalid values and saves`               |
-| US-6.5 | User edits a enrollment and cancels                                 | `frontend/tests/Enrollments.test.js`                                     | `User edits a enrollment and cancels`                                 |
-| US-6.6 | User selects to delete a enrollment                                 | `frontend/tests/Enrollments.test.js`                                     | `User selects to delete a enrollment`                                 |
-| US-6.6 | User deletes a enrollment                                           | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js`      | `User deletes a enrollment`                                           |
-| US-6.6 | User cancels deleting a enrollment                                  | `frontend/tests/Enrollments.test.js`                                     | `User cancels deleting a enrollment`                                  |
-| US-6.7 | Student does not see Enrollments in the menu                        | `frontend/tests/MenuBar.test.js`                                   | `Student does not see Enrollments in the menu`                        |
-| US-6.7 | Student can list enrollments via the API                            | `backend/tests/enrollments.test.js`                                      | `Student can list enrollments via the API`                            |
-| US-6.7 | Student cannot create a enrollment via the API                      | `backend/tests/enrollments.test.js`                                      | `Student cannot create a enrollment via the API`                      |
-| US-6.7 | Unauthenticated API request to enrollments                          | `backend/tests/enrollments.test.js`                                      | `Unauthenticated API request to enrollments`                          |
-| US-6.7 | Unauthenticated user navigates to enrollments                       | `frontend/tests/router.test.js`                                    | `Unauthenticated user navigates to enrollments`                       |
-| US-6.8 | User cannot delete a semester that has a enrollment                   | `backend/tests/semesters.test.js`, `backend/tests/enrollments.test.js`     | `User cannot delete a semester that has a enrollment`                   |
-| US-6.8 | User cannot delete a section that has a enrollment                     | `backend/tests/sections.test.js`, `backend/tests/enrollments.test.js`       | `User cannot delete a section that has a enrollment`                     |
+| Story | Scenario | Test file | Test name |
+| ----- | -------- | --------- | --------- |
+| US-6.1 | Student opens enrollments from the menu | `frontend/tests/MenuBar.test.js`, `frontend/tests/Enrollments.test.js` | `Student opens enrollments from the menu` |
+| US-6.1 | Faculty opens enrollments from the menu | `frontend/tests/MenuBar.test.js`, `frontend/tests/Enrollments.test.js` | `Faculty opens enrollments from the menu` |
+| US-6.2 | User creates a new enrollment | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `User creates a new enrollment` |
+| US-6.2 | User creates an enrollment with a missing required field | `frontend/tests/Enrollments.test.js` | `User creates an enrollment with a missing required field` |
+| US-6.2 | User creates an enrollment with an unknown section | `backend/tests/enrollments.test.js` | `User creates an enrollment with an unknown section` |
+| US-6.2 | User creates an enrollment with a faculty account | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `User creates an enrollment with a faculty account` |
+| US-6.3 | Student enrollments view loads with existing enrollments | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `Student enrollments view loads with existing enrollments` |
+| US-6.3 | Student has no enrollments | `frontend/tests/Enrollments.test.js` | `Student has no enrollments` |
+| US-6.4 | Faculty enrollments view loads with existing enrollments | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `Faculty enrollments view loads with existing enrollments` |
+| US-6.4 | Faculty has no enrollments | `frontend/tests/Enrollments.test.js` | `Faculty has no enrollments` |
+| US-6.5 | Student enrollment rows show edit and delete actions | `frontend/tests/Enrollments.test.js` | `Student enrollment rows show edit and delete actions` |
+| US-6.5 | Faculty enrollment rows do not show edit and delete actions | `frontend/tests/Enrollments.test.js` | `Faculty enrollment rows do not show edit and delete actions` |
+| US-6.6 | User selects to edit an enrollment | `frontend/tests/Enrollments.test.js` | `User selects to edit an enrollment` |
+| US-6.6 | User edits an enrollment with valid values and saves | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `User edits an enrollment with valid values and saves` |
+| US-6.6 | User edits an enrollment with invalid values and saves | `frontend/tests/Enrollments.test.js` | `User edits an enrollment with invalid values and saves` |
+| US-6.6 | User edits an enrollment and cancels | `frontend/tests/Enrollments.test.js` | `User edits an enrollment and cancels` |
+| US-6.7 | User selects to delete an enrollment | `frontend/tests/Enrollments.test.js` | `User selects to delete an enrollment` |
+| US-6.7 | User deletes an enrollment | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `User deletes an enrollment` |
+| US-6.7 | User cancels deleting an enrollment | `frontend/tests/Enrollments.test.js` | `User cancels deleting an enrollment` |
+| US-6.8 | Student can GET enrollments via the API | `backend/tests/enrollments.test.js` | `Student can GET enrollments via the API` |
+| US-6.8 | Faculty can GET enrollments via the API | `backend/tests/enrollments.test.js` | `Faculty can GET enrollments via the API` |
+| US-6.8 | Faculty cannot create an enrollment via the API | `backend/tests/enrollments.test.js` | `Faculty cannot create an enrollment via the API` |
+| US-6.8 | Unauthenticated API request to enrollments | `backend/tests/enrollments.test.js` | `Unauthenticated API request to enrollments` |
+| US-6.8 | Unauthenticated user navigates to enrollments | `frontend/tests/router.test.js` | `Unauthenticated user navigates to enrollments` |
+| US-6.9 | User cannot delete a section that has an enrollment | `backend/tests/sections.test.js`, `backend/tests/enrollments.test.js` | `User cannot delete a section that has an enrollment` |
+| US-6.9 | User cannot delete a student that has an enrollment | `backend/tests/users.test.js`, `backend/tests/enrollments.test.js` | `User cannot delete a student that has an enrollment` |
 
 ---
 
