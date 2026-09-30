@@ -556,3 +556,31 @@ Each scenario above must map to at least one automated test.
 | US-4.7 | Unauthenticated user navigates to faculty                       | `frontend/tests/router.test.js`                                   | `Unauthenticated user navigates to faculty`                      |
 
 ---
+
+## Agent implementation request
+
+Copy when asking Cursor to implement this feature (`@` this file):
+
+```text
+Implement Feature 4 from @features/feature-4-faculty-management.md on branch `feature/4-faculty-management`.
+
+Follow layer order in @features/framework.md (models → routes → backend tests → frontend → frontend tests).
+Commit one layer at a time (constitution Principle 4) so this branch can be pushed incrementally.
+Map every Gherkin scenario in the Test Coverage Map; run `npm test` before finishing.
+If API routes, payloads, schema, or product rules changed per this spec, update @features/reference/api.md, @features/reference/data-model.md, and/or @features/reference/behavior.md in the same PR to match shipped code.
+Complete Definition of Done and the merge checklist in @features/framework.md.
+Do not implement behavior not in this spec.
+```
+
+**Reference updates for this feature:** `features/reference/data-model.md`, `features/reference/api.md`, `features/reference/behavior.md`
+
+**Suggested commit order (do not implement until asked):**
+
+1. `faculties` model + `User` association
+2. `requireFaculty` + faculty routes/controller + `GET /courses/users` faculty guard
+3. Backend tests (`backend/tests/faculty.test.js`)
+4. Frontend service + `Faculty.vue` + `MenuBar` item + `/faculty` route
+5. Frontend tests (`Faculty.test.js`, `MenuBar.test.js`, `router.test.js`)
+6. Living reference (`api.md`, `data-model.md`, `behavior.md`)
+
+---
