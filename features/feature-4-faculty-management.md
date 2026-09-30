@@ -253,3 +253,23 @@ When the faculty member has no linked user, `userId` is `null`.
 
 ---
 
+## Data Model Requirements
+
+### `faculties` table
+
+| Field       | Type        | Rules                                              |
+| ----------- | ----------- | -------------------------------------------------- |
+| `id`        | INTEGER PK  | Auto-increment                                     |
+| `firstName` | STRING(50)  | Required; trimmed; at most 50 characters           |
+| `lastName`  | STRING(50)  | Required; trimmed; at most 50 characters           |
+| `dept`      | STRING(50)  | Required; trimmed; at most 50 characters           |
+| `userId`    | INTEGER FK  | Optional; unique when present; references `users.id` |
+| `createdAt` | DATE        | Sequelize timestamps                               |
+| `updatedAt` | DATE        | Sequelize timestamps                               
+
+### Associations (in `models/index.js`)
+
+- `Faculty belongsTo User` (`userId`, optional, `onDelete: 'SET NULL'`)
+- `User hasOne Faculty`
+
+---
