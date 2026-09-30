@@ -246,3 +246,10 @@ When the faculty member has no linked user, `userId` is `null`.
 
 ---
 
+## Key Entities
+
+- **Faculty member**: shared catalog row (first name, last name, department). Not owned by a faculty user. May optionally link to one Feature 1 **User** whose role is `faculty`. Faculty users manage the catalog in this feature.
+- **User**: Feature 1 login account. Unchanged except that this feature may reference `users.id` from `faculties.userId`, and `GET /courses/users` is restricted to faculty callers listing faculty-role users.
+
+---
+
