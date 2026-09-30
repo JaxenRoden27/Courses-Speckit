@@ -10,3 +10,77 @@
 
 ---
 
+## User Stories
+
+### US-4.1: Select to work with Faculty
+
+**As a** signed-in faculty user
+**I want to** open the faculty view from the menu
+**So that** I can maintain the faculty catalog
+
+**Priority:** P1
+**Independent test:** login as faculty, view **Faculty** on menubar; faculty view appears
+**Acceptance scenarios:** see ### US-4.1 under Acceptance Criteria
+
+### US-4.2: Create faculty member
+
+**As a** signed-in faculty user
+**I want to** create faculty members (e.g. "Jane Doe", "Robert Smith")
+**So that** I can track instructors in the catalog
+
+**Priority:** P1
+**Independent test:** Open add-faculty dialog, create a faculty member with name and department; it appears in the faculty view
+**Acceptance scenarios:** see ### US-4.2 under Acceptance Criteria
+
+### US-4.3: View faculty
+
+**As a** signed-in faculty user
+**I want to** see all faculty members on one screen
+**So that** I can see who is in the catalog
+
+**Priority:** P1
+**Independent test:** Selecting **Faculty** loads a screen that displays all faculty members
+**Acceptance scenarios:** see ### US-4.3 under Acceptance Criteria
+
+### US-4.4: Manage faculty rows
+
+**As a** signed-in faculty user
+**I want** each faculty row to show **edit** and **delete** actions
+**So that** I can manage faculty without leaving the faculty view
+
+**Priority:** P1
+**Independent test:** Each faculty row exposes edit and delete icon actions
+**Acceptance scenarios:** see ### US-4.4 under Acceptance Criteria
+
+### US-4.5: Edit a faculty member
+
+**As a** signed-in faculty user
+**I want to** edit faculty data
+**So that** I can keep the faculty catalog accurate
+
+**Priority:** P2
+**Independent test:** Edit a faculty member from row actions; faculty view updates
+**Acceptance scenarios:** see ### US-4.5 under Acceptance Criteria
+
+### US-4.6: Delete a faculty member
+
+**As a** signed-in faculty user
+**I want to** delete a faculty member
+**So that** I can remove people who no longer belong in the catalog
+
+**Priority:** P2
+**Independent test:** Delete a faculty member from row actions; faculty view updates
+**Acceptance scenarios:** see ### US-4.6 under Acceptance Criteria
+
+### US-4.7: Restrict faculty management to faculty users
+
+**As the** application
+**I want to** allow only users with role `faculty` to manage the faculty catalog
+**So that** students cannot create, edit, or delete faculty members
+
+**Priority:** P1
+**Independent test:** Sign in as a student — **Faculty** is hidden; `POST /courses/faculty` returns `403`
+**Acceptance scenarios:** see ### US-4.7 under Acceptance Criteria
+
+---
+
