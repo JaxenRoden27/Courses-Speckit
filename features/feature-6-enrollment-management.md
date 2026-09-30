@@ -49,7 +49,7 @@
 
 **Priority:** P1  
 **Independent test:** Selecting Enrollments loads a screen that displays all student enrollments  
-**Acceptance scenarios:** see ### US-6.3 under Acceptance Criteria
+**Acceptance scenarios:** see ### US-6.4 under Acceptance Criteria
 
 ### US-6.5: Manage enrollment rows
 
@@ -59,7 +59,7 @@
 
 **Priority:** P1  
 **Independent test:** Each enrollment row exposes edit and delete icon actions  
-**Acceptance scenarios:** see ### US-6.4 under Acceptance Criteria
+**Acceptance scenarios:** see ### US-6.5 under Acceptance Criteria
 
 ### US-6.6: Edit an enrollment
 
@@ -69,7 +69,7 @@
 
 **Priority:** P2  
 **Independent test:** Edit an enrollment from row actions; enrollments view updates  
-**Acceptance scenarios:** see ### US-6.5 under Acceptance Criteria
+**Acceptance scenarios:** see ### US-6.6 under Acceptance Criteria
 
 ### US-6.7: Delete an enrollment
 
@@ -79,7 +79,7 @@
 
 **Priority:** P2  
 **Independent test:** Delete an enrollment from row actions; enrollments view updates  
-**Acceptance scenarios:** see ### US-6.6 under Acceptance Criteria
+**Acceptance scenarios:** see ### US-6.7 under Acceptance Criteria
 
 ### US-6.8: Restrict enrollment management to students
 
@@ -89,7 +89,7 @@
 
 **Priority:** P1  
 **Independent test:** Sign in as a student — **Enrollments** is visible; `POST /courses/students/:studentId/enrollments` returns `201`  
-**Acceptance scenarios:** see ### US-6.7 under Acceptance Criteria
+**Acceptance scenarios:** see ### US-6.8 under Acceptance Criteria
 
 ### US-6.9: Block delete of a section or student that has an enrollment
 
@@ -99,7 +99,7 @@
 
 **Priority:** P1  
 **Independent test:** Create an enrollment; `DELETE` of that section or student returns `400` and the parent row remains  
-**Acceptance scenarios:** see ### US-6.8 under Acceptance Criteria
+**Acceptance scenarios:** see ### US-6.9 under Acceptance Criteria
 
 ## Requirements
 
@@ -121,7 +121,7 @@
 ## Assumptions
 
 - Features 1–5 (auth/`MenuBar`, semesters, courses, faculty, sections) MUST be merged to `dev` before implementing this feature.
-- A user with role `student` exists (Feature 1 `role`; tests may seed an student).
+- A user with role `student` exists (Feature 1 `role`; tests may seed a student).
 - Tests MAY seed at least one course, one semester, and two sections in that semester's course before creating an enrollment.
 - An enrollment belongs to one **Section**. Sections belong to one **Course** each. The semester's `courseId` is the course both sections MUST use.
 - A section MAY appear in many enrollments. A section MAY be in one students enrollment and in another.
@@ -274,13 +274,13 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ### US-6.1 — Select to work with Enrollments
 
-#### Scenario: Menu Selection
+#### Scenario: Student Menu Selection
 
 - **Given** I am signed in as a user with role `student`
 - **When** I click **Enrollments** in the `MenuBar`
 - **Then** the enrollments view is displayed
 
-#### Scenario: Menu Selection
+#### Scenario: Faculty Menu Selection
 
 - **Given** I am signed in as a user with role `faculty`
 - **When** I click **Enrollments** in the `MenuBar`
@@ -322,12 +322,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **Given** I am signed in as a user with role `faculty`
 - **And** a section `1` exists
 - **And** I am viewing the enrollments view
-- **When** I click **+ New enrollment**
-- **And** I select section `1`
-- **And** I click **Create**
-- **Then** the API returns `403` with `{ "message": "Student role required." }`
-- **And** No enrollment is stored
-- **And** the add-enrollment dialog closes
+- **Then** I do not see a button to create an enrollment
 
 ---
 
@@ -355,7 +350,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 #### Scenario: Enrollments view loads with existing enrollments
 
-- **Given** I am signed in as a user with role `faulty`
+- **Given** I am signed in as a user with role `faculty`
 - **And** I am viewing the enrollments view
 - **And** enrollments exist
 - **When** I view the enrollments list for students
@@ -373,7 +368,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ### US-6.5 — Manage enrollment rows
 
-#### Scenario: enrollment rows show edit and delete actions
+#### Scenario: Student enrollment rows show edit and delete actions
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -381,7 +376,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **Then** the enrollment row shows an **Edit enrollment** icon action
 - **And** the enrollment row shows a **Delete enrollment** icon action
 
-#### Scenario: enrollment rows show edit and delete actions
+#### Scenario: Faculty enrollment rows do not show edit and delete actions
 
 - **Given** I am signed in as a user with role `faculty`
 - **And** I am viewing the enrollments view
@@ -500,9 +495,9 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ### US-6.9 — Block delete of a section or student that has an enrollment
 
-#### Scenario: User cannot delete a semester that has an enrollment
+#### Scenario: User cannot delete a section that has an enrollment
 
-- **Given** I am signed in as a user with role `student`
+- **Given** I am signed in as a user with role `faculty`
 - **And** an enrollment exists in section `1`
 - **When** I send `DELETE /courses/sections/:sectionId` for that section
 - **Then** the API returns `400` with `{ "message": "Cannot delete section: enrollments still exist." }`
@@ -513,7 +508,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 - **Given** I am signed in as a user with role `student`
 - **And** an enrollment exists with student `4`
-- **When** I send `DELETE /course/students/:studentId` for that student
+- **When** I send `DELETE /courses/students/:studentId` for that student
 - **Then** the API returns `400` with `{ "message": "Cannot delete student: enrollments still exist." }`
 - **And** the student is still stored
 - **And** the enrollment is still stored
@@ -573,13 +568,13 @@ Do not implement behavior not in this spec.
 
 ## Definition of Done
 
-- [x] Backend and frontend implemented per this spec (**FR-00N** satisfied)
-- [x] **Success Criteria (SC-00N)** met
-- [x] All mapped tests pass (`npm test`)
-- [x] Test Coverage Map complete
-- [x] `features/reference/data-model.md` updated (if schema changed)
-- [x] `features/reference/api.md` updated (if API changed)
-- [x] `features/reference/behavior.md` updated (if product rules changed)
+- [] Backend and frontend implemented per this spec (**FR-00N** satisfied)
+- [] **Success Criteria (SC-00N)** met
+- [] All mapped tests pass (`npm test`)
+- [] Test Coverage Map complete
+- [] `features/reference/data-model.md` updated (if schema changed)
+- [] `features/reference/api.md` updated (if API changed)
+- [] `features/reference/behavior.md` updated (if product rules changed)
 
 ---
 
