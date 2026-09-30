@@ -4,7 +4,7 @@
 **Branch pattern:** `feature/6-enrollment-management`
 **Status:** Ready
 **Created:** 2026-09-24
-**Input:** Signed-in student or faculty users maintain enrollments on one screen; new enrollments are added via a dialog. An enrollment has a section, and a student. A student has many enrollments.
+**Input:** Signed-in student user maintains enrollments on one screen; new enrollments are added via a dialog. An enrollment has a section, and a student. A student has many enrollments; Faculty can view each students enrollments but not edit them.
 **Depends on:** [Feature 1 — User Authentication](feature-1-user-auth.md), [Feature 2 — Semester Management](feature-2-semester-management.md), [Feature 3 — Course Management](feature-3-course-management.md), [Feature 4 — faculty Management](feature-4-faculty-management.md), [Feature 5 — Section Management](feature-5-section-management.md)
 
 ---
@@ -23,7 +23,7 @@
 
 ### US-6.2: Create enrollment
 
-**As a** signed-in student or faculty user  
+**As a** signed-in student user  
 **I want to** create a enrollment with a section, and student Id  
 **So that** sections have enrollments
 
@@ -31,19 +31,29 @@
 **Independent test:** Open add-enrollment dialog, create a enrollment for an existing section and student; it appears in the enrollments view  
 **Acceptance scenarios:** see ### US-6.2 under Acceptance Criteria
 
-### US-6.3: View enrollments
+### US-6.3: Student View enrollments
 
-**As a** signed-in student or faculty user  
-**I want to** see all enrollments on one screen  
+**As a** signed-in student user  
+**I want to** see all personal enrollments on one screen  
 **So that** I can see the enrollment catalog
 
 **Priority:** P1  
-**Independent test:** Selecting Enrollments loads a screen that displays all enrollments  
+**Independent test:** Selecting Enrollments loads a screen that displays all personal enrollments  
 **Acceptance scenarios:** see ### US-6.3 under Acceptance Criteria
 
-### US-6.4: Manage enrollment rows
+### US-6.4: Faculty View enrollments
 
-**As a** signed-in student or faculty user  
+**As a** signed-in faculty user  
+**I want to** see all student enrollments on one screen  
+**So that** I can see the enrollment catalog
+
+**Priority:** P1  
+**Independent test:** Selecting Enrollments loads a screen that displays all student enrollments  
+**Acceptance scenarios:** see ### US-6.3 under Acceptance Criteria
+
+### US-6.5: Manage enrollment rows
+
+**As a** signed-in student user  
 **I want** each enrollment row to show **edit** and **delete** actions  
 **So that** I can manage enrollments without leaving the enrollments view
 
@@ -51,9 +61,9 @@
 **Independent test:** Each enrollment row exposes edit and delete icon actions  
 **Acceptance scenarios:** see ### US-6.4 under Acceptance Criteria
 
-### US-6.5: Edit a enrollment
+### US-6.6: Edit a enrollment
 
-**As a** signed-in student or faculty user  
+**As a** signed-in student user  
 **I want to** edit enrollment data  
 **So that** I can keep enrollment data accurate
 
@@ -61,9 +71,9 @@
 **Independent test:** Edit a enrollment from row actions; enrollments view updates  
 **Acceptance scenarios:** see ### US-6.5 under Acceptance Criteria
 
-### US-6.6: Delete a enrollment
+### US-6.7: Delete a enrollment
 
-**As a** signed-in student or faculty user  
+**As a** signed-in student user  
 **I want to** delete a enrollment  
 **So that** I can remove enrollments that should not stay on the schedule
 
@@ -71,17 +81,17 @@
 **Independent test:** Delete a enrollment from row actions; enrollments view updates  
 **Acceptance scenarios:** see ### US-6.6 under Acceptance Criteria
 
-### US-6.7: Restrict enrollment management to students
+### US-6.8: Restrict enrollment management to students
 
 **As the** application  
-**I want to** allow only users with role `student` or `faculty` to manage the enrollment catalog  
-**So that** students or faculty can create, edit, or delete enrollments
+**I want to** allow only users with role `student` to manage their enrollments  
+**So that** students can create, edit, or delete enrollments
 
 **Priority:** P1  
-**Independent test:** Sign in as a student or faculty — **Enrollments** is visible; `POST /course/enrollments` returns `200`  
+**Independent test:** Sign in as a student — **Enrollments** is visible; `POST /courses/students/:studentId/enrollments` returns `201`  
 **Acceptance scenarios:** see ### US-6.7 under Acceptance Criteria
 
-### US-6.8: Block delete of a section or student that has a enrollment
+### US-6.9: Block delete of a section or student that has a enrollment
 
 **As the** application  
 **I want to** refuse delete of a section or student that still has enrollments  
@@ -95,19 +105,16 @@
 
 ### Functional Requirements
 
-- **FR-001**: All enrollment endpoints MUST require a valid session (`authenticate`). `GET` MUST be allowed for any authenticated role. `POST`, `PUT`, and `DELETE` MUST require `req.user.role` equal to `student`.
-- **FR-002**: Enrollments MUST be a **shared catalog**. The `enrollments` table MUST NOT include `userId`. The API MUST ignore any client-supplied ownership `userId`.
-- **FR-003**: Authenticated non-student users (including `student`) MUST receive `403` with `{ "message": "Student role required." }` on `POST`, `PUT`, and `DELETE`. `GET` MUST return `200` for any authenticated user. They MUST NOT see **Enrollments** in `MenuBar`.
-- **FR-004**: Required enrollment fields MUST be present and trimmed; empty or whitespace-only values MUST be rejected (client block and/or `400`). Required fields are `semesterId`, `enrollmentDate`, `startTime`, `homeSectionId`, and `visitingSectionId`. `location` is not required on create.
-- **FR-005**: Unauthenticated enrollment API requests MUST return `401`. Unauthenticated navigation to `/enrollments` MUST redirect to `login`.
-- **FR-006**: Enrollments MUST be ordered by `enrollmentDate`, then `startTime`, in API responses.
-- **FR-007**: This feature MUST deliver student enrollment CRUD and a **single-view** enrollment UI in `Enrollments.vue` (dialog-based add/edit/delete). No sidebar/main split.
-- **FR-008**: `semesterId` MUST be a required integer that exists in `semesters`. Missing semester message: **"Semester not found."** (HTTP `400`). A semester MAY have many enrollments.
-- **FR-009**: `homeSectionId` and `visitingSectionId` MUST be required integers that exist in `sections`. Missing section messages: **"Home section not found."**, **"Visiting section not found."** (HTTP `400`). They MUST be different. Same-section message: **"Home section and visiting section must be different."** Both sections MUST belong to the same course as the selected semester. Course-mismatch message: **"Home section and visiting section must be in the semester's course."** A section MAY have many enrollments (as home or visiting).
-- **FR-010**: `enrollmentDate` MUST be a required date. `startTime` MUST be a required time.
-- **FR-011**: On create, `location` MUST be set from the home section's `homeField` (Feature 5). The client MUST NOT be required to send `location` on create. The **Edit Enrollment** dialog MUST show **Location** so an student can set or clear it. When present on edit, `location` MUST be trimmed and at most 50 characters. Too-long message: **"Location must be 50 characters or fewer."** Empty or whitespace-only on edit MUST store `null`.
-- **FR-012**: `homeSectionScore` and `visitingSectionScore` MAY be omitted or `null` (a scheduled enrollment with no score yet). When present, each MUST be an integer from `0` through `999`. Invalid message: **"Score must be between 0 and 999."**
-- **FR-013**: `DELETE` of a semester MUST fail with `400` when any enrollment references that semester. `DELETE` of a section MUST fail with `400` when any enrollment uses that section as home or visiting. Do **not** cascade-delete enrollments when a semester or section is deleted. Messages: **"Cannot delete semester: enrollments still exist."**, **"Cannot delete section: enrollments still exist."** The parent row and its enrollments MUST remain stored.
+- **FR-001**: Every enrollment endpoint MUST require a valid session (`authenticate`). A request with no valid session MUST return `401`. Navigation to `/enrollments` with no session MUST redirect to `login`.
+- **FR-002**: A signed-in `student` or `faculty` user MUST see **Enrollments** in `MenuBar` and MUST be able to open the enrollments view from that item.
+- **FR-003**: A signed-in `student` MUST be able to create an enrollment from the enrollments view. The enrollment MUST store one `sectionId` and one `studentId`. `studentId` MUST be the signed-in student's id. A successful `POST` MUST return `201`, and the new enrollment MUST appear in that student's list.
+- **FR-004**: The create and update body MUST include `sectionId`. An empty section selection MUST be blocked in the client with **"Required"**, and the client MUST NOT call the API. `studentId` MUST NOT be sent in the body. It is `:studentId` in the path and MUST be the signed-in student's `users.id`.
+- **FR-005**: `sectionId` MUST reference an existing section. A missing section MUST return `400` with `{ "message": "Section not found." }` and MUST NOT store an enrollment. `studentId` MUST reference an existing student. A missing student MUST return `400` with `{ "message": "Student not found." }` and MUST NOT store an enrollment.
+- **FR-006**: The enrollments view for a signed-in `student` MUST list only that student's enrollments.
+- **FR-007**: The enrollments view for a signed-in `faculty` user MUST list every student's enrollments. Faculty MUST NOT create, edit, or delete an enrollment. Faculty `POST`, `PUT`, and `DELETE` MUST return `403` with `{ "message": "Student role required." }`.
+- **FR-008**: Each enrollment row for a signed-in `student` MUST offer **edit** and **delete**. Saving a valid edit MUST update that enrollment and refresh the list. Confirming delete MUST remove that enrollment and refresh the list. Cancel on edit or delete MUST leave the enrollment unchanged.
+- **FR-009**: Create, edit, and delete MUST run in dialogs on one enrollments screen. This feature MUST NOT use a sidebar and main-panel split.
+- **FR-010**: `DELETE` of a section that still has enrollments MUST return `400` with `{ "message": "Cannot delete section: enrollments still exist." }` and MUST leave the section and those enrollments stored. `DELETE` of a student who still has enrollments MUST return `400` with `{ "message": "Cannot delete student: enrollments still exist." }` and MUST leave the student and those enrollments stored. `sectionId` and `studentId` MUST use `ON DELETE RESTRICT`. This feature MUST NOT cascade-delete enrollments.
 
 ---
 
@@ -118,11 +125,11 @@
 - Tests MAY seed at least one course, one semester, and two sections in that semester's course before creating a enrollment.
 - A enrollment belongs to one **Section**. Sections belong to one **Course** each. The semester's `courseId` is the course both sections MUST use.
 - A section MAY appear in many enrollments. A section MAY be in one students enrollment and in another.
-- Add/Edit dialogs load semesters from `GET /course/semesters` and sections from `GET /course/sections`.
+- Add/Edit dialogs load that course's sections from `GET /courses/sections?courseId=<courseId>`.
 - Foreign keys from `enrollments.sectionId` and `enrollments.studentId` MUST use **RESTRICT**.
-- This feature updates Feature 2 and Feature 5 `DELETE` handlers for `/course/semesters/:sectionId` and `/course/sections/:studentId` to enforce FR-013.
+- `sectionId` and `studentId` use `ON DELETE RESTRICT`. Blocking delete of a section is Feature 5's section `DELETE`. Blocking delete of a student is `DELETE /courses/users/:id`.
 - Enrollments use **dialog-based** workflows (no split sidebar / main panel).
-- API mount for this resource is `/course/…`. Use `/course/enrollments`.
+- The server mount is `/courses`. Enrollment routes are `/courses/students/:studentId/enrollments` and `/courses/enrollments`.
 
 ## Edge Cases
 
@@ -131,32 +138,33 @@
 - Unknown `studentId` → `400` with `{ "message": "Student not found." }`
 - `DELETE` section while enrollments still reference it → `400`; seciton and enrollments remain.
 - `DELETE` student while enrollments still reference it → `400`; student and enrollments remain.
-- Authenticated `student` on `POST` / `PUT` / `DELETE` → `200`.
-- Authenticated `faculty` on `POST` / `PUT` / `DELETE` → `200`.
-- Unauthenticated user on `/enrollments` or `GET /course/enrollments` → redirect or `401`.
+- Authenticated `student` on `POST` → `201`. Authenticated `student` on `PUT` / `DELETE` → `200`.
+- Authenticated `faculty` on `POST` / `PUT` / `DELETE` → `403` with `{ "message": "Student role required." }`.
+- Unauthenticated user on `/enrollments` → redirect to `login`. Unauthenticated `GET /courses/students/:studentId/enrollments` or `GET /courses/enrollments` → `401`.
 
 ## Success Criteria
 
 - **SC-001**: Every Gherkin scenario has at least one automated test before merge.
-- **SC-002**: A signed-in student or faculty can create, view, edit, and delete the shared enrollment catalog on one screen.
-- **SC-003**: A signed-in student or faculty MAY `GET` the enrollment catalog; they can open the enrollments manager and can mutate enrollments via the API.
-- **SC-004**: A student cannot delete a semester or section that still has enrollments.
+- **SC-002**: A signed-in student can create, view, edit, and delete their own enrollments on one screen. A signed-in faculty user can view every student's enrollments on that screen.
+- **SC-003**: A signed-in student or faculty user can open the enrollments view and `GET` enrollments (own rows for a student, all rows for faculty). Only a student can create, edit, or delete.
+- **SC-004**: Delete of a section or a student that still has enrollments returns `400`, and both the parent row and the enrollments remain.
 - **SC-005**: `npm test` passes for enrollment API and enrollments view behavior.
 
 ---
 
 ## Data Ownership & Isolation
 
-Enrollments are owned by the signed-in student.The role `student` or `faculty` may manage them. Any authenticated user MAY `GET`, `POST` / `PUT`, or `DELETE` enrollments.
+Enrollments are owned by the signed-in student. Faculty may read every enrollment. Faculty may not write.
 
-| Rule                   | Requirement                                                                                                                             |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **Read scope**         | `GET /course/enrollments` returns **all** enrollments (with semester, home section, and visiting section) to any authenticated user.    |
-| **Write scope**        | `POST`, `PUT`, and `DELETE` are allowed only when `req.user.role` is `student` or `faculty`.                                            |
-| **Create scope**       | New enrollments have no owner. Ignore ownership `userId` if sent in the body.                                                           |
-| **Missing enrollment** | Unknown `enrollmentId` → `404` with `{ "message": "Enrollment with id=<id> not found." }`. Never use ownership `404` to hide rows.      |
-| **UI scope**           | **Enrollments** menu and `/enrollments` are student and faculty only.                                                                   |
-| **Implementation**     | Use `authenticate` on all endpoints. Use `requireStudent` or `requireFaculty` after `authenticate` on `POST`, `PUT`, and `DELETE` only.                    |
+| Rule | Requirement |
+| ---- | ----------- |
+| **Student read** | `GET /courses/students/:studentId/enrollments` returns that student's enrollments when `:studentId` is the signed-in student. |
+| **Faculty read** | `GET /courses/enrollments` returns every enrollment. |
+| **Write scope** | `POST`, `PUT`, and `DELETE` succeed only when `req.user.role` is `student` and `:studentId` is that student. Faculty receive `403` with `{ "message": "Student role required." }`. |
+| **Create scope** | The new row's `studentId` is `:studentId` in the path. The body is `{ "sectionId": 1 }` only. |
+| **Missing enrollment** | Unknown `enrollmentId` → `404` with `{ "message": "Enrollment with id=<id> not found." }`. |
+| **UI scope** | **Enrollments** menu and `/enrollments` are for `student` and `faculty`. |
+| **Implementation** | Use `authenticate` on every endpoint. Use `requireStudent` on `POST`, `PUT`, and `DELETE` only. |
 
 ---
 
@@ -164,42 +172,43 @@ Enrollments are owned by the signed-in student.The role `student` or `faculty` m
 
 | Method   | Endpoint                   | Auth       | Purpose                                |
 | -------- | -------------------------- | ---------- | -------------------------------------- |
-| `GET`    | `/course/enrollments`            | Yes        | Fetch all enrollments with semester and sections  |
-| `POST`   | `/course/enrollments`            | Yes, student, faculty | Create a enrollment                          |
-| `PUT`    | `/course/enrollments/:enrollmentId`    | Yes, student, faculty | Update a enrollment                          |
-| `DELETE` | `/course/enrollments/:enrollmentId`    | Yes, student, faculty | Delete a enrollment                          |
+| `GET`    | `/courses/students/:studentId/enrollments`            | That student, or faculty     | That student's enrollments                   |
+| `POST`   | `/courses/students/:studentId/enrollments`            | That student                 | Create an enrollment for that student        |
+| `PUT`    | `/courses/students/:studentId/enrollments/:enrollmentId` | That student              | Update that student's enrollment             |
+| `DELETE` | `/courses/students/:studentId/enrollments/:enrollmentId` | That student              | Delete that student's enrollment             |
+| `GET`    | `/courses/enrollments`                                | Faculty                      | Every student's enrollments                  |
 
 **Create enrollment request body:**
 
 ```json
 {
-  "sectionId": 1,
-  "studentId": 1595185 
+  "sectionId": 1
 }
 ```
 
-Do not send `id` on create.
+Do not send `id` or `studentId` on create. `studentId` is `:studentId` in the path and must be the signed-in student.
 
 **Update enrollment request body:** same fields as create (no `id`).
 
-**Enrollment success response** (`200` / `201`):
+**Enrollment success response** (`201` on create, `200` on update and on each list item):
 
 ```json
 {
+  "id": 1,
   "sectionId": 1,
-  "studentId": 1595185,
+  "studentId": 4,
   "createdAt": "2026-07-02T12:00:00.000Z",
   "updatedAt": "2026-07-02T12:00:00.000Z"
 }
 ```
 
-`GET /course/enrollments` returns an **array** of enrollment objects in this shape.
+`GET /courses/students/:studentId/enrollments` and `GET /courses/enrollments` return an array of enrollment objects in this shape.
 
 **Error response:** `{ "message": "Human-readable explanation." }` with appropriate HTTP status.  
 **Not found:** `404` for unknown `enrollmentId`.  
-**Missing parent / validation:** `400` (FR-008 / FR-009 / FR-011 / FR-012).
+**Missing parent / validation:** `400` (FR-005).
 
-This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE /course/semesters/:sectionId` and `DELETE /course/sections/:studentId` MUST return `400` with the quoted FR-013 message when enrollments still reference that row.
+Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "message": "Cannot delete section: enrollments still exist." }` when enrollments still reference that section. Student delete is `DELETE /courses/users/:id` and MUST return `400` with `{ "message": "Cannot delete student: enrollments still exist." }` when enrollments still reference that student.
 
 ---
 
@@ -210,38 +219,33 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 - Heading: **Enrollments**
 - Primary action: **+ New enrollment** (`oc-cta`) opens the **Add Enrollment** `<v-dialog>`.
 - **Add Enrollment** fields:
-  - **Semester** (`v-select` of existing semesters from `GET /course/semesters`, display semester `name`)
-  - **Date** (`v-text-field` type date)
-  - **Start Time** (`v-text-field` type time)
-  - **Home Section** (`v-select` of existing sections from `GET /course/sections`, display section `name`)
-  - **Visiting Section** (`v-select` of existing sections, display section `name`)
-  - **Home Section Score** (`v-text-field` type number; optional)
-  - **Visiting Section Score** (`v-text-field` type number; optional)
-- **Edit Enrollment** uses the same fields plus **Location** (`v-text-field`, optional, max 50), pre-filled.
+  - **Section** (`v-select` of sections for the selected course from `GET /courses/sections?courseId=<courseId>`, display `sectionNumber`)
+- **Student** Gets `studentId` of the current logged in student.
+- **Edit Enrollment** uses the same `studentId` of the logged in student.
 - **Add Enrollment** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
-- List: `v-table` (or `v-list`); columns **date**, **start time**, **location**, **home section**, **visiting section**, **home score**, **visiting score**, and **semester**; rows ordered by date then start time (FR-006).
+- List: `v-table` (or `v-list`); columns **sectionId** and **studentId**.
 - Icon-only row actions use `size="small"` and accessible `aria-label`s:
   - **Edit enrollment** — opens **Edit Enrollment** `<v-dialog>` pre-filled with current data; **Save Enrollment** (`oc-cta`) / **Cancel** (secondary)
   - **Delete enrollment** — opens **Delete Enrollment** confirmation `<v-dialog>` with copy **"Delete this enrollment?"**; **Delete Enrollment** (`oc-cta`) / **Cancel** (secondary)
 - Client-side validation: required fields use inline rules (`"Required"`); invalid submit does not send an API request.
-- **Empty state:** **"No enrollments yet. Create your first enrollment."** when the catalog has zero enrollments.
+- **Empty state:** **"No enrollments yet. Create your first enrollment."** when the student has zero enrollments.
 - **Loading state:** skeleton or progress indicator while enrollments are fetching.
 - **Error state:** `<v-alert type="error">` for API failures.
-- Student-only: **Enrollments** menu item and `/enrollments` are for signed-in student users. Other roles do not see the **Enrollments** item. Unauthenticated navigation to `/enrollments` redirects to `login`.
+- Student and faculty only: **Enrollments** menu item and `/enrollments` are for signed-in student and faculty users. Other roles do not see the **Enrollments** item. Unauthenticated navigation to `/enrollments` redirects to `login`.
 - Enrollment CRUD dialogs live in `Enrollments.vue` (or child presentational dialogs). No sidebar/main split.
 
 **App chrome**
 
 - Use the `MenuBar` introduced in [Feature 1](feature-1-user-auth.md). Do **not** create a second `MenuBar`. Do **not** hide it on `login` / `register`.
-- Add **Enrollments** (allowed role `student`; navigates to `/enrollments`) to `MenuBar` after **Sections**. Menu order: **Courses**, **Sections**, **Enrollments**, **People**, **Semesters**.
-- Students MUST NOT see **Enrollments**.
+- Add **Enrollments** (allowed role `student` and `faculty`; navigates to `/enrollments`) to `MenuBar` after **Sections**. Menu order: **Courses**, **Sections**, **Enrollments**, **Faculty**, **Semesters**.
+- Students and faculty see **Enrollments**.
 - After login, the user remains on Feature 1 `home`. Selecting **Enrollments** in the menu opens this feature's view.
 
 ---
 
 ## Key Entities
 
-- **Enrollment**: scheduled (and optionally scored) contest in one **Semester** between a **home section** and a **visiting section**. Shared catalog row. Not owned by a user. A section may have many enrollments.
+- **Enrollment**: Has a **sectionId** and a **studentId**. A section may have many enrollments.
 
 ---
 
@@ -252,27 +256,17 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 | Field                | Type       | Rules                                                       |
 | -------------------- | ---------- | ----------------------------------------------------------- |
 | `id`                 | INTEGER PK | Auto-increment                                              |
-| `semesterId`           | INTEGER FK | Required; references `semesters.id`                           |
-| `enrollmentDate`           | DATE       | Required                                                    |
-| `startTime`          | TIME       | Required                                                    |
-| `location`           | STRING(50) | Optional; trimmed; at most 50 characters; `null` when empty |
-| `homeSectionId`         | INTEGER FK | Required; references `sections.id`                             |
-| `visitingSectionId`     | INTEGER FK | Required; references `sections.id`                             |
-| `homeSectionScore`      | INTEGER    | Optional; when present, integer 0–999                       |
-| `visitingSectionScore`  | INTEGER    | Optional; when present, integer 0–999                       |
-| `createdAt`          | DATE       | Sequelize timestamps                                        |
-| `updatedAt`          | DATE       | Sequelize timestamps                                        |
+| `sectionId`          | INTEGER FK | Required; references `sections.id`                          |
+| `studentId`          | INTEGER FK | Required; references `users.id`                              |
 
-`semesterId`, `homeSectionId`, and `visitingSectionId` use `ON DELETE RESTRICT`.
+`sectionId` and `studentId` use `ON DELETE RESTRICT`.
 
 ### Associations (in `models/index.js`)
 
-- `Enrollment belongsTo Semester` (`semesterId`, `onDelete: 'RESTRICT'`)
-- `Semester hasMany Enrollment`
-- `Enrollment belongsTo Section` as `homeSection` (`homeSectionId`, `onDelete: 'RESTRICT'`)
-- `Enrollment belongsTo Section` as `visitingSection` (`visitingSectionId`, `onDelete: 'RESTRICT'`)
-- `Section hasMany Enrollment` as `homeEnrollments` (`homeSectionId`)
-- `Section hasMany Enrollment` as `visitingEnrollments` (`visitingSectionId`)
+- `Enrollment belongsTo Section` (`sectionId`, `onDelete: 'RESTRICT'`)
+- `Section hasMany Enrollments`
+- `Enrollment belongsto Student` (`studentId`, `onDelete: 'RESTRICT'`)
+- `Student hasMany Enrollments`
 
 ---
 
@@ -283,6 +277,12 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 #### Scenario: Menu Selection
 
 - **Given** I am signed in as a user with role `student`
+- **When** I click **Enrollments** in the `MenuBar`
+- **Then** the enrollments view is displayed
+
+#### Scenario: Menu Selection
+
+- **Given** I am signed in as a user with role `faculty`
 - **When** I click **Enrollments** in the `MenuBar`
 - **Then** the enrollments view is displayed
 
@@ -337,7 +337,7 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 
 ---
 
-### US-6.3 — View enrollments
+### US-6.3 — Student View enrollments
 
 #### Scenario: Enrollments view loads with existing enrollments
 
@@ -357,7 +357,27 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 
 ---
 
-### US-6.4 — Manage enrollment rows
+### US-6.4 — Faculty View enrollments
+
+#### Scenario: Enrollments view loads with existing enrollments
+
+- **Given** I am signed in as a user with role `student`
+- **And** I am viewing the enrollments view
+- **And** enrollments exist
+- **When** I view the enrollments list
+- **Then** all the enrollments are displayed in the list
+
+#### Scenario: User has no enrollments
+
+- **Given** I am signed in as a user with role `student`
+- **And** I am viewing the enrollments view
+- **And** there are no enrollments
+- **When** I view the enrollments list
+- **Then** I see **"No enrollments yet. Create your first enrollment."**
+
+---
+
+### US-6.5 — Manage enrollment rows
 
 #### Scenario: enrollment rows show edit and delete actions
 
@@ -369,7 +389,7 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 
 ---
 
-### US-6.5 — Edit a enrollment
+### US-6.6 — Edit a enrollment
 
 #### Scenario: User selects to edit a enrollment
 
@@ -398,7 +418,7 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 - **Then** the appropriate error messages are shown
 - **And** the dialog is not closed
 
-#### Scenario: User edits a enrollment and cancels
+#### Scenario — User edits a enrollment and cancels
 
 - **Given** I am signed in as a user with role `student`
 - **And** I am viewing the enrollments view
@@ -410,7 +430,7 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 
 ---
 
-### US-6.6 — Delete a enrollment
+### US-6.7 — Delete a enrollment
 
 #### Scenario: User selects to delete a enrollment
 
@@ -441,7 +461,7 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 
 ---
 
-### US-6.7 — Restrict enrollment management to students
+### US-6.8 — Restrict enrollment management to students
 
 #### Scenario: Student does not see Enrollments in the menu
 
@@ -476,7 +496,7 @@ This feature also changes Feature 2 and Feature 5 delete APIs (FR-013): `DELETE 
 
 ---
 
-### US-6.8 — Block delete of a semester or section that has a enrollment
+### US-6.9 — Block delete of a section or student that has a enrollment
 
 #### Scenario: User cannot delete a semester that has a enrollment
 
@@ -560,18 +580,14 @@ Do not implement behavior not in this spec.
 
 ## Out of Scope
 
-- Student-facing enrollment or scoreboard UI (API `GET` is in this feature)
-- Standings, playoffs, or automatic ranking
-- Officials, weather, or recap notes
-- Creating semesters or sections from the add-enrollment dialog
+- Creating sections or students from the add-enrollment dialog
 - Non-student enrollment management UI
-- Creating `MenuBar` (introduced in [Feature 1](feature-1-user-auth.md); this feature only adds **Enrollments** for role `student`)
+- Creating `MenuBar` (introduced in [Feature 1](feature-1-user-auth.md); this feature only adds **Enrollments** for role `student` and `faculty`)
 
 ---
 
 ## Delivered to later features
 
-- `MenuBar` is Feature 1 chrome; Features 2–5 added **Semesters**, **Courses**, **People**, and **Sections**; this feature added **Enrollments** for `student`.
+- `MenuBar` is Feature 1 chrome; Features 2–5 added **Semesters**, **Courses**, **Faculty**, and **Sections**; this feature added **Enrollments** for `student` and `faculty`.
 - A later feature MUST add its nav item to this `MenuBar`; it MUST NOT create a second `MenuBar`.
-- The `enrollments` table belongs to one semester and two sections. A section has many enrollments.
-- [Feature 7](feature-7-semester-view.md) lists a semester's enrollments on the semester view and adds a enrollment with that semester already selected.
+- The `enrollments` table belongs to one section and student. A section has many enrollments. A student has many enrollments.
