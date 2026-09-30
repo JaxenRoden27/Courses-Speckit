@@ -136,3 +136,13 @@
 
 ---
 
+## Success Criteria
+
+- **SC-001**: Every Gherkin scenario has at least one automated test before merge.
+- **SC-002**: A signed-in faculty user can create, view, edit, and delete the shared faculty catalog on one screen.
+- **SC-003**: A signed-in student MAY `GET` the faculty catalog; they cannot open the faculty manager and cannot mutate faculty via the API.
+- **SC-004**: A faculty member MAY be created with or without a linked Feature 1 faculty user; a user can be linked to at most one faculty member.
+- **SC-005**: `npm test` passes for faculty API and faculty view behavior.
+
+---
+
