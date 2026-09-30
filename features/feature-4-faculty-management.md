@@ -520,3 +520,39 @@ When the faculty member has no linked user, `userId` is `null`.
 - **Then** I am redirected to the login page
 
 ---
+
+## Test Coverage Map
+
+Each scenario above must map to at least one automated test.
+
+| Story  | Scenario                                                        | Test file                                                         | Test name                                                        |
+| ------ | --------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- |
+| US-4.1 | Menu Selection                                                  | `frontend/tests/MenuBar.test.js`, `frontend/tests/Faculty.test.js` | `Menu Selection`                                                 |
+| US-4.2 | User creates a new faculty member without a linked user         | `backend/tests/faculty.test.js`, `frontend/tests/Faculty.test.js` | `User creates a new faculty member without a linked user`        |
+| US-4.2 | User creates a new faculty member with a linked user            | `backend/tests/faculty.test.js`, `frontend/tests/Faculty.test.js` | `User creates a new faculty member with a linked user`           |
+| US-4.2 | User creates a faculty member with a missing required field     | `frontend/tests/Faculty.test.js`                                  | `User creates a faculty member with a missing required field`    |
+| US-4.2 | User creates a faculty member with a first name that is too long | `frontend/tests/Faculty.test.js`                                 | `User creates a faculty member with a first name that is too long` |
+| US-4.2 | User creates a faculty member with a last name that is too long | `frontend/tests/Faculty.test.js`                                  | `User creates a faculty member with a last name that is too long` |
+| US-4.2 | User creates a faculty member with a department that is too long | `frontend/tests/Faculty.test.js`                                 | `User creates a faculty member with a department that is too long` |
+| US-4.2 | User creates a faculty member with a user that is already linked | `backend/tests/faculty.test.js`, `frontend/tests/Faculty.test.js` | `User creates a faculty member with a user that is already linked` |
+| US-4.2 | User creates a faculty member with an unknown user              | `backend/tests/faculty.test.js`                                   | `User creates a faculty member with an unknown user`             |
+| US-4.2 | User creates a faculty member linked to a student user          | `backend/tests/faculty.test.js`                                   | `User creates a faculty member linked to a student user`         |
+| US-4.3 | Faculty view loads with existing faculty                        | `backend/tests/faculty.test.js`, `frontend/tests/Faculty.test.js` | `Faculty view loads with existing faculty`                       |
+| US-4.3 | User has no faculty                                             | `frontend/tests/Faculty.test.js`                                  | `User has no faculty`                                            |
+| US-4.4 | faculty rows show edit and delete actions                       | `frontend/tests/Faculty.test.js`                                  | `faculty rows show edit and delete actions`                      |
+| US-4.5 | User selects to edit a faculty member                           | `frontend/tests/Faculty.test.js`                                  | `User selects to edit a faculty member`                          |
+| US-4.5 | User edits a faculty member with valid values and saves         | `backend/tests/faculty.test.js`, `frontend/tests/Faculty.test.js` | `User edits a faculty member with valid values and saves`        |
+| US-4.5 | User edits a faculty member with invalid values and saves       | `frontend/tests/Faculty.test.js`                                  | `User edits a faculty member with invalid values and saves`      |
+| US-4.5 | User edits a faculty member and cancels                         | `frontend/tests/Faculty.test.js`                                  | `User edits a faculty member and cancels`                        |
+| US-4.6 | User selects to delete a faculty member                         | `frontend/tests/Faculty.test.js`                                  | `User selects to delete a faculty member`                        |
+| US-4.6 | User deletes a faculty member                                   | `backend/tests/faculty.test.js`, `frontend/tests/Faculty.test.js` | `User deletes a faculty member`                                  |
+| US-4.6 | User deletes a faculty member who has a linked user             | `backend/tests/faculty.test.js`                                   | `User deletes a faculty member who has a linked user`            |
+| US-4.6 | User cancels deleting a faculty member                          | `frontend/tests/Faculty.test.js`                                  | `User cancels deleting a faculty member`                         |
+| US-4.7 | Student does not see Faculty in the menu                        | `frontend/tests/MenuBar.test.js`                                  | `Student does not see Faculty in the menu`                       |
+| US-4.7 | Student can list faculty via the API                            | `backend/tests/faculty.test.js`                                   | `Student can list faculty via the API`                           |
+| US-4.7 | Student cannot create a faculty member via the API              | `backend/tests/faculty.test.js`                                   | `Student cannot create a faculty member via the API`             |
+| US-4.7 | Student cannot list users via the API                           | `backend/tests/faculty.test.js`                                   | `Student cannot list users via the API`                          |
+| US-4.7 | Unauthenticated API request to faculty                          | `backend/tests/faculty.test.js`                                   | `Unauthenticated API request to faculty`                         |
+| US-4.7 | Unauthenticated user navigates to faculty                       | `frontend/tests/router.test.js`                                   | `Unauthenticated user navigates to faculty`                      |
+
+---
