@@ -84,3 +84,22 @@
 
 ---
 
+## Requirements
+
+### Functional Requirements
+
+- **FR-001**: All faculty endpoints MUST require a valid session (`authenticate`). `GET /courses/faculty` MUST be allowed for any authenticated role. `POST`, `PUT`, and `DELETE` on faculty, and `GET /courses/users`, MUST require `req.user.role` equal to `faculty`.
+- **FR-002**: Faculty MUST be a **shared catalog**. A faculty member is not owned by the signed-in faculty user. Optional `userId` is a **link** to a Feature 1 login account, not row ownership.
+- **FR-003**: Authenticated non-faculty users (including `student`) MUST receive `403` with `{ "message": "Faculty role required." }` on `POST`, `PUT`, and `DELETE` of faculty and on `GET /courses/users`. `GET /courses/faculty` MUST return `200` for any authenticated user. They MUST NOT see **Faculty** in `MenuBar`.
+- **FR-004**: Required faculty fields MUST be present and trimmed; empty or whitespace-only values MUST be rejected (client block and/or `400`).
+- **FR-005**: Unauthenticated faculty API requests MUST return `401` with `{ "message": "Unauthorized! No token provided." }`. Unauthenticated navigation to `/faculty` MUST redirect to `login`.
+- **FR-006**: Faculty MUST be ordered alphabetically by `lastName`, then `firstName`, in API responses.
+- **FR-007**: This feature MUST deliver faculty CRUD and a **single-view** faculty UI in `Faculty.vue` (dialog-based add/edit/delete). No sidebar/main split.
+- **FR-008**: `firstName` MUST be required, trimmed, and at most 50 characters. Too-long message: **"First name must be 50 characters or fewer."**
+- **FR-009**: `lastName` MUST be required, trimmed, and at most 50 characters. Too-long message: **"Last name must be 50 characters or fewer."**
+- **FR-010**: `dept` MUST be required, trimmed, and at most 50 characters. Too-long message: **"Department must be 50 characters or fewer."**
+- **FR-011**: `userId` is **optional**. When omitted or `null`, the faculty member has no login account. When present, it MUST be an integer that exists in `users`, and that user's `role` MUST be `faculty`. Missing user message: **"User not found."** Wrong-role message: **"User must have role faculty."** A given `users.id` MUST be linked to at most one faculty member. Duplicate-link message: **"User is already linked to a faculty member."** Creating or deleting a faculty member MUST NOT create or delete a Feature 1 user.
+- **FR-012**: This feature MUST add `requireFaculty` (check `req.user.role === "faculty"`) and use it after `authenticate` on mutations and on `GET /courses/users`. Do **not** use the starter `authenticateAdmin` / `admin` role — this product has no `admin` role (Feature 1).
+- **FR-013**: `GET /courses/users` (existing starter list) MUST return only users whose `role` is `faculty`, as an array of `{ "id", "universityId", "fName", "lName" }`. It MUST NOT include `password`. Listing students is [Feature 7](feature-7-student-course-listing.md).
+
+---
