@@ -273,3 +273,266 @@ When the faculty member has no linked user, `userId` is `null`.
 - `User hasOne Faculty`
 
 ---
+
+•	## Acceptance Criteria (Gherkin)
+•	
+•	### US-4.1 — Select to work with Faculty
+•	
+•	#### Scenario: Menu Selection
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **When** I click **Faculty** in the `MenuBar`
+•	- **Then** the faculty view is displayed
+•	
+•	---
+•	
+•	### US-4.2 — Create faculty member
+•	
+•	#### Scenario: User creates a new faculty member without a linked user
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I enter first name `Jane`, last name `Doe`, and department `Computer Science`
+•	- **And** I leave **User** empty
+•	- **And** I click **Create**
+•	- **Then** the API returns `201` with a faculty object containing `id`, `firstName` `Jane`, `lastName` `Doe`, `dept` `Computer Science`, and `userId` `null`
+•	- **And** `Doe` appears in the faculty view list
+•	- **And** the add-faculty dialog closes
+•	
+•	#### Scenario: User creates a new faculty member with a linked user
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** a Feature 1 user with universityId `fa1111` and role `faculty` exists
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I enter first name `Jane`, last name `Doe`, and department `Computer Science`
+•	- **And** I select user `fa1111`
+•	- **And** I click **Create**
+•	- **Then** the API returns `201` with a faculty object whose `userId` is that user's id
+•	- **And** `fa1111` appears in the user column for `Doe`
+•	- **And** the add-faculty dialog closes
+•	
+•	#### Scenario: User creates a faculty member with a missing required field
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I leave a required field empty
+•	- **And** I click **Create**
+•	- **Then** no API call is made
+•	- **And** I see the message **"Required"**
+•	
+•	#### Scenario: User creates a faculty member with a first name that is too long
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I enter a first name longer than 50 characters with otherwise valid data
+•	- **And** I click **Create**
+•	- **Then** no API call is made
+•	- **And** I see the message **"First name must be 50 characters or fewer."**
+•	
+•	#### Scenario: User creates a faculty member with a last name that is too long
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I enter a last name longer than 50 characters with otherwise valid data
+•	- **And** I click **Create**
+•	- **Then** no API call is made
+•	- **And** I see the message **"Last name must be 50 characters or fewer."**
+•	
+•	#### Scenario: User creates a faculty member with a department that is too long
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I enter a department longer than 50 characters with otherwise valid data
+•	- **And** I click **Create**
+•	- **Then** no API call is made
+•	- **And** I see the message **"Department must be 50 characters or fewer."**
+•	
+•	#### Scenario: User creates a faculty member with a user that is already linked
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** a Feature 1 user with universityId `fa1111` is already linked to a faculty member
+•	- **And** I am viewing the faculty view
+•	- **When** I click **+ New faculty**
+•	- **And** I enter otherwise valid faculty data
+•	- **And** I select user `fa1111`
+•	- **And** I click **Create**
+•	- **Then** the API returns `400` with `{ "message": "User is already linked to a faculty member." }`
+•	- **And** no second faculty member is linked to `fa1111`
+•	
+•	#### Scenario: User creates a faculty member with an unknown user
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **When** I send `POST /courses/faculty` with otherwise valid data and `userId` `999999`
+•	- **Then** the API returns `400` with `{ "message": "User not found." }`
+•	- **And** no faculty member is stored
+•	
+•	#### Scenario: User creates a faculty member linked to a student user
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** a Feature 1 user with role `student` exists
+•	- **When** I send `POST /courses/faculty` with otherwise valid data and that student's `userId`
+•	- **Then** the API returns `400` with `{ "message": "User must have role faculty." }`
+•	- **And** no faculty member is stored
+•	
+•	---
+•	
+•	### US-4.3 — View faculty
+•	
+•	#### Scenario: Faculty view loads with existing faculty
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** faculty members exist
+•	- **When** I view the faculty list
+•	- **Then** all the faculty members are displayed in the list
+•	
+•	#### Scenario: User has no faculty
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** there are no faculty members
+•	- **When** I view the faculty list
+•	- **Then** I see **"No faculty yet. Create your first faculty member."**
+•	
+•	---
+•	
+•	### US-4.4 — Manage faculty rows
+•	
+•	#### Scenario: faculty rows show edit and delete actions
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I view a faculty row
+•	- **Then** the faculty row shows an **Edit faculty** icon action
+•	- **And** the faculty row shows a **Delete faculty** icon action
+•	
+•	---
+•	
+•	### US-4.5 — Edit a faculty member
+•	
+•	#### Scenario: User selects to edit a faculty member
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click the edit icon on a faculty row
+•	- **Then** the faculty edit dialog is displayed
+•	
+•	#### Scenario: User edits a faculty member with valid values and saves
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** the faculty edit dialog is displayed
+•	- **When** I update values in the fields with valid values
+•	- **And** I click **Save Faculty**
+•	- **Then** the faculty data is updated
+•	- **And** the dialog is closed
+•	
+•	#### Scenario: User edits a faculty member with invalid values and saves
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** the faculty edit dialog is displayed
+•	- **When** I update values in the fields with invalid values
+•	- **And** I click **Save Faculty**
+•	- **Then** the appropriate error messages are shown
+•	- **And** the dialog is not closed
+•	
+•	#### Scenario: User edits a faculty member and cancels
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** the faculty edit dialog is displayed
+•	- **When** I update values in the fields
+•	- **And** I click **Cancel**
+•	- **Then** the faculty data is not updated
+•	- **And** the dialog is closed
+•	
+•	---
+•	
+•	### US-4.6 — Delete a faculty member
+•	
+•	#### Scenario: User selects to delete a faculty member
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **When** I click the delete icon on a faculty row
+•	- **Then** the faculty delete dialog is displayed
+•	
+•	#### Scenario: User deletes a faculty member
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** the faculty delete dialog is displayed
+•	- **When** I click **Delete Faculty**
+•	- **Then** the faculty member is deleted
+•	- **And** the dialog is closed
+•	- **And** the faculty member is not in the faculty list
+•	
+•	#### Scenario: User deletes a faculty member who has a linked user
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** a faculty member linked to user `fa1111` exists
+•	- **And** I am viewing the faculty view
+•	- **And** the faculty delete dialog is displayed
+•	- **When** I click **Delete Faculty**
+•	- **Then** the faculty member is deleted
+•	- **And** the Feature 1 user `fa1111` still exists
+•	
+•	#### Scenario: User cancels deleting a faculty member
+•	
+•	- **Given** I am signed in as a user with role `faculty`
+•	- **And** I am viewing the faculty view
+•	- **And** the faculty delete dialog is displayed
+•	- **When** I click **Cancel**
+•	- **Then** the faculty member is not deleted
+•	- **And** the dialog is closed
+•	- **And** the faculty member is still in the faculty list
+•	
+•	---
+•	
+•	### US-4.7 — Restrict faculty management to faculty users
+•	
+•	#### Scenario: Student does not see Faculty in the menu
+•	
+•	- **Given** I am signed in as a user with role `student`
+•	- **When** I view the `MenuBar`
+•	- **Then** **Faculty** is not shown
+•	
+•	#### Scenario: Student can list faculty via the API
+•	
+•	- **Given** I am signed in as a user with role `student`
+•	- **When** I request `GET /courses/faculty`
+•	- **Then** the API returns `200` with an array of faculty objects
+•	
+•	#### Scenario: Student cannot create a faculty member via the API
+•	
+•	- **Given** I am signed in as a user with role `student`
+•	- **When** I send `POST /courses/faculty` with a valid faculty body
+•	- **Then** the API returns `403` with `{ "message": "Faculty role required." }`
+•	- **And** no new faculty member is stored
+•	
+•	#### Scenario: Student cannot list users via the API
+•	
+•	- **Given** I am signed in as a user with role `student`
+•	- **When** I request `GET /courses/users`
+•	- **Then** the API returns `403` with `{ "message": "Faculty role required." }`
+•	
+•	#### Scenario: Unauthenticated API request to faculty
+•	
+•	- **Given** I have no valid session token
+•	- **When** I request `GET /courses/faculty`
+•	- **Then** the API returns `401` with `{ "message": "Unauthorized! No token provided." }`
+•	
+•	#### Scenario: Unauthenticated user navigates to faculty
+•	
+•	- **Given** I have no session in `localStorage`
+•	- **When** I navigate to `/faculty`
+•	- **Then** I am redirected to the login page
+•	
+•	---
