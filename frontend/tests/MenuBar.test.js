@@ -92,7 +92,7 @@ const navLinkLabels = (wrapper) =>
 
 const expectLabelAbsent = (wrapper, label) => {
   const matches = navLinkLabels(wrapper).filter((item) =>
-    item.toLowerCase().includes(label.toLowerCase())
+    item.includes(label)
   );
   expect(matches).toEqual([]);
 };

@@ -42,7 +42,7 @@ export default (sequelize, Sequelize) => {
         hooks: {
           beforeValidate(user) {
             if (user.universityId) {
-              user.universityId = user.universityId.trim().toLowerCase();
+              user.universityId = user.universityId.trim();
             }
           },
         },

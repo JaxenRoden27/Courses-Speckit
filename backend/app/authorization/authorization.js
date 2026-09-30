@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import db from "../models/index.js";
 
-export const authenticate = async (req, res, next) => {
+export const authenticateStudent = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -29,10 +29,14 @@ export const authenticate = async (req, res, next) => {
     id: session.user.id,
     role: session.user.role,
   };
+
+  if (session.user.role.toLowerCase().trim() !== "student") {
+    return res.status(403).send({ message: "Student role required." });
+  }
 
   next();
 };
-export const authenticateAdmin = async (req, res, next) => {
+export const authenticateFaculty = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -61,8 +65,8 @@ export const authenticateAdmin = async (req, res, next) => {
     role: session.user.role,
   };
 
-  if (session.user.role !== "admin") {
-    return res.status(403).send({ message: "Admin role required." });
+  if (session.user.role.toLowerCase().trim() !== "faculty") {
+    return res.status(403).send({ message: "Faculty role required." });
   }
 
   next();

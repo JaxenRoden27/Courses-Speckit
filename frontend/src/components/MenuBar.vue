@@ -4,6 +4,9 @@ import Utils from "../config/utils.js";
 import { emailRules } from "../config/validation.js";
 import authServices from "../services/authServices.js";
 import userServices from "../services/userServices.js";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const user = ref(Utils.getStore("user"));
 const profileMenuOpen = ref(false);
@@ -165,6 +168,13 @@ const handleLogout = async () => {
   <v-app-bar color="primary" density="comfortable">
     <v-app-bar-title>Courses Management System</v-app-bar-title>
 
+    <v-btn
+      variant="text"
+      color="white"
+      @click="router.push('/semesters')"
+    >
+      Semesters
+    </v-btn>
     <v-spacer />
 
     <v-menu
