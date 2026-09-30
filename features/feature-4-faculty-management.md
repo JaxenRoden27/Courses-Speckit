@@ -214,3 +214,35 @@ When the faculty member has no linked user, `userId` is `null`.
 
 ---
 
+## Screen Requirements
+
+### [View: Faculty] — route name `faculty` — path `/faculty` — `Faculty.vue`
+
+- Heading: **Faculty**
+- Primary action: **+ New faculty** (`oc-cta`) opens the **Add Faculty** `<v-dialog>`.
+- **Add Faculty** fields (same set on **Edit Faculty**, edit pre-filled):
+    - **First Name** (`v-text-field`)
+    - **Last Name** (`v-text-field`)
+    - **Department** (`v-text-field`)
+    - **User** (`v-select` of existing Feature 1 users with role `faculty` from `GET /courses/users`, display `universityId`; **optional** — may be left empty)
+- **Add Faculty** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
+- List: `v-table` (or `v-list`); columns **last name**, **first name**, **department**, and **user** (`universityId` when linked, empty when not); rows ordered by last name then first name (FR-006).
+- Icon-only row actions use `size="small"` and accessible `aria-label`s:
+    - **Edit faculty** — opens **Edit Faculty** `<v-dialog>` pre-filled with current data; **Save Faculty** (`oc-cta`) / **Cancel** (secondary)
+    - **Delete faculty** — opens **Delete Faculty** confirmation `<v-dialog>` with copy **"Delete this faculty member?"**; **Delete Faculty** (`oc-cta`) / **Cancel** (secondary)
+- Client-side validation: required fields use inline rules (`"Required"`); invalid submit does not send an API request. **User** is not required.
+- **Empty state:** **"No faculty yet. Create your first faculty member."** when the catalog has zero faculty members.
+- **Loading state:** skeleton or progress indicator while faculty are fetching.
+- **Error state:** `<v-alert type="error">` for API failures.
+- Faculty-only: **Faculty** menu item and `/faculty` are for signed-in faculty users. Other roles do not see the **Faculty** item. Unauthenticated navigation to `/faculty` redirects to `login`.
+- Faculty CRUD dialogs live in `Faculty.vue` (or child presentational dialogs). No sidebar/main split.
+
+**App chrome**
+
+- Use the `MenuBar` introduced in [Feature 1](feature-1-user-auth.md). Do **not** create a second `MenuBar`. Do **not** hide it on `login` / `register`.
+- Add **Faculty** (allowed role `faculty`; navigates to `/faculty`) to `MenuBar`. Keep the signed-in name and **Sign out** from Feature 1. Keep **Semesters** (Feature 2) and **Course** (Feature 3) if those features are already on `dev`.
+- Students MUST NOT see **Faculty**.
+- After login, the user remains on Feature 1 `home`. Selecting **Faculty** in the menu opens this feature's view.
+
+---
+
