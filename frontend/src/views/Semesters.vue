@@ -218,20 +218,20 @@ onMounted(retrieveSemesters);
                   </v-icon>
                 </router-link>
                 <v-icon
+                  v-if="isStudent"
                   size="small"
                   class="mx-4"
                   aria-label="Edit semester"
                   @click.stop="openEditDialog(semester)"
-                  v-show="isStudent"
                 >
                   mdi-pencil
                 </v-icon>
                 <v-icon
+                  v-if="isStudent"
                   size="small"
                   class="mx-4"
                   aria-label="Delete semester"
                   @click.stop="openDeleteDialog(semester)"
-                  v-show="isStudent"
                 >
                   mdi-trash-can
                 </v-icon>
