@@ -3,6 +3,8 @@ import Utils from "./config/utils.js";
 import Login from "./views/Login.vue";
 import Home from "./views/Home.vue";
 import Register from "./views/Register.vue";
+import Sections from "./views/Sections.vue";
+import Section from "./views/Section.vue";
 
 const publicRouteNames = new Set(["login", "register"]);
 
@@ -27,6 +29,16 @@ const router = createRouter({
     {
       path: "/:pathMatch(.*)*",
       redirect: { name: "home" },
+    },
+    {
+      path: "/sections",
+      name: "sections",
+      component: Sections,
+    },
+    {
+      path: "/sections/:sectionId",
+      name: "section",
+      component: Section,
     },
   ],
 });

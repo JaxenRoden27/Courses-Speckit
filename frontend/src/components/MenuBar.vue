@@ -165,6 +165,14 @@ const handleLogout = async () => {
   <v-app-bar color="primary" density="comfortable">
     <v-app-bar-title>Courses Management System</v-app-bar-title>
 
+    <v-btn
+      variant="text"
+      color="white"
+      @click="router.push('/sections')"
+    >
+      Sections
+    </v-btn>
+
     <v-spacer />
 
     <v-menu
