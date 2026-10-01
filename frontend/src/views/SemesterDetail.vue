@@ -11,6 +11,10 @@ const router = useRouter();
 const semester = ref(null);
 const loading = ref(false);
 const error = ref("");
+const editingId = ref(null);
+const deleteDialogOpen = ref(false);
+const semesterToDelete = ref(null);
+const deleting = ref(false);
 
 const classCountLabel = (count) => {
   const numeric = Number(count ?? 0);
@@ -45,6 +49,35 @@ const loadSemester = async () => {
     error.value = err.response?.data?.message || "Failed to fetch semesters.";
   } finally {
     loading.value = false;
+  }
+};
+
+const openDeleteDialog = (semester) => {
+  semesterToDelete.value = semester;
+  deleteDialogOpen.value = true;
+};
+
+const closeDeleteDialog = () => {
+  deleteDialogOpen.value = false;
+  semesterToDelete.value = null;
+};
+
+const confirmDeleteSemester = async () => {
+  if (!semesterToDelete.value?.id) {
+    return;
+  }
+
+  deleting.value = true;
+  error.value = "";
+
+  try {
+    await semesterServices.deleteSemester(semesterToDelete.value.id);
+    closeDeleteDialog();
+    await router.push({ name: "semesters" });
+  } catch (err) {
+    error.value = err.response?.data?.message || "Failed to delete semester.";
+  } finally {
+    deleting.value = false;
   }
 };
 
@@ -86,7 +119,36 @@ onMounted(loadSemester);
           min-height="80"
           aria-label="Sections you are enrolled in"
         />
+        <v-icon
+          size="small"
+          class="mx-4"
+          color="error"
+          aria-label="Delete semester"
+          @click.stop="openDeleteDialog(semester)"
+          >
+          mdi-delete
+        </v-icon>
       </v-card-text>
     </v-card>
+
+    <v-dialog v-model="deleteDialogOpen" max-width="420">
+      <v-card rounded="lg">
+        <v-card-title>Delete Semester</v-card-title>
+        <v-card-text>Delete this semester?</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeDeleteDialog">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            class="oc-cta"
+            :loading="deleting"
+            @click="confirmDeleteSemester"
+          >
+            Delete Semester
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
