@@ -39,14 +39,14 @@ const retrieveSections = async () => {
   listError.value = "";
 
   try {
-    const [sectionsResponse, leaguesResponse, peopleResponse] = await Promise.all([
+    const [sectionsResponse, courseResponse, facultyResponse] = await Promise.all([
       sectionServices.getSections(),
       courseServices.getcourses(),
       facultyServices.getfaculty(),
     ]);
     sections.value = sectionsResponse.data;
-    leagues.value = leaguesResponse.data;
-    people.value = peopleResponse.data;
+    courses.value = courseResponse.data;
+    faculty.value = facultyResponse.data;
   } catch (error) {
     listError.value =
       error.response?.data?.message || "Failed to fetch sections.";
@@ -78,10 +78,13 @@ const saveSection = async () => {
 
   try {
     await sectionServices.createSection({
-      name: form.value.name.trim(),
-      leagueId: form.value.leagueId,
-      homeField: form.value.homeField.trim(),
-      managerId: form.value.managerId || null,
+      sectionNumber: form.value.sectionNumber.trim(),
+      semesterId: form.value.semesterId,
+      courseId: form.value.courseId,
+      facultyId: form.value.facultyId,
+      daysOfWeek: form.value.daysOfWeek.trim(),
+      startTime: form.value.startTime.trim(),
+      endTime: form.value.endTime.trim(),
     });
     closeFormDialog();
     await retrieveSections();
@@ -94,7 +97,7 @@ const saveSection = async () => {
 };
 
 const openSection = (section) => {
-  router.push({ name: "section", params: { sectionId: section.id } });
+  router.push({ sectionNumber: section.sectionNumber, params: { sectionId: section.id } });
 };
 
 const openDeleteDialog = (section) => {
