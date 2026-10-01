@@ -197,7 +197,7 @@ onMounted(retrieveSemesters);
               <th class="text-left">Classes</th>
               <th class="text-left">Start Date</th>
               <th class="text-left">End Date</th>
-              <th v-if="isStudent" class="text-left">Actions</th>
+              <th class="text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
