@@ -74,7 +74,7 @@ exports.register = async (req, res) => {
       return res.status(400).send({ message: "Password must be at least 8 characters." });
     }
 
-      const normalizedUniversityId = universityId.trim().toLowerCase();
+      const normalizedUniversityId = universityId.trim();
 
     const existingUniversityId = await db.user.findOne({
       where: { universityId: normalizedUniversityId },
@@ -119,7 +119,7 @@ exports.login = async (req, res) => {
       return res.status(400).send({ message: "Password is required." });
     }
 
-    const normalizedUniversityId = universityId.trim().toLowerCase();
+    const normalizedUniversityId = universityId.trim();
     const user = await db.user.unscoped().findOne({
       where: { universityId: normalizedUniversityId },
     });

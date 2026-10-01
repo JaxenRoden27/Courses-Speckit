@@ -3,6 +3,8 @@ import Utils from "./config/utils.js";
 import Login from "./views/Login.vue";
 import Home from "./views/Home.vue";
 import Register from "./views/Register.vue";
+import Semesters from "./views/Semesters.vue";
+import SemesterDetail from "./views/SemesterDetail.vue";
 import Sections from "./views/Sections.vue";
 import Section from "./views/Section.vue";
 
@@ -20,6 +22,17 @@ const router = createRouter({
       path: "/register",
       name: "register",
       component: Register,
+    },
+    {
+      path: "/semesters",
+      name: "semesters",
+      component: Semesters,
+    },
+    {
+      path: "/semesters/:semesterId",
+      name: "semester",
+      component: SemesterDetail,
+      props: true,
     },
     {
       path: "/",

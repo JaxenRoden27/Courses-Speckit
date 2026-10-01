@@ -52,7 +52,7 @@ Adopt a **layered security architecture** with the **API as the sole enforcement
 
 | Control | Implementation |
 |---------|----------------|
-| Credentials | universityId + password; universityId normalized `trim().toLowerCase()` |
+| Credentials | universityId + password; universityId normalized `trim()` |
 | Password storage | bcryptjs, `SALT_ROUNDS = 10`; minimum 8 characters at registration/update |
 | Session token | JWT signed with `AUTH_SECRET`; **also** stored in `sessions` table with `expirationDate` |
 | Token lifetime | 24 hours |

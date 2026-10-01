@@ -67,7 +67,7 @@ exports.update = async (req, res) => {
       return res.status(400).send({ message: "University ID is required." });
     }
 
-    const normalizedUniversityId = universityId.trim().toLowerCase();
+    const normalizedUniversityId = universityId.trim();
     const trimmedEmail = email.trim();
 
     const existingUniversityId = await db.user.findOne({
