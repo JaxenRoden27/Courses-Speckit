@@ -37,12 +37,12 @@ db.user.hasMany(db.semester, {
 db.faculty.belongsTo(db.user, {
   foreignKey: "userId",
   as: "user",
+  onDelete: "SET NULL",
 });
 
-db.user.hasMany(db.faculty, {
+db.user.hasOne(db.faculty, {
   foreignKey: "userId",
-  as: "faculties",
-  onDelete: "CASCADE",
+  as: "faculty",
 });
 
 export default db;
