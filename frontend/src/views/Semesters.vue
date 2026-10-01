@@ -208,11 +208,20 @@ onMounted(retrieveSemesters);
               <td class="text-no-wrap">{{ semester.startDate }}</td>
               <td class="text-no-wrap">{{ semester.endDate }}</td>
               <td v-if="isStudent">
+                <router-link :to="`/semesters/${semester.id}`">
+                  <v-icon
+                    size="small"
+                    class="mx-4"
+                    aria-label="View semester"
+                  >
+                    mdi-eye
+                  </v-icon>
+                </router-link>
                 <v-icon
                   size="small"
                   class="mx-4"
                   aria-label="Edit semester"
-                  @click="openEditDialog(semester)"
+                  @click.stop="openEditDialog(semester)"
                 >
                   mdi-pencil
                 </v-icon>
@@ -220,7 +229,7 @@ onMounted(retrieveSemesters);
                   size="small"
                   class="mx-4"
                   aria-label="Delete semester"
-                  @click="openDeleteDialog(semester)"
+                  @click.stop="openDeleteDialog(semester)"
                 >
                   mdi-trash-can
                 </v-icon>
