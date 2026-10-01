@@ -67,6 +67,7 @@ describe("Feature 2 — Semester Management", () => {
         semester: "Fall 2026",
         startDate: "2026-08-27",
         endDate: "2026-12-18",
+        classCount: 0,
         userId,
         user: {
           id: userId,

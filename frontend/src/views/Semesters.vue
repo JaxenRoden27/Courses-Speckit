@@ -34,6 +34,14 @@ const isStudent = computed(() => {
 const formTitle = computed(() =>
   isAddMode.value ? "Add Semester" : "Edit Semester",
 );
+
+const classCountLabel = (semester) => {
+  const count = Number(semester.classCount ?? 0);
+  const safeCount = Number.isFinite(count) ? count : 0;
+  return `${safeCount} ${safeCount === 1 ? "class" : "classes"}`;
+};
+
+const semesterTitle = (semester) => semester.name || semester.semester || "";
 const saveLabel = computed(() =>
   isAddMode.value ? "Create" : "Save Semester",
 );
@@ -186,6 +194,7 @@ onMounted(retrieveSemesters);
             <tr>
               <th v-if="!isStudent" class="text-left">Student Name</th>
               <th class="text-left">Semester name</th>
+              <th class="text-left">Classes</th>
               <th class="text-left">Start Date</th>
               <th class="text-left">End Date</th>
               <th v-if="isStudent" class="text-left">Actions</th>
@@ -194,9 +203,10 @@ onMounted(retrieveSemesters);
           <tbody>
             <tr v-for="semester in semesters" :key="semester.id">
               <td v-if="!isStudent">{{ semester.user?.fName }} {{ semester.user?.lName }}</td>
-              <td>{{ semester.semester }}</td>
-              <td>{{ semester.startDate }}</td>
-              <td>{{ semester.endDate }}</td>
+              <td>{{ semesterTitle(semester) }}</td>
+              <td class="text-no-wrap">{{ classCountLabel(semester) }}</td>
+              <td class="text-no-wrap">{{ semester.startDate }}</td>
+              <td class="text-no-wrap">{{ semester.endDate }}</td>
               <td v-if="isStudent">
                 <v-icon
                   size="small"

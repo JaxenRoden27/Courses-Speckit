@@ -71,6 +71,7 @@ const presentSemester = (row) => {
   return {
     ...data,
     name: data.semester,
+    classCount: 0,
   };
 };
 

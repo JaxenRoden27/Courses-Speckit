@@ -394,6 +394,7 @@ describe("Feature 2 — Semester Management", () => {
 
       const row = requireRow("Fall 2026");
       expect(row.text()).toContain("Fall 2026");
+      expect(row.text()).toContain("0 classes");
       expect(row.text()).toContain("2026-08-27");
       expect(row.text()).toContain("2026-12-18");
       expect(wrapper.text()).toContain("Semester name");
