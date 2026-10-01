@@ -207,7 +207,7 @@ onMounted(retrieveSemesters);
               <td class="text-no-wrap">{{ classCountLabel(semester) }}</td>
               <td class="text-no-wrap">{{ semester.startDate }}</td>
               <td class="text-no-wrap">{{ semester.endDate }}</td>
-              <td v-if="isStudent">
+              <td>
                 <router-link :to="`/semesters/${semester.id}`">
                   <v-icon
                     size="small"
@@ -222,6 +222,7 @@ onMounted(retrieveSemesters);
                   class="mx-4"
                   aria-label="Edit semester"
                   @click.stop="openEditDialog(semester)"
+                  v-show="isStudent"
                 >
                   mdi-pencil
                 </v-icon>
@@ -230,6 +231,7 @@ onMounted(retrieveSemesters);
                   class="mx-4"
                   aria-label="Delete semester"
                   @click.stop="openDeleteDialog(semester)"
+                  v-show="isStudent"
                 >
                   mdi-trash-can
                 </v-icon>

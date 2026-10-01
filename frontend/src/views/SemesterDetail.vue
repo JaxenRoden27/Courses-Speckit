@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import semesterServices from "../services/semesterServices.js";
 import SemesterForm from "../components/SemesterForm.vue";
+import Utils from "../config/Utils.js";
 
 const emptyForm = () => ({
   term: "",
@@ -27,6 +28,15 @@ const isAddMode = ref(true);
 const deleteDialogOpen = ref(false);
 const semesterToDelete = ref(null);
 const deleting = ref(false);
+
+const currentUser = ref(Utils.getStore("user"));
+const isStudent = computed(() => {
+  const role = currentUser.value?.role?.toLowerCase?.().trim();
+  const universityId = String(currentUser.value?.universityId ?? "")
+    .trim()
+    .toLowerCase();
+  return role === "student" && !universityId.startsWith("fa");
+});
 
 const classCountLabel = (count) => {
   const numeric = Number(count ?? 0);
@@ -192,10 +202,10 @@ onMounted(loadSemester);
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-icon size="small" class="mx-4" aria-label="Edit semester" @click.stop="openEditDialog(semester)">
+          <v-icon size="small" class="mx-4" aria-label="Edit semester" @click.stop="openEditDialog(semester)" v-if="isStudent">
             mdi-pencil
           </v-icon>
-          <v-dialog v-model="deleteDialogOpen" max-width="420">
+          <v-dialog v-model="deleteDialogOpen" max-width="420" v-if="isStudent">
             <v-card rounded="lg">
               <v-card-title>Delete Semester</v-card-title>
               <v-card-text>Delete this semester?</v-card-text>
@@ -209,18 +219,18 @@ onMounted(loadSemester);
             </v-card>
           </v-dialog>
           <v-icon size="small" class="oc-cta ml-auto" aria-label="Delete semester"
-            @click.stop="openDeleteDialog(semester)">
+            @click.stop="openDeleteDialog(semester)" v-show="isStudent">
             mdi-trash-can
           </v-icon>
         </div>
       </v-card-item>
       <v-card-text>
-        <p class="text-body-1 mb-2">Date range {{ dateRange }}</p>
+        <p class="text-body-1 mb-2">{{ dateRange }}</p>
         <p class="text-body-1 mb-6">
-          Classes {{ classCountLabel(semester.classCount) }}
+          {{ classCountLabel(semester.classCount) }}
         </p>
 
-        <p class="text-body-1 mb-2">Sections you are enrolled in</p>
+        <p class="text-body-1 mb-2">Sections enrolled in</p>
         <v-sheet rounded="lg" border class="pa-4" min-height="80" aria-label="Sections you are enrolled in" />
       </v-card-text>
     </v-card>
