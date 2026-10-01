@@ -175,6 +175,8 @@ const handleLogout = async () => {
     >
       Semesters
     </v-btn>
+
+    
     <v-btn
       variant="text"
       color="white"

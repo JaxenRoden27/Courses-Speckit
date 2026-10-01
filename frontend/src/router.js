@@ -35,15 +35,6 @@ const router = createRouter({
       props: true,
     },
     {
-      path: "/",
-      name: "home",
-      component: Home,
-    },
-    {
-      path: "/:pathMatch(.*)*",
-      redirect: { name: "home" },
-    },
-    {
       path: "/sections",
       name: "sections",
       component: Sections,
@@ -52,6 +43,15 @@ const router = createRouter({
       path: "/sections/:sectionId",
       name: "section",
       component: Section,
+    },
+    {
+      path: "/",
+      name: "home",
+      component: Home,
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      redirect: { name: "home" },
     },
   ],
 });
