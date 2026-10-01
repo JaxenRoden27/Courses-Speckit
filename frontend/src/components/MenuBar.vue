@@ -22,7 +22,7 @@ const email = ref("");
 const universityId = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const role = ref("student");
+const role = ref(user.value?.universityId?.startsWith("FA") ? "faculty" : "student");
 const fNameRules = [(value) => !!value?.trim() || "First name is required."];
 const lNameRules = [(value) => !!value?.trim() || "Last name is required."];
 const universityIdRules = [
@@ -74,7 +74,7 @@ const populateEditForm = (profile) => {
   lName.value = profile.lName ?? "";
   email.value = profile.email ?? "";
   universityId.value = profile.universityId ?? "";
-  role.value = profile.role ?? "student";
+  role.value = profile.universityId.startsWith("FA") ? "faculty" : "student";
   resetPasswordFields();
 };
 
@@ -120,7 +120,6 @@ const handleSaveProfile = async () => {
       lName: lName.value.trim(),
       email: email.value.trim(),
       universityId: universityId.value.trim(),
-      role: role.value.trim(),
     };
 
     if (password.value) {
@@ -130,6 +129,7 @@ const handleSaveProfile = async () => {
     const response = await userServices.updateUser(user.value.userId, payload);
     const currentUser = Utils.getStore("user");
 
+    const role = response.date.universityId.startsWith("FA") ? "faculty" : "student";
     Utils.setStore("user", {
       ...currentUser,
       ...response.data,
@@ -138,7 +138,7 @@ const handleSaveProfile = async () => {
       lName: response.data.lName,
       email: response.data.email,
       universityId: response.data.universityId,
-      role: response.data.role,
+      role: role,
       token: currentUser.token,
     });
     refreshUser();
@@ -297,6 +297,7 @@ const handleLogout = async () => {
                   v-model="role"
                   label="Role"
                   density="comfortable"
+                  disabled
                 />
               </v-col>
             </v-row>

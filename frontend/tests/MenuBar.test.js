@@ -1,14 +1,20 @@
 /**
  * Feature 1 — User Authentication & Session Management
  * Spec: features/feature-1-user-auth.md
+ *
+ * Feature 2 — Semester Management
+ * Spec: features/feature-2-semester-management.md
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { defineComponent } from "vue";
 import { flushPromises } from "@vue/test-utils";
+import { createMemoryHistory, createRouter } from "vue-router";
 import App from "../src/App.vue";
 import MenuBar from "../src/components/MenuBar.vue";
+import Semesters from "../src/views/Semesters.vue";
 import Utils from "../src/config/utils.js";
 import authServices from "../src/services/authServices.js";
+import semesterServices from "../src/services/semesterServices.js";
 import { mountWithPlugins, createTestRouter } from "./testUtils.js";
 
 vi.mock("../src/services/authServices.js", () => ({
@@ -23,6 +29,17 @@ vi.mock("../src/services/userServices.js", () => ({
   default: {
     getUser: vi.fn(),
     updateUser: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/semesterServices.js", () => ({
+  default: {
+    getSemesters: vi.fn(),
+    getStudentSemesters: vi.fn(),
+    getAllSemesters: vi.fn(),
+    createSemester: vi.fn(),
+    updateSemester: vi.fn(),
+    deleteSemester: vi.fn(),
   },
 }));
 
@@ -202,6 +219,74 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expectLabelAbsent(wrapper, "Semester");
       expectLabelAbsent(wrapper, "Course");
       expect(navLinkLabels(wrapper)).toEqual([]);
+    });
+  });
+});
+
+describe("Feature 2 — Semester Management", () => {
+  let wrapper;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    const empty = { data: [] };
+    semesterServices.getSemesters.mockResolvedValue(empty);
+    semesterServices.getStudentSemesters.mockResolvedValue(empty);
+    semesterServices.getAllSemesters.mockResolvedValue(empty);
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+  });
+
+  const mountSignedInApp = async (user) => {
+    Utils.setStore("user", user);
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: "/", name: "home", component: { template: "<div>Home</div>" } },
+        { path: "/login", name: "login", component: { template: "<div>Login</div>" } },
+        {
+          path: "/register",
+          name: "register",
+          component: { template: "<div>Register</div>" },
+        },
+        { path: "/semesters", name: "semesters", component: Semesters },
+      ],
+    });
+    await router.push("/");
+    await router.isReady();
+
+    const mounted = await mountWithPlugins(App, {
+      router,
+      ...mountOptions,
+    });
+    wrapper = mounted.wrapper;
+    return mounted.router;
+  };
+
+  const openSemesters = async (user) => {
+    const router = await mountSignedInApp(user);
+    const semestersButton = wrapper
+      .findAllComponents({ name: "VBtn" })
+      .find((btn) => btn.text().trim() === "Semesters");
+
+    expect(semestersButton).toBeTruthy();
+    await semestersButton.trigger("click");
+    await vi.waitFor(() => {
+      expect(router.currentRoute.value.name).toBe("semesters");
+    });
+    expect(router.currentRoute.value.path).toBe("/semesters");
+    expect(wrapper.findComponent(Semesters).exists()).toBe(true);
+  };
+
+  describe("US-2.1 — Open the semesters view", () => {
+    it("Student opens semesters from the menu", async () => {
+      await openSemesters(studentUser);
+    });
+
+    it("Faculty opens semesters from the menu", async () => {
+      await openSemesters(facultyUser);
     });
   });
 });

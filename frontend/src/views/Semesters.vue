@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import Utils from "../config/utils.js";
 import SemesterForm from "../components/SemesterForm.vue";
 import semesterServices from "../services/semesterServices.js";
 
@@ -22,6 +23,14 @@ const deleteDialogOpen = ref(false);
 const semesterToDelete = ref(null);
 const deleting = ref(false);
 
+const currentUser = ref(Utils.getStore("user"));
+const isStudent = computed(() => {
+  const role = currentUser.value?.role?.toLowerCase?.().trim();
+  const universityId = String(currentUser.value?.universityId ?? "")
+    .trim()
+    .toLowerCase();
+  return role === "student" && !universityId.startsWith("fa");
+});
 const formTitle = computed(() =>
   isAddMode.value ? "Add Semester" : "Edit Semester",
 );
@@ -145,7 +154,7 @@ onMounted(retrieveSemesters);
     <v-card rounded="lg">
       <v-card-item>
         <v-card-title>Semesters</v-card-title>
-        <template #append>
+        <template v-if="isStudent" #append>
           <v-btn
             color="primary"
             variant="elevated"
@@ -165,24 +174,30 @@ onMounted(retrieveSemesters);
         </v-alert>
 
         <p v-if="!semestersLoading && semesters.length === 0" class="text-body-1">
-          No semesters yet. Create your first semester.
+          {{
+            isStudent
+              ? "No semesters yet. Create your first semester."
+              : "No semesters yet. No students have semesters yet."
+          }}
         </p>
 
         <v-table v-if="!semestersLoading && semesters.length > 0">
           <thead>
             <tr>
+              <th v-if="!isStudent" class="text-left">Student Name</th>
               <th class="text-left">Semester name</th>
               <th class="text-left">Start Date</th>
               <th class="text-left">End Date</th>
-              <th class="text-left">Actions</th>
+              <th v-if="isStudent" class="text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="semester in semesters" :key="semester.id">
+              <td v-if="!isStudent">{{ semester.user?.fName }} {{ semester.user?.lName }}</td>
               <td>{{ semester.semester }}</td>
               <td>{{ semester.startDate }}</td>
               <td>{{ semester.endDate }}</td>
-              <td>
+              <td v-if="isStudent">
                 <v-icon
                   size="small"
                   class="mx-4"

@@ -1,6 +1,9 @@
 /**
  * Feature 1 — User Authentication & Session Management
  * Spec: features/feature-1-user-auth.md
+ *
+ * Feature 2 — Semester Management
+ * Spec: features/feature-2-semester-management.md
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import router from "../src/router.js";
@@ -36,6 +39,21 @@ describe("Feature 1 — User Authentication & Session Management", () => {
   describe("US-1.5 — Block unauthenticated access", () => {
     it("Unauthenticated user accesses a protected route", async () => {
       await router.push("/");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 2 — Semester Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-2.10 — Show each role only the semesters they may see", () => {
+    it("Unauthenticated user navigates to semesters", async () => {
+      await router.push("/semesters");
 
       expect(router.currentRoute.value.name).toBe("login");
     });

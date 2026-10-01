@@ -77,7 +77,14 @@ const presentSemester = (row) => {
 const findSemester = (semesterId) =>
   db.semester.findByPk(semesterId, { include: studentInclude });
 
-const isStudent = (req) => req.user?.role?.toLowerCase?.().trim() === "student";
+const isStudent = (req) => {
+  const role = req.user?.role?.toLowerCase?.().trim();
+  const universityId = String(req.user?.universityId ?? "").trim().toLowerCase();
+  if (role === "faculty" || universityId.startsWith("fa")) {
+    return false;
+  }
+  return role === "student";
+};
 
 exports.findAll = async (req, res) => {
   try {
