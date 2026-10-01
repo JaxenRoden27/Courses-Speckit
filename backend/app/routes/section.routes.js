@@ -1,12 +1,12 @@
 import { Router } from "express";
 import sectionController from "../controllers/section.controller.js";
-import { authenticateFaculty } from "../authorization/authorization.js";
+import { authenticate, requireFaculty } from "../authorization/authorization.js";
 
 const router = Router();
 
-router.get("/sections", [authenticateFaculty], sectionController.findAll);
-router.post("/sections", [authenticateFaculty], sectionController.createSection);
-router.put("/sections/:sectionId", [authenticateFaculty], sectionController.updateSection);
-router.delete("/sections/:sectionId", [authenticateFaculty], sectionController.removeSection);
+router.get("/", [authenticate], sectionController.findAll);
+router.post("/", [authenticate, requireFaculty], sectionController.create);
+router.put("/:sectionId", [authenticate, requireFaculty], sectionController.update);
+router.delete("/:sectionId", [authenticate, requireFaculty], sectionController.remove);
 
 export default router;

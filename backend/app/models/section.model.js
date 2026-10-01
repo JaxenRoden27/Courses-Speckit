@@ -8,32 +8,32 @@ export default (sequelize, Sequelize) => {
           autoIncrement: true,
         },
         sectionNumber: {
-          type: Sequelize.STRING(2),
-          allowNull: false,
+            type: Sequelize.STRING(10),
+            allowNull: false,
         },
         semesterId: {
-          type: Sequelize.INTEGER,
-          allowNull: false,
+            type: Sequelize.INTEGER,
+            allowNull: false,
         },
         courseId: {
-          type: Sequelize.INTEGER,
-          allowNull: true,
+            type: Sequelize.INTEGER,
+            allowNull: false,
         },
         facultyId: {
-          type: Sequelize.INTEGER,
-          allowNull: true,
+            type: Sequelize.INTEGER,
+            allowNull: false,
         },
         daysOfWeek: {
-          type: Sequelize.STRING(10),
-          allowNull: true,
+            type: Sequelize.STRING(10),
+            allowNull: false,
         },
         startTime: {
-          type: Sequelize.TIME,
-          allowNull: true,
+            type: Sequelize.TIME,
+            allowNull: false,
         },
         endTime: {
-          type: Sequelize.TIME,
-          allowNull: true,
+            type: Sequelize.TIME,
+            allowNull: false,
         },
       },
       {
