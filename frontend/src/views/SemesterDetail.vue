@@ -202,9 +202,6 @@ onMounted(loadSemester);
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-icon size="small" class="mx-4" aria-label="Edit semester" @click.stop="openEditDialog(semester)" v-if="isStudent">
-            mdi-pencil
-          </v-icon>
           <v-dialog v-model="deleteDialogOpen" max-width="420" v-if="isStudent">
             <v-card rounded="lg">
               <v-card-title>Delete Semester</v-card-title>
@@ -218,10 +215,24 @@ onMounted(loadSemester);
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-icon size="small" class="oc-cta ml-auto" aria-label="Delete semester"
-            @click.stop="openDeleteDialog(semester)" v-show="isStudent">
-            mdi-trash-can
-          </v-icon>
+          <div class="d-flex align-center ml-auto" v-if="isStudent">
+            <v-icon
+              size="small"
+              class="oc-cta"
+              aria-label="Edit semester"
+              @click.stop="openEditDialog(semester)"
+            >
+              mdi-pencil
+            </v-icon>
+            <v-icon
+              size="small"
+              class="oc-cta ml-2"
+              aria-label="Delete semester"
+              @click.stop="openDeleteDialog(semester)"
+            >
+              mdi-trash-can
+            </v-icon>
+          </div>
         </div>
       </v-card-item>
       <v-card-text>
