@@ -22,7 +22,7 @@ const email = ref("");
 const universityId = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const role = ref(user.value?.universityId?.startsWith("FA") ? "faculty" : "student");
+const role = ref(user.value?.role);
 const fNameRules = [(value) => !!value?.trim() || "First name is required."];
 const lNameRules = [(value) => !!value?.trim() || "Last name is required."];
 const universityIdRules = [
@@ -74,7 +74,9 @@ const populateEditForm = (profile) => {
   lName.value = profile.lName ?? "";
   email.value = profile.email ?? "";
   universityId.value = profile.universityId ?? "";
-  role.value = profile.universityId.startsWith("FA") ? "faculty" : "student";
+  role.value = profile.universityId?.toUpperCase().startsWith("FA")
+    ? "faculty"
+    : "student";
   resetPasswordFields();
 };
 
@@ -129,7 +131,9 @@ const handleSaveProfile = async () => {
     const response = await userServices.updateUser(user.value.userId, payload);
     const currentUser = Utils.getStore("user");
 
-    const role = response.date.universityId.startsWith("FA") ? "faculty" : "student";
+    const role = response.data.universityId?.toUpperCase().startsWith("FA")
+      ? "faculty"
+      : "student";
     Utils.setStore("user", {
       ...currentUser,
       ...response.data,
@@ -275,10 +279,11 @@ const handleLogout = async () => {
               <v-col cols="12">
                 <v-text-field
                   v-model="universityId"
-                  label="University ID"
+                  :label="user.role === 'faculty' ? 'Faculty ID' : 'Student ID'"
                   density="comfortable"
                   autocomplete="universityId"
                   :rules="universityIdRules"
+                  disabled
                 />
               </v-col>
               <v-col cols="12" md="6">
