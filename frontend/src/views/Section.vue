@@ -2,27 +2,24 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import sectionServices from "../services/sectionServices.js";
-//import leagueServices from "../services/leagueServices.js";
+import courseServices from "../services/courseServices.js";
+import facultyServices from "../services/facultyServices.js";
 import SectionForm from "../components/SectionForm.vue";
-import Utils from "../config/utils.js";
 
 const route = useRoute();
 
 const emptySectionForm = () => ({
-  name: "",
-  leagueId: null,
-  homeField: "",
-  managerId: null,
-});
-
-const emptyPlayerForm = () => ({
-  personId: null,
-  position: "",
-  number: "",
+  sectionNumber: "",
+  courseId: null,
+  facultyId: null,
+  daysOfWeek: "",
+  startTime: "",
+  endTime: "",
 });
 
 const section = ref(null);
-const leagues = ref([]);
+const courses = ref([]);
+const faculty = ref([]);
 const loading = ref(false);
 const listError = ref("");
 const formDialogOpen = ref(false);
@@ -30,47 +27,22 @@ const form = ref(emptySectionForm());
 const formRef = ref(null);
 const formError = ref("");
 const saving = ref(false);
-const playerDialogOpen = ref(false);
-const isAddPlayerMode = ref(true);
-const playerForm = ref(emptyPlayerForm());
-const playerFormRef = ref(null);
-const playerFormError = ref("");
-const savingPlayer = ref(false);
-const editingPlayerId = ref(null);
-const removePlayerDialogOpen = ref(false);
-const playerToRemove = ref(null);
-const removingPlayer = ref(false);
 
 const sectionId = computed(() => parseInt(route.params.sectionId, 10));
-const playerFormTitle = computed(() =>
-  isAddPlayerMode.value ? "Add Player" : "Edit Player",
-);
-const playerSaveLabel = computed(() =>
-  isAddPlayerMode.value ? "Add" : "Save Player",
-);
-const rosterPlayers = computed(() => section.value?.players ?? []);
-const isAdmin = computed(() => Utils.getStore("user")?.role === "admin");
-const canManagePlayers = computed(
-  () => isAdmin.value || Utils.getStore("user")?.role === "manager"
-);
 
-const playerName = (player) => {
-  const lastName = player.person?.lastName ?? "";
-  const firstName = player.person?.firstName ?? "";
-  return `${lastName}, ${firstName}`.trim();
-};
 
 const retrieveSection = async () => {
   loading.value = true;
   listError.value = "";
 
   try {
-    const [sectionsResponse, leaguesResponse, peopleResponse] = await Promise.all([
+    const [sectionsResponse, coursesResponse, facultyResponse] = await Promise.all([
       sectionServices.getSections(),
-      //leagueServices.getLeagues(),
+      courseServices.getCourses(),
+      facultyServices.getFaculty(),
     ]);
-    leagues.value = leaguesResponse.data;
-    people.value = peopleResponse.data;
+    courses.value = coursesResponse.data;
+    faculty.value = facultyResponse.data;
     section.value =
       sectionsResponse.data.find((row) => row.id === sectionId.value) ?? null;
 
@@ -91,10 +63,12 @@ const openEditDialog = () => {
   }
 
   form.value = {
-    name: section.value.name ?? "",
-    leagueId: section.value.leagueId ?? null,
-    homeField: section.value.homeField ?? "",
-    managerId: section.value.managerId ?? null,
+    sectionNumber: section.value.sectionNumber ?? "",
+    courseId: section.value.courseId ?? null,
+    facultyId: section.value.facultyId ?? null,
+    daysOfWeek: section.value.daysOfWeek ?? "",
+    startTime: section.value.startTime ?? "",
+    endTime: section.value.endTime ?? "",
   };
   formError.value = "";
   formDialogOpen.value = true;
@@ -117,11 +91,12 @@ const saveSection = async () => {
 
   try {
     await sectionServices.updateSection(section.value.id, {
-      name: form.value.name.trim(),
-      leagueId: form.value.leagueId,
-      homeField: form.value.homeField.trim(),
-      managerId: form.value.managerId || null,
-      sectionId: section.value.id,
+      sectionNumber: form.value.sectionNumber.trim(),
+      courseId: form.value.courseId,
+      facultyId: form.value.facultyId,
+      daysOfWeek: form.value.daysOfWeek.trim(),
+      startTime: form.value.startTime.trim(),
+      endTime: form.value.endTime.trim(),
     });
     closeFormDialog();
     await retrieveSection();
@@ -133,101 +108,6 @@ const saveSection = async () => {
   }
 };
 
-const openAddPlayerDialog = () => {
-  isAddPlayerMode.value = true;
-  editingPlayerId.value = null;
-  playerForm.value = emptyPlayerForm();
-  playerFormError.value = "";
-  playerDialogOpen.value = true;
-};
-
-const openEditPlayerDialog = (player) => {
-  isAddPlayerMode.value = false;
-  editingPlayerId.value = player.id;
-  playerForm.value = {
-    personId: player.personId ?? null,
-    position: player.position ?? "",
-    number: player.number,
-  };
-  playerFormError.value = "";
-  playerDialogOpen.value = true;
-};
-
-const closePlayerDialog = () => {
-  playerDialogOpen.value = false;
-  playerFormError.value = "";
-  editingPlayerId.value = null;
-};
-
-const savePlayer = async () => {
-  playerFormError.value = "";
-  const result = await playerFormRef.value?.validate();
-
-  if (!result?.valid || !section.value) {
-    return;
-  }
-
-  savingPlayer.value = true;
-
-  const payload = {
-    personId: playerForm.value.personId,
-    position: String(playerForm.value.position).trim(),
-    number: parseInt(playerForm.value.number, 10),
-  };
-
-  try {
-    if (isAddPlayerMode.value) {
-      await sectionServices.createPlayer(section.value.id, payload);
-    } else {
-      await sectionServices.updatePlayer(
-        section.value.id,
-        editingPlayerId.value,
-        payload,
-      );
-    }
-
-    closePlayerDialog();
-    await retrieveSection();
-  } catch (error) {
-    playerFormError.value =
-      error.response?.data?.message ||
-      (isAddPlayerMode.value
-        ? "Failed to add player."
-        : "Failed to update player.");
-  } finally {
-    savingPlayer.value = false;
-  }
-};
-
-const openRemovePlayerDialog = (player) => {
-  playerToRemove.value = player;
-  removePlayerDialogOpen.value = true;
-};
-
-const closeRemovePlayerDialog = () => {
-  removePlayerDialogOpen.value = false;
-  playerToRemove.value = null;
-};
-
-const confirmRemovePlayer = async () => {
-  if (!playerToRemove.value?.id || !section.value) {
-    return;
-  }
-
-  removingPlayer.value = true;
-
-  try {
-    await sectionServices.deletePlayer(section.value.id, playerToRemove.value.id);
-    closeRemovePlayerDialog();
-    await retrieveSection();
-  } catch (error) {
-    playerFormError.value =
-      error.response?.data?.message || "Failed to remove player.";
-  } finally {
-    removingPlayer.value = false;
-  }
-};
-
 onMounted(retrieveSection);
 watch(() => route.params.sectionId, retrieveSection);
 </script>
@@ -236,22 +116,14 @@ watch(() => route.params.sectionId, retrieveSection);
   <v-container class="py-8">
     <v-card rounded="lg">
       <v-card-item>
-        <v-card-title>{{ section?.name || "Section" }}</v-card-title>
+        <v-card-title>{{ section?.sectionNumber || "Section" }}</v-card-title>
         <v-card-subtitle v-if="section">
-          {{ section.league?.name }}
-          <template v-if="section.league?.sport">
-            · {{ section.league.sport }}
-          </template>
-          <template v-if="section.homeField">
-            · {{ section.homeField }}
-          </template>
-          <template v-if="section.manager">
-            · {{ section.manager.lastName }}, {{ section.manager.firstName }}
-          </template>
+          {{ section.course?.name }}
+          · {{ section.daysOfWeek }}
+          · {{ section.startTime }} – {{ section.endTime }}
         </v-card-subtitle>
         <template #append>
           <v-btn
-            v-if="isAdmin"
             color="primary"
             variant="elevated"
             class="oc-cta mr-2"
@@ -259,16 +131,6 @@ watch(() => route.params.sectionId, retrieveSection);
             @click="openEditDialog"
           >
             Edit section
-          </v-btn>
-          <v-btn
-            v-if="canManagePlayers"
-            color="primary"
-            variant="elevated"
-            class="oc-cta"
-            :disabled="!section"
-            @click="openAddPlayerDialog"
-          >
-            Add Players
           </v-btn>
         </template>
       </v-card-item>
@@ -279,50 +141,6 @@ watch(() => route.params.sectionId, retrieveSection);
         <v-alert v-if="listError" type="error" density="compact" class="mb-4">
           {{ listError }}
         </v-alert>
-
-        <template v-if="!loading && section">
-          <p v-if="rosterPlayers.length === 0" class="text-body-1">
-            No players yet. Add the first player.
-          </p>
-
-          <v-table v-if="rosterPlayers.length > 0">
-            <thead>
-              <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">Number</th>
-                <th class="text-left">Position</th>
-                <th class="text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="player in rosterPlayers" :key="player.id">
-                <td>{{ playerName(player) }}</td>
-                <td>{{ player.number }}</td>
-                <td>{{ player.position }}</td>
-                <td>
-                  <v-icon
-                    v-if="canManagePlayers"
-                    size="small"
-                    class="mx-4"
-                    aria-label="Edit player"
-                    @click="openEditPlayerDialog(player)"
-                  >
-                    mdi-pencil
-                  </v-icon>
-                  <v-icon
-                    v-if="canManagePlayers"
-                    size="small"
-                    class="mx-4"
-                    aria-label="Remove player"
-                    @click="openRemovePlayerDialog(player)"
-                  >
-                    mdi-trash-can
-                  </v-icon>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </template>
       </v-card-text>
     </v-card>
 
@@ -352,61 +170,6 @@ watch(() => route.params.sectionId, retrieveSection);
             @click="saveSection"
           >
             Save Section
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="playerDialogOpen" max-width="520">
-      <v-card rounded="lg">
-        <v-card-title>{{ playerFormTitle }}</v-card-title>
-        <v-card-text>
-          <PlayerForm
-            ref="playerFormRef"
-            v-model="playerForm"
-            :people="people"
-            @submit="savePlayer"
-          />
-          <v-alert
-            v-if="playerFormError"
-            type="error"
-            density="compact"
-            class="mt-2"
-          >
-            {{ playerFormError }}
-          </v-alert>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closePlayerDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            variant="elevated"
-            class="oc-cta"
-            :loading="savingPlayer"
-            @click="savePlayer"
-          >
-            {{ playerSaveLabel }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="removePlayerDialogOpen" max-width="420">
-      <v-card rounded="lg">
-        <v-card-title>Remove Player</v-card-title>
-        <v-card-text>Remove this player from the section?</v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closeRemovePlayerDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            variant="elevated"
-            class="oc-cta"
-            :loading="removingPlayer"
-            @click="confirmRemovePlayer"
-          >
-            Remove Player
           </v-btn>
         </v-card-actions>
       </v-card>

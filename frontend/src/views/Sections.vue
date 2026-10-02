@@ -2,10 +2,9 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import sectionServices from "../services/sectionServices.js";
-//import courseServices from "../services/courseServices.js";
-//import facultyServices from "../services/facultyServices.js";
+import courseServices from "../services/courseServices.js";
+import facultyServices from "../services/facultyServices.js";
 import SectionForm from "../components/SectionForm.vue";
-import Utils from "../config/utils.js";
 
 const router = useRouter();
 
@@ -31,7 +30,16 @@ const saving = ref(false);
 const deleteDialogOpen = ref(false);
 const sectionToDelete = ref(null);
 const deleting = ref(false);
-const isFaculty = computed(() => Utils.getStore("user")?.role === "faculty");
+const courseGroups = computed(() =>
+  [...courses.value]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((course) => ({
+      ...course,
+      sections: sections.value
+        .filter((section) => section.courseId === course.id)
+        .sort((a, b) => a.sectionNumber.localeCompare(b.sectionNumber)),
+    }))
+);
 
 const retrieveSections = async () => {
   loading.value = true;
@@ -40,8 +48,8 @@ const retrieveSections = async () => {
   try {
     const [sectionsResponse, courseResponse, facultyResponse] = await Promise.all([
       sectionServices.getSections(),
-      // courseServices.getcourses(),
-      // facultyServices.getfaculty(),
+      courseServices.getCourses(),
+      facultyServices.getFaculty(),
     ]);
     sections.value = sectionsResponse.data;
     courses.value = courseResponse.data;
@@ -54,8 +62,8 @@ const retrieveSections = async () => {
   }
 };
 
-const openAddDialog = () => {
-  form.value = emptyForm();
+const openAddDialog = (course) => {
+  form.value = { ...emptyForm(), courseId: course.id };
   formError.value = "";
   formDialogOpen.value = true;
 };
@@ -95,7 +103,7 @@ const saveSection = async () => {
 };
 
 const openSection = (section) => {
-  router.push({ sectionNumber: section.sectionNumber, params: { sectionId: section.id } });
+  router.push({ name: "section", params: { sectionId: section.id } });
 };
 
 const openDeleteDialog = (section) => {
@@ -136,17 +144,6 @@ onMounted(retrieveSections);
     <v-card rounded="lg">
       <v-card-item>
         <v-card-title>Sections</v-card-title>
-        <template #append>
-          <v-btn
-            v-if="isFaculty"
-            color="primary"
-            variant="elevated"
-            class="oc-cta"
-            @click="openAddDialog"
-          >
-            + New section
-          </v-btn>
-        </template>
       </v-card-item>
 
       <v-card-text>
@@ -156,56 +153,65 @@ onMounted(retrieveSections);
           {{ listError }}
         </v-alert>
 
-        <p v-if="!loading && sections.length === 0" class="text-body-1">
-          {{
-            isAdmin
-              ? "No sections yet. Create your first section."
-              : "No sections assigned."
-          }}
+        <p v-if="!loading && courses.length === 0" class="text-body-1">
+          No courses yet.
         </p>
 
-        <v-table v-if="!loading && sections.length > 0">
-          <thead>
-            <tr>
-              <th class="text-left">Section name</th>
-              <th class="text-left">League</th>
-              <th class="text-left">Manager</th>
-              <th class="text-left">Players</th>
-              <th class="text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="section in sections" :key="section.id">
-              <td>{{ section.name }}</td>
-              <td>{{ section.league?.name }}</td>
-              <td>
-                <template v-if="section.manager">
-                  {{ section.manager.lastName }}, {{ section.manager.firstName }}
-                </template>
-              </td>
-              <td>{{ section.players?.length ?? 0 }}</td>
-              <td>
-                <v-icon
-                  size="small"
-                  class="mx-4"
-                  aria-label="Open section"
-                  @click="openSection(section)"
-                >
-                  mdi-account-group
-                </v-icon>
-                <v-icon
-                  v-if="isAdmin"
-                  size="small"
-                  class="mx-4"
-                  aria-label="Delete section"
-                  @click="openDeleteDialog(section)"
-                >
-                  mdi-trash-can
-                </v-icon>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+        <div v-for="course in courseGroups" :key="course.id" class="mb-8">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <h2 class="text-h6">{{ course.name }}</h2>
+            <v-btn
+              color="primary"
+              variant="elevated"
+              class="oc-cta"
+              @click="openAddDialog(course)"
+            >
+              + New section
+            </v-btn>
+          </div>
+
+          <p v-if="course.sections.length === 0" class="text-body-1">
+            No sections for this course.
+          </p>
+
+          <v-table v-else>
+            <thead>
+              <tr>
+                <th class="text-left">Section number</th>
+                <th class="text-left">Days of week</th>
+                <th class="text-left">Start time</th>
+                <th class="text-left">End time</th>
+                <th class="text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="section in course.sections" :key="section.id">
+                <td>{{ section.sectionNumber }}</td>
+                <td>{{ section.daysOfWeek }}</td>
+                <td>{{ section.startTime }}</td>
+                <td>{{ section.endTime }}</td>
+                <td>
+                  <v-icon
+                    size="small"
+                    class="mx-4"
+                    aria-label="Open section"
+                    @click="openSection(section)"
+                  >
+                    mdi-account-group
+                  </v-icon>
+                  <v-icon
+                    size="small"
+                    class="mx-4"
+                    aria-label="Delete section"
+                    @click="openDeleteDialog(section)"
+                  >
+                    mdi-trash-can
+                  </v-icon>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </div>
       </v-card-text>
     </v-card>
 
