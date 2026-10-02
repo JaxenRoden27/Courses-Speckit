@@ -11,7 +11,6 @@ const router = useRouter();
 
 const emptyForm = () => ({
   sectionNumber: "",
-  semesterId: null,
   courseId: null,
   facultyId: null,
   daysOfWeek: "",
@@ -41,8 +40,8 @@ const retrieveSections = async () => {
   try {
     const [sectionsResponse, courseResponse, facultyResponse] = await Promise.all([
       sectionServices.getSections(),
-      courseServices.getcourses(),
-      facultyServices.getfaculty(),
+      // courseServices.getcourses(),
+      // facultyServices.getfaculty(),
     ]);
     sections.value = sectionsResponse.data;
     courses.value = courseResponse.data;
@@ -79,7 +78,6 @@ const saveSection = async () => {
   try {
     await sectionServices.createSection({
       sectionNumber: form.value.sectionNumber.trim(),
-      semesterId: form.value.semesterId,
       courseId: form.value.courseId,
       facultyId: form.value.facultyId,
       daysOfWeek: form.value.daysOfWeek.trim(),
@@ -140,7 +138,7 @@ onMounted(retrieveSections);
         <v-card-title>Sections</v-card-title>
         <template #append>
           <v-btn
-            v-if="isAdmin"
+            v-if="isFaculty"
             color="primary"
             variant="elevated"
             class="oc-cta"
@@ -218,8 +216,9 @@ onMounted(retrieveSections);
           <SectionForm
             ref="formRef"
             v-model="form"
-            :leagues="leagues"
-            :people="people"
+            :courses="courses"
+            :faculty="faculty"
+            lock-course
             @submit="saveSection"
           />
           <v-alert v-if="formError" type="error" density="compact" class="mt-2">

@@ -333,8 +333,8 @@ watch(() => route.params.sectionId, retrieveSection);
           <SectionForm
             ref="formRef"
             v-model="form"
-            :leagues="leagues"
-            :people="people"
+            :courses="courses"
+            :faculty="faculty"
             @submit="saveSection"
           />
           <v-alert v-if="formError" type="error" density="compact" class="mt-2">

@@ -21,7 +21,6 @@ const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
 const parseSectionFields = ({
   sectionNumber,
-  semesterId,
   courseId,
   facultyId,
   daysOfWeek,
@@ -30,7 +29,6 @@ const parseSectionFields = ({
 }) => {
   if (
     isBlank(sectionNumber) ||
-    isBlank(semesterId) ||
     isBlank(courseId) ||
     isBlank(facultyId) ||
     isBlank(daysOfWeek) ||
@@ -64,11 +62,6 @@ const parseSectionFields = ({
     return { error: { message: "Start time must be earlier than end time." } };
   }
 
-  const parsedSemesterId = parseInt(semesterId, 10);
-  if (Number.isNaN(parsedSemesterId)) {
-    return { error: { message: "Semester not found." } };
-  }
-
   const parsedCourseId = parseInt(courseId, 10);
   if (Number.isNaN(parsedCourseId)) {
     return { error: { message: "Course not found." } };
@@ -82,7 +75,6 @@ const parseSectionFields = ({
   return {
     values: {
       sectionNumber: trimmedNumber,
-      semesterId: parsedSemesterId,
       courseId: parsedCourseId,
       facultyId: parsedFacultyId,
       daysOfWeek: trimmedDays,
@@ -117,11 +109,6 @@ exports.create = async (req, res) => {
     }
 
     const values = fields.values;
-
-    const semester = await db.semester.findByPk(values.semesterId);
-    if (!semester) {
-      return res.status(400).send({ message: "Semester not found." });
-    }
 
     const course = await db.course.findByPk(values.courseId);
     if (!course) {
@@ -173,11 +160,6 @@ exports.update = async (req, res) => {
     }
 
     const values = fields.values;
-
-    const semester = await db.semester.findByPk(values.semesterId);
-    if (!semester) {
-      return res.status(400).send({ message: "Semester not found." });
-    }
 
     const course = await db.course.findByPk(values.courseId);
     if (!course) {

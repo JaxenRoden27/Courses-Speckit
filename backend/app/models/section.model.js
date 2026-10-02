@@ -11,10 +11,6 @@ export default (sequelize, Sequelize) => {
             type: Sequelize.STRING(10),
             allowNull: false,
         },
-        semesterId: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-        },
         courseId: {
             type: Sequelize.INTEGER,
             allowNull: false,

@@ -124,7 +124,7 @@
 - Tests MAY seed at least one course and one faculty (from Features 3–4) before creating a section or faculty.
 - Sections belong to a **course**, not to a semester and not to a signed-in user. No FK from `sections` to `semester`.
 - The sections list loads courses from `GET /courses/courses` and sections from `GET /courses/sections`, then shows each section under its course. The section view still loads courses from `GET /courses/courses` for **Edit Section**. Express is already mounted at `/courses`, so these are the full paths.
-- Foreign keys from `sections.semesterId`, `sections.courseId`, and `sections.facultyId` MUST use **RESTRICT**.
+- Foreign keys from `sections.courseId`, and `sections.facultyId` MUST use **RESTRICT**.
 - This feature updates Feature 3–4 `DELETE` handlers for `/courses/courses/:courseId` to enforce FR-010.
 - The **sections list** creates and deletes sections. The **section view** edits one section.
 - Section forms use **dialog-based** workflows (no split sidebar / main panel).
@@ -196,7 +196,6 @@ Sections are not owned by the signed-in faculty. Only role `faculty` may manage 
 ```json
 {
   "sectionNumber": "01",
-  "semesterId": 1,
   "courseId": 1,
   "facultyId": 1,
   "daysOfWeek": "MWF",
@@ -215,7 +214,6 @@ Do not send `id` on create.
 {
   "id": 1,
   "sectionNumber": "01",
-  "semesterId": 1,
   "courseId": 1,
   "facultyId": 1,
   "daysOfWeek": "MWF",
@@ -309,21 +307,18 @@ This is the section view (section main).
 ### `sections` table
 
 
-| Field            | Type       | Rules                                                                           |
-| ---------------- | ---------- | ------------------------------------------------------------------------------- |
-| `id`             | INTEGER PK | Auto-increment                                                                  |
-| `sectionNumber`  | STRING(2)  | Required; trimmed; exactly two digits (01 - 99); unique per course and semester |
-| `semesterId`     | INTEGER FK | Required; references `semester.id`                                              |
-| `courseId`       | INTEGER FK | Required; references `course.id`                                                |
-| `facultyId`      | INTEGER FK | Required; references `faculty.id`                                               |
-| `daysOfWeek`     | STRING(10) | Required; trimmed; at most 10 characters                                        |
-| `StartTime`      | TIME       | Required; valid clock time HH:mm:ss                                             |
-| `endTime`        | TIME       | Required; valid clock time HH:mm:ss                                             |
+| Field            | Type       | Rules                                                                                 |
+| ---------------- | ---------- | ------------------------------------------------------------------------------------- |
+| `id`             | INTEGER PK | Auto-increment                                                                        |
+| `sectionNumber`  | STRING(10)  | Required; trimmed; exactly two digits (01 - 99); unique per course and sectionNumber |
+| `courseId`       | INTEGER FK | Required; references `course.id`                                                      |
+| `facultyId`      | INTEGER FK | Required; references `faculty.id`                                                     |
+| `daysOfWeek`     | STRING(10) | Required; trimmed; at most 10 characters                                              |
+| `StartTime`      | TIME       | Required; valid clock time HH:mm:ss                                                   |
+| `endTime`        | TIME       | Required; valid clock time HH:mm:ss                                                   |
 
 
-Unique index on (`semesterId`, `courseId`).
-Unique index on (`facultyId`, `sectionNumber`).  
-`semesterId` uses `ON DELETE CASADE`.
+Unique index on (`courseId`, `sectionNumber`).
 `courseId` uses `ON DELETE RESTRICT`.
 `facultyId` uses `ON DELETE RESTRICT`.
 
@@ -350,12 +345,11 @@ Unique index on (`facultyId`, `sectionNumber`).
 #### Scenario: User creates a new section
 
 - **Given** I am signed in as a user with role `faculty`
-- **And** a semester `Spring 2027` exists
 - **And** a course `Programming 1` exists
 - **And** a faculty `David North` exists
 - **And** I am viewing the sections view
 - **When** I click **+ New section** on the `Programming 1` group
-- **And** I enter section number `01`, select semester `Spring 2027`, select faculty `David North`, I enter days of week `MWF`, I enter start time `09:00:00`, and I enter end time `09:50:00`.
+- **And** I enter section number `01`, select faculty `David North`, I enter days of week `MWF`, I enter start time `09:00:00`, and I enter end time `09:50:00`.
 - **And** I click **Create**
 - **Then** the API returns `201` with a section object containing `id`, `sectionNumber` `01`, `daysOfWeek` `MWF`, `startTime` `09:00:00`, `endTime` `09:50:00`, and nested `course.name` `Programming 1`
 - **And** section `01` appears under the course group `Programming 1`

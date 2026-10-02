@@ -179,9 +179,9 @@ const handleLogout = async () => {
     >
       Semesters
     </v-btn>
-
-    
+  
     <v-btn
+      v-if="user.role === 'faculty'"
       variant="text"
       color="white"
       @click="router.push('/sections')"
