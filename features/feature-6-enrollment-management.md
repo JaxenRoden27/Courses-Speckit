@@ -4,7 +4,7 @@
 **Branch pattern:** `feature/6-enrollment-management`
 **Status:** Ready
 **Created:** 2026-09-24
-**Input:** Signed-in student user maintains enrollments on one screen; new enrollments are added via a dialog. An enrollment has a section and a student. A student has many enrollments. Faculty can view each student's enrollments but not edit them.
+**Input:** Signed-in student user maintains enrollments on one screen; new enrollments are added via a dialog. An enrollment has a section, a semester, and a student. A student has many enrollments. A semester has many enrollments. Faculty can view each student's enrollments but not edit them.
 **Depends on:** [Feature 1 — User Authentication](feature-1-user-auth.md), [Feature 2 — Semester Management](feature-2-semester-management.md), [Feature 3 — Course Management](feature-3-course-management.md), [Feature 4 — Faculty Management](feature-4-faculty-management.md), [Feature 5 — Section Management](feature-5-section-management.md)
 
 ---
@@ -24,11 +24,11 @@
 ### US-6.2: Create enrollment
 
 **As a** signed-in student user  
-**I want to** create an enrollment with a section, and student Id  
+**I want to** create an enrollment with a section, a semester, and student Id
 **So that** sections have enrollments
 
 **Priority:** P1  
-**Independent test:** Open add-enrollment dialog, create an enrollment for an existing section and student; it appears in the enrollments view  
+**Independent test:** Open add-enrollment dialog, create an enrollment for an existing section, semester, and student; it appears in the enrollments view  
 **Acceptance scenarios:** see ### US-6.2 under Acceptance Criteria
 
 ### US-6.3: Student View enrollments
@@ -91,7 +91,7 @@
 **Independent test:** Sign in as a student — **Enrollments** is visible; `POST /courses/students/:studentId/enrollments` returns `201`  
 **Acceptance scenarios:** see ### US-6.8 under Acceptance Criteria
 
-### US-6.9: Block delete of a section that has an enrollment
+### US-6.9: Block delete of a section and semester that has an enrollment
 
 **As the** application  
 **I want to** refuse delete of a section that still has enrollments  
@@ -107,14 +107,14 @@
 
 - **FR-001**: Every enrollment endpoint MUST require a valid session (`authenticate`). A request with no valid session MUST return `401`. Navigation to `/enrollments` with no session MUST redirect to `login`.
 - **FR-002**: A signed-in `student` or `faculty` user MUST see **Enrollments** in `MenuBar` and MUST be able to open the enrollments view from that item.
-- **FR-003**: A signed-in `student` MUST be able to create an enrollment from the enrollments view. The enrollment MUST store one `sectionId` and one `studentId`. `studentId` MUST be the signed-in student's id. A successful `POST` MUST return `201`, and the new enrollment MUST appear in that student's list.
-- **FR-004**: The create and update body MUST include `sectionId`. An empty course or section selection MUST be blocked in the client with **"Required"**, and the client MUST NOT call the API. `studentId` MUST NOT be sent in the body. It is `:studentId` in the path and MUST be the signed-in student's `users.id`. `courseId` is not sent.
-- **FR-005**: `sectionId` MUST reference an existing section. A missing section MUST return `400` with `{ "message": "Section not found." }` and MUST NOT store an enrollment. `:studentId` MUST be an existing `users.id` whose `role` is `student`. A missing user, or a user whose role is not `student`, MUST return `404` with `{ "message": "Student not found." }` and MUST NOT store an enrollment.
+- **FR-003**: A signed-in `student` MUST be able to create an enrollment from the enrollments view. The enrollment MUST store one `sectionId`, one `semesterId`, and one `studentId`. `studentId` MUST be the signed-in student's id. A successful `POST` MUST return `201`, and the new enrollment MUST appear in that student's list.
+- **FR-004**: The create and update body MUST include `sectionId` and `semesterId`. An empty course, section, or semester selection MUST be blocked in the client with **"Required"**, and the client MUST NOT call the API. `studentId` MUST NOT be sent in the body. It is `:studentId` in the path and MUST be the signed-in student's `users.id`. `courseId` is not sent.
+- **FR-005**: `sectionId` MUST reference an existing section. A missing section MUST return `400` with `{ "message": "Section not found." }` and MUST NOT store an enrollment. `semesterId` MUST reference an existing semester. A missing semester MUST return `400` with `{ "message": "Semester not found." }` and MUST NOT store an enrollment. `:studentId` MUST be an existing `users.id` whose `role` is `student`. A missing user, or a user whose role is not `student`, MUST return `404` with `{ "message": "Student not found." }` and MUST NOT store an enrollment.
 - **FR-006**: The enrollments view for a signed-in `student` MUST list only that student's enrollments. A student requesting another student's `:studentId` on `GET`, `POST`, `PUT`, or `DELETE` MUST return `403` with `{ "message": "You can only access your own enrollments." }`. A student calling `GET /courses/enrollments` MUST return `403` with `{ "message": "Faculty role required." }`.
 - **FR-007**: The enrollments view for a signed-in `faculty` user MUST list every student's enrollments. Faculty MUST NOT create, edit, or delete an enrollment. Faculty `POST`, `PUT`, and `DELETE` MUST return `403` with `{ "message": "Student role required." }`.
 - **FR-008**: Each enrollment row for a signed-in `student` MUST offer **edit** and **delete**. Saving a valid edit MUST update that enrollment and refresh the list. Confirming delete MUST remove that enrollment and refresh the list. Cancel on edit or delete MUST leave the enrollment unchanged.
 - **FR-009**: Create, edit, and delete MUST run in dialogs on one enrollments screen. This feature MUST NOT use a sidebar and main-panel split.
-- **FR-010**: `DELETE /courses/sections/:sectionId` for a section that still has enrollments MUST return `400` with `{ "message": "Cannot delete section: enrollments still exist." }` and MUST leave the section and those enrollments stored. `sectionId` and `studentId` MUST use `ON DELETE RESTRICT`. This feature MUST NOT cascade-delete enrollments. This feature does not delete user accounts.
+- **FR-010**: `DELETE /courses/sections/:sectionId` for a section that still has enrollments MUST return `400` with `{ "message": "Cannot delete section: enrollments still exist." }` and MUST leave the section and those enrollments stored. `sectionId`, `studentId`, and `semesterId` MUST use `ON DELETE RESTRICT`. This feature MUST NOT cascade-delete enrollments. This feature does not delete user accounts. `DELETE /courses/semesters/:semesterId` for a semester that still has enrollments MUST return `400` with `{ "message": "Cannot delete semester: enrollments still exist." }` and MUST leave the semester and those enrollments stored.
 - **FR-011**: The pair (`studentId`, `sectionId`) MUST be unique. A duplicate `POST` or `PUT` MUST return `400` with `{ "message": "Enrollment already exists." }` and MUST NOT store a second row.
 - **FR-012**: `GET` list responses MUST be ordered by `sectionId` ascending, then `id` ascending.
 
@@ -125,11 +125,11 @@
 - Features 1–5 (auth/`MenuBar`, semesters, courses, faculty, sections) MUST be merged to `dev` before implementing this feature.
 - A user with role `student` exists (Feature 1 `role`; tests may seed a student).
 - Tests MAY seed at least one course, one semester, and two sections of that course before creating an enrollment.
-- An enrollment belongs to one **Section** and one **User** with role `student`. `studentId` is `users.id`. This feature does not add a `students` table. A section belongs to one **Course**.
+- An enrollment belongs to one **Section**, one **Semester**, and one **User** with role `student`. `studentId` is `users.id`. `semesterId` is `semesters.id`. This feature does not add a `students` table. A section belongs to one **Course**.
 - A section MAY appear in many enrollments, including enrollments for different students. The same student MUST NOT have two enrollments for the same section.
 - Add and Edit dialogs load courses from `GET /courses/courses` and sections from `GET /courses/sections`. The section select shows only sections whose `courseId` is the selected course. Feature 5 does not define a `courseId` query parameter; filter on the client.
-- Foreign keys from `enrollments.sectionId` and `enrollments.studentId` MUST use **RESTRICT**.
-- Blocking delete of a section is Feature 5's `DELETE /courses/sections/:sectionId`. This feature does not add a user-delete route.
+- Foreign keys from `enrollments.sectionId`, `enrollments.studentId`, and `enrollments.semesterId` MUST use **RESTRICT**.
+- Blocking delete of a section is Feature 5's `DELETE /courses/sections/:sectionId`. Blocking delete of a semester is Feature 2's `DELETE /courses/semesters/:semesterId`. This feature does not add a user-delete route.
 - Enrollments use **dialog-based** workflows (no split sidebar / main panel).
 - The server mount is `/courses`. Enrollment routes are `/courses/students/:studentId/enrollments` and `/courses/enrollments`.
 
@@ -137,9 +137,11 @@
 
 - Empty or whitespace-only required field → client block; **"Required"**; no API call.
 - Unknown `sectionId` → `400` with `{ "message": "Section not found." }`
+- Unknown `semesterId` → `400` with `{ "message": "Semester not found." }`
 - Unknown `studentId`, or a `studentId` whose user is not role `student` → `404` with `{ "message": "Student not found." }`
 - Same student and same `sectionId` already stored → `400` with `{ "message": "Enrollment already exists." }`
 - `DELETE` section while enrollments still reference it → `400`; section and enrollments remain.
+- `DELETE` semester while enrollments still reference it → `400`; semester and enrollments remain.
 - Student requests another student's `:studentId` → `403` with `{ "message": "You can only access your own enrollments." }`
 - Student calls `GET /courses/enrollments` → `403` with `{ "message": "Faculty role required." }`
 - Authenticated `student` on `POST` → `201`. Authenticated `student` on `PUT` / `DELETE` → `200`.
@@ -151,7 +153,7 @@
 - **SC-001**: Every Gherkin scenario has at least one automated test before merge.
 - **SC-002**: A signed-in student can create, view, edit, and delete their own enrollments on one screen. A signed-in faculty user can view every student's enrollments on that screen.
 - **SC-003**: A signed-in student or faculty user can open the enrollments view and `GET` enrollments (own rows for a student, all rows for faculty). Only a student can create, edit, or delete.
-- **SC-004**: Delete of a section that still has enrollments returns `400`, and both the section and the enrollments remain.
+- **SC-004**: Delete of a section or a semester that still has enrollments returns `400`, and the section or semester and the enrollments remain.
 - **SC-005**: `npm test` passes for enrollment API and enrollments view behavior.
 
 ---
@@ -165,7 +167,7 @@ Enrollments are owned by the signed-in student. Faculty may read every enrollmen
 | **Student read** | `GET /courses/students/:studentId/enrollments` returns that student's enrollments when `:studentId` is the signed-in student. Another student's id returns `403` with `{ "message": "You can only access your own enrollments." }`. |
 | **Faculty read** | `GET /courses/enrollments` returns every enrollment. A `student` calling this route returns `403` with `{ "message": "Faculty role required." }`. |
 | **Write scope** | `POST`, `PUT`, and `DELETE` succeed only when `req.user.role` is `student` and `:studentId` is that student. Faculty receive `403` with `{ "message": "Student role required." }`. A student writing another student's `:studentId` receives `403` with `{ "message": "You can only access your own enrollments." }`. |
-| **Create scope** | The new row's `studentId` is `:studentId` in the path. The body is `{ "sectionId": 1 }` only. (`studentId`, `sectionId`) is unique. |
+| **Create scope** | The new row's `studentId` is `:studentId` in the path. The body is `{ "sectionId": 1, "semesterId": 1 }` only. (`studentId`, `sectionId`) is unique. |
 | **Missing enrollment** | Unknown `enrollmentId` → `404` with `{ "message": "Enrollment with id=<id> not found." }`. |
 | **UI scope** | **Enrollments** menu and `/enrollments` are for `student` and `faculty`. |
 | **Implementation** | Use `authenticate` on every endpoint. Use `requireStudent` on `POST`, `PUT`, and `DELETE` only. |
@@ -186,7 +188,8 @@ Enrollments are owned by the signed-in student. Faculty may read every enrollmen
 
 ```json
 {
-  "sectionId": 1
+  "sectionId": 1,
+  "semesterId": 1
 }
 ```
 
@@ -200,6 +203,7 @@ Do not send `id` or `studentId` on create. `studentId` is `:studentId` in the pa
 {
   "id": 1,
   "sectionId": 1,
+  "semesterId": 1,
   "studentId": 4,
   "createdAt": "2026-07-02T12:00:00.000Z",
   "updatedAt": "2026-07-02T12:00:00.000Z"
@@ -210,10 +214,10 @@ Do not send `id` or `studentId` on create. `studentId` is `:studentId` in the pa
 
 **Error response:** `{ "message": "Human-readable explanation." }` with appropriate HTTP status.  
 **Not found:** `404` for unknown `enrollmentId`. Unknown `:studentId`, or a user who is not role `student`, is `404` with `{ "message": "Student not found." }`.  
-**Missing parent / validation:** `400` for an unknown `sectionId` (FR-005) and for a duplicate (`studentId`, `sectionId`) pair (FR-011).  
+**Missing parent / validation:** `400` for an unknown `sectionId` with `{ "message": "Section not found." }` (FR-005), an unknown `semesterId` with `{ "message": "Semester not found." }` (FR-005), and a duplicate (`studentId`, `sectionId`) pair (FR-011).
 **Wrong owner:** `403` with `{ "message": "You can only access your own enrollments." }`.
 
-Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "message": "Cannot delete section: enrollments still exist." }` when enrollments still reference that section. This feature does not delete users.
+Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "message": "Cannot delete section: enrollments still exist." }` when enrollments still reference that section. Semester delete is Feature 2's semester `DELETE` and MUST return `400` with `{ "message": "Cannot delete semester: enrollments still exist." }` when enrollments still reference that semester. This feature does not delete users.
 
 ---
 
@@ -226,8 +230,9 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - **Add Enrollment** fields:
   - **Course** (`v-select` from `GET /courses/courses`, display the course name)
   - **Section** (`v-select` of sections from `GET /courses/sections` whose `courseId` is the selected course, display `sectionNumber`)
+  - **Semester** (`v-select` from `GET /courses/semesters`, display the semester `name`)
 - There is no student field. Create and edit use the signed-in student's `users.id` as `:studentId`. Edit MUST NOT change `studentId`.
-- **Edit Enrollment** uses the same course and section fields, pre-filled from the row.
+- **Edit Enrollment** uses the same course, section, and semester fields, pre-filled from the row.
 - **Add Enrollment** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
 - List: `v-table` (or `v-list`); columns **course name** and **section number**. A faculty list also shows **studentId**. Rows follow FR-012. Student names on this list are out of scope.
 - Icon-only row actions for a signed-in `student` use `size="small"` and accessible `aria-label`s. Faculty rows have no edit or delete icons.
@@ -252,7 +257,7 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 
 ## Key Entities
 
-- **Enrollment**: Has a **sectionId** and a **studentId**. A section may have many enrollments.
+- **Enrollment**: Has a **sectionId**, a **semesterId**, and a **studentId**. A section may have many enrollments. A semester may have many enrollments.
 
 ---
 
@@ -265,11 +270,12 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 | `id`                 | INTEGER PK | Auto-increment                                              |
 | `sectionId`          | INTEGER FK | Required; references `sections.id`                          |
 | `studentId`          | INTEGER FK | Required; references `users.id`; referenced user MUST have role `student` |
+| `semesterId`         | INTEGER FK | Required; references `semesters.id`                         |
 | `createdAt`          | DATE       | Sequelize timestamps                                                      |
 | `updatedAt`          | DATE       | Sequelize timestamps                                                      |
 
 Unique index on (`studentId`, `sectionId`).
-`sectionId` and `studentId` use `ON DELETE RESTRICT`.
+`sectionId`, `studentId`, and `semesterId` use `ON DELETE RESTRICT`.
 
 ### Associations (in `models/index.js`)
 
@@ -277,6 +283,8 @@ Unique index on (`studentId`, `sectionId`).
 - `Section hasMany Enrollment`
 - `Enrollment belongsTo User` as the student (`studentId`, `onDelete: 'RESTRICT'`)
 - `User hasMany Enrollment`
+- `Enrollment belongsTo Semester` (`semesterId`, `onDelete: 'RESTRICT'`)
+- `Semester hasMany Enrollment`
 
 ---
 
@@ -302,12 +310,14 @@ Unique index on (`studentId`, `sectionId`).
 
 - **Given** I am signed in as a user with role `student`
 - **And** course `Programming 1` exists with section number `01`
+- **And** semester `Fall 2026` exists
 - **And** I am viewing the enrollments view
 - **When** I click **+ New enrollment**
 - **And** I select course `Programming 1`
 - **And** I select section `01`
+- **And** I select semester `Fall 2026`
 - **And** I click **Create**
-- **Then** the API returns `201` with an enrollment object containing `id`, `sectionId`, and `studentId`
+- **Then** the API returns `201` with an enrollment object containing `id`, `sectionId`, `semesterId`, and `studentId`
 - **And** that enrollment appears in the enrollments view list
 - **And** the add-enrollment dialog closes
 
@@ -326,6 +336,13 @@ Unique index on (`studentId`, `sectionId`).
 - **Given** I am signed in as a user with role `student`
 - **When** I send `POST /courses/students/:studentId/enrollments` with a `sectionId` that does not exist and otherwise valid data
 - **Then** the API returns `400` with `{ "message": "Section not found." }`
+- **And** no enrollment is stored
+
+#### Scenario: User creates an enrollment with an unknown semester
+
+- **Given** I am signed in as a user with role `student`
+- **When** I send `POST /courses/students/:studentId/enrollments` with a `semesterId` that does not exist and otherwise valid data
+- **Then** the API returns `400` with `{ "message": "Semester not found." }`
 - **And** no enrollment is stored
 
 #### Scenario: User creates an enrollment with a faculty account
@@ -542,7 +559,7 @@ Unique index on (`studentId`, `sectionId`).
 
 ---
 
-### US-6.9 — Block delete of a section that has an enrollment
+### US-6.9 — Block delete of a section and semester that has an enrollment
 
 #### Scenario: User cannot delete a section that has an enrollment
 
@@ -551,6 +568,15 @@ Unique index on (`studentId`, `sectionId`).
 - **When** I send `DELETE /courses/sections/:sectionId` for that section
 - **Then** the API returns `400` with `{ "message": "Cannot delete section: enrollments still exist." }`
 - **And** the section is still stored
+- **And** the enrollment is still stored
+
+#### Scenario: User cannot delete a semester that has an enrollment
+
+- **Given** I am signed in as a user with role `student`
+- **And** an enrollment exists for semester `1`
+- **When** I send `DELETE /courses/semesters/:semesterId` for that semester
+- **Then** the API returns `400` with `{ "message": "Cannot delete semester: enrollments still exist." }`
+- **And** the semester is still stored
 - **And** the enrollment is still stored
 
 ---
@@ -564,6 +590,7 @@ Unique index on (`studentId`, `sectionId`).
 | US-6.2 | User creates a new enrollment | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `User creates a new enrollment` |
 | US-6.2 | User creates an enrollment with a missing required field | `frontend/tests/Enrollments.test.js` | `User creates an enrollment with a missing required field` |
 | US-6.2 | User creates an enrollment with an unknown section | `backend/tests/enrollments.test.js` | `User creates an enrollment with an unknown section` |
+| US-6.2 | User creates an enrollment with an unknown semester | `backend/tests/enrollments.test.js` | `User creates an enrollment with an unknown semester` |
 | US-6.2 | User creates an enrollment with a faculty account | `frontend/tests/Enrollments.test.js` | `User creates an enrollment with a faculty account` |
 | US-6.3 | Student enrollments view loads with existing enrollments | `backend/tests/enrollments.test.js`, `frontend/tests/Enrollments.test.js` | `Student enrollments view loads with existing enrollments` |
 | US-6.3 | Student has no enrollments | `frontend/tests/Enrollments.test.js` | `Student has no enrollments` |
@@ -589,6 +616,7 @@ Unique index on (`studentId`, `sectionId`).
 | US-6.8 | Unauthenticated API request to enrollments | `backend/tests/enrollments.test.js` | `Unauthenticated API request to enrollments` |
 | US-6.8 | Unauthenticated user navigates to enrollments | `frontend/tests/router.test.js` | `Unauthenticated user navigates to enrollments` |
 | US-6.9 | User cannot delete a section that has an enrollment | `backend/tests/sections.test.js`, `backend/tests/enrollments.test.js` | `User cannot delete a section that has an enrollment` |
+| US-6.9 | User cannot delete a semester that has an enrollment | `backend/tests/semesters.test.js`, `backend/tests/enrollments.test.js` | `User cannot delete a semester that has an enrollment` |
 
 
 ---
@@ -638,4 +666,4 @@ Do not implement behavior not in this spec.
 
 - `MenuBar` is Feature 1 chrome; Features 2–5 added **Semesters**, **Courses**, **Faculty**, and **Sections**; this feature added **Enrollments** for `student` and `faculty`.
 - A later feature MUST add its nav item to this `MenuBar`; it MUST NOT create a second `MenuBar`.
-- The `enrollments` table belongs to one section and student. A section has many enrollments. A student has many enrollments.
+- The `enrollments` table belongs to one section, one semester, and one student. A section has many enrollments. A semester has many enrollments. A student has many enrollments.

@@ -5,6 +5,7 @@ import Home from "./views/Home.vue";
 import Register from "./views/Register.vue";
 import Semesters from "./views/Semesters.vue";
 import SemesterDetail from "./views/SemesterDetail.vue";
+import Enrollments from "./views/Enrollments.vue";
 
 const publicRouteNames = new Set(["login", "register"]);
 
@@ -31,6 +32,11 @@ const router = createRouter({
       name: "semester",
       component: SemesterDetail,
       props: true,
+    },
+    {
+      path: "/enrollments",
+      name: "enrollment",
+      component: Enrollments,
     },
     {
       path: "/",
