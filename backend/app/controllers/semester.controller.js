@@ -210,6 +210,15 @@ exports.remove = async (req, res) => {
       return res.status(404).send({ message: "Semester not found." });
     }
 
+    const enrollmentCount = await db.enrollment.count({
+      where: { semesterId },
+    });
+    if (enrollmentCount > 0) {
+      return res.status(400).send({
+        message: "Cannot delete semester: enrollments still exist.",
+      });
+    }
+
     await existing.destroy();
 
     return res.status(200).send({ message: "Semester deleted." });
