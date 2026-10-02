@@ -35,16 +35,16 @@ db.user.hasMany(db.semester, {
   onDelete: "CASCADE",
 });
 
-// db.section.belongsTo(db.course, {
-//   foreignKey: "courseId",
-//   as: "course",
-//   onDelete: "RESTRICT",
-// });
+db.section.belongsTo(db.course, {
+  foreignKey: "courseId",
+  as: "course",
+  onDelete: "RESTRICT",
+});
 
-// db.section.belongsTo(db.faculty, {
-//   foreignKey: "facultyId",
-//   as: "faculty",
-//   onDelete: "RESTRICT",
-// });
+db.section.belongsTo(db.faculty, {
+  foreignKey: "facultyId",
+  as: "faculty",
+  onDelete: "RESTRICT",
+});
 
 export default db;
