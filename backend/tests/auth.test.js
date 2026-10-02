@@ -32,7 +32,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expect(response.status).toBe(201);
       expect(response.body).toEqual({
         userId: expect.any(Number),
-        universityId: "st1111",
+        universityId: "ST1111",
         email: "jane@example.com",
         fName: "Jane",
         lName: "Doe",
@@ -128,7 +128,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         userId: registered.body.userId,
-        universityId: "st2222",
+        universityId: "ST2222",
         role: "student",
       });
       expect(response.body.token).toEqual(expect.any(String));
