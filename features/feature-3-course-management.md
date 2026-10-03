@@ -80,3 +80,37 @@
 **Priority:** P1
 **Independent test:** Sign in as faculty to ensure "Course" is absent from MenuBar and direct POST requests yield 403
 **Acceptance scenarios:** see ### US-3.7 under Acceptance Criteria
+
+---
+
+## Requirements
+
+### Functional Requirements
+
+- **FR-001:** All course endpoints MUST require authentication (`authenticate` middleware). 
+- **FR-002:** `GET /course/courses` MUST be accessible by any authenticated user (both `student` and `faculty`).
+-**FR-003:**  `POST`, `PUT`, and `DELETE` endpoints MUST be restricted strictly to users with `req.user.role === "student"`.
+-**FR-004:** Courses MUST be stored as a shared catalog without a `userId` field. Any `userId` supplied in the request body MUST be ignored.
+-**FR-005:** If a `faculty` user attempts a `POST`, `PUT`, or `DELETE` request, the API MUST return HTTP status `403 Forbidden` with `{ "message": "Student role required." }`.
+-**FR-006:** All input strings MUST be trimmed. Submissions containing empty or whitespace-only strings for required fields MUST be rejected with HTTP `400 Bad Request`.
+-**FR-007:** Requests without a valid session token MUST yield HTTP `401 Unauthorized`. Unauthenticated route navigation to `/course` MUST redirect to `/login`.
+-**FR-008:** The course list MUST be sorted alphabetically by `courseName` by default.
+-**FR-009:** `courseNumber` MUST be required, unique, and max 15 characters long. Duplicate or overly long values MUST return HTTP `400 Bad Request`.
+
+## Assumptions
+
+- Feature 1 user authentication is merged and active on `dev`.
+- The `MenuBar` component exists and supports conditional rendering based on user role.
+- Courses represent a shared global catalog rather than user-based resources.
+- Course interactions use modal dialogs on a single view (`Courses.vue`) rather than split-scren views.
+- Feature 5 (Sections) will associate `courseId` with sections at a larger stage.
+
+---
+
+## Edge Cases
+
+- Missing required fields: triggers client-side validation ("Required field") without making API calls.
+- Duplicate `courseNumber`: API returns HTTP `400 Bad Request` with `"Course number already exists"`.
+- Invalid ID on Update/Delete: API returns HTTP `404 Not Found` with `"Course with id= not found."`.
+- Faculty Mutation Attempt: API returns HTTP `403 Forbbiden`.
+- Unauthenticated Access: Direct navigation to `/course` redirects to `/login`; API calls return HTTP `401`.
