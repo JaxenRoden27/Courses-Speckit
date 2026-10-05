@@ -255,3 +255,142 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 - On success: snackbar **`{courseName} updated successfully!`**, then reload the course
 - On failure: error snackbar with API `message`
 - **Sections** cards, **Add** / pencil / trash on those rows are Feature 5
+
+### App chrome
+
+- MenuBar **Courses** already routes here (Feature 1). This feature does not add nav items.
+
+---
+
+## Data Model Requirements
+
+### `courses` table
+
+| Field | Type | Rules |
+|-------|------|-------|
+| `id` | INTEGER PK | Auto-increment |
+| `courseNumber` | STRING | Required |
+| `courseName` | STRING | Required |
+| `courseDescription` | STRING | Optional |
+| `courseSemesters` | STRING | Required |
+| `courseFrequency` | STRING | Required |
+| `courseHours` | INTEGER | Required |
+| `courseDept` | STRING | Required |
+| `createdAt` | DATE | Sequelize timestamp |
+| `updatedAt` | DATE | Sequelize timestamp |
+
+### Associations
+
+- `Course` hasMany `Section` – `onDelete: CASCADE` (child CRUD is Feature 5)
+- `Section` belongsTo `Course`
+
+---
+
+## Acceptance Criteria (Gherkin)
+
+### US–3.1 – View Course List Page
+
+#### Scenario: Signed-in student navigates to course page
+
+- **Given** I am signed in as a student
+- **When** I select **Course** from the navigation menu
+- **Then** I am redirected to the `/course` view
+- **And** the course management screen is displayed
+
+#### Scenario: Course menu item hidden for faculty
+
+- **Given** I am signed in as faculty
+- **When** I view the navigation menu
+- **Then** I do not see the **Course** menu item
+
+---
+
+### US–3.2 – Create Course
+
+#### Scenario: Signed-in student creates a new course
+
+- **Given** I am signed in as a student on the course page
+- **When** I click **Add Course**
+- **Then** the course modal dialog opens
+- **When** I enter course number `CS101`, course name `Intro to CS`, course description `Basic concepts`, semesters `Fall/Spring`, frequency `Annual`, credit hours `3`, and department `CS`
+- **And** I click **Save**
+- **Then** `POST /course/courses` returns `201` with a course whose `courseNumber` is `CS101`
+- **And** `CS101` appears in the course table
+- **And** I see a snackbar **`Intro to CS added successfully!`**
+
+#### Scenario: Create without course number is rejected
+
+- **Given** I am signed in as a student
+- **When** I send `POST /course/courses` with a body missing `courseNumber`
+- **Then** the API returns `400` with `{ "message": "Course Number cannot be empty for course!" }`
+
+#### Scenario: Create without course name is rejected
+
+- **Given** I am signed in as a student
+- **When** I send `POST /course/courses` with a body missing `courseName`
+- **Then** the API returns `400` with `{ "message": "Course Name cannot be empty for course!" }`
+
+---
+
+### US–3.3 – Read Course Catalog
+
+#### Scenario: Signed-in student views courses catalog
+
+- **Given** I am signed in as a student
+- **When** I open the course management page
+- **Then** `GET /course/courses` is called
+- **And** all courses returned by the API are listed in the data table
+
+---
+
+### US–3.4 – Row Action Icons
+
+#### Scenario: Row action buttons visible for student
+
+- **Given** I am signed in as a student on the course page
+- **When** I view the course data table
+- **Then** I see **Edit** (pencil icon) and **Delete** (trash icon) buttons rendered on each course row
+
+---
+
+### US–3.5 – Edit Course
+
+#### Scenario: Signed-in student updates course details
+
+- **Given** I am signed in as a student on the course page
+- **And** a course `CS101` exists with credit hours `3`
+- **When** I click the **Edit** icon on `CS101`
+- **Then** the edit course modal dialog opens
+- **When** I change credit hours to `4`
+- **And** I click **Update Course**
+- **Then** `PUT /course/courses/:courseId` returns `{ "message": "Course was updated successfully." }`
+- **And** `CS101` shows updated credit hours `4` in the data table
+- **And** I see a snackbar **`Intro to CS updated successfully!`**
+
+---
+
+### US–3.6 – Delete Course
+
+#### Scenario: Signed-in student deletes a course with confirmation
+
+- **Given** I am signed in as a student on the course page
+- **And** a course `CS101` exists in the table
+- **When** I click the **Delete** icon on `CS101`
+- **Then** a deletion confirmation dialog appears
+- **When** I confirm the deletion
+- **Then** `DELETE /course/courses/:courseId` returns `200`
+- **And** `CS101` is removed from the course table
+- **And** I see a snackbar **`Course deleted successfully!`**
+
+---
+
+### US–3.7 – Role-Based Access Control
+
+#### Scenario: Faculty user access restricted
+
+- **Given** I am signed in as faculty
+- **When** I view the navigation menu
+- **Then** the **Course** option is absent
+- **When** I send a direct `POST /course/courses`, `PUT /course/courses/:id`, or `DELETE /course/courses/:id` request
+- **Then** the API returns `403` Forbidden
+- **And** course catalog data remains unchanged
