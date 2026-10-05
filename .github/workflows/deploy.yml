@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 jobs:
   test:
@@ -35,7 +35,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          SOURCE: frontend/dist/
+          SOURCE: frontend/deploy/dist/
           TARGET: ${{ secrets.FRONTEND_DEPLOY_TARGET }}
           ARGS: "-rltgoDzvO --delete"
 
@@ -101,7 +101,7 @@ jobs:
           command: |
             cd ${{ secrets.BACKEND_DEPLOY_TARGET }}
             npm install --omit=dev
-            sudo systemctl stop todo-speckit-backend
-            sudo cp todo-speckit-backend.service /lib/systemd/system/todo-speckit-backend.service
+            sudo systemctl stop courses-speckit-backend || true
+            sudo cp courses-speckit-backend.service /lib/systemd/system/courses-speckit-backend.service
             sudo systemctl daemon-reload
-            sudo systemctl start todo-speckit-backend
+            sudo systemctl start courses-speckit-backend
