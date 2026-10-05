@@ -394,3 +394,22 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 - **When** I send a direct `POST /course/courses`, `PUT /course/courses/:id`, or `DELETE /course/courses/:id` request
 - **Then** the API returns `403` Forbidden
 - **And** course catalog data remains unchanged
+
+---
+
+## Test Coverage Map
+
+Each scenario above must map to at least one automated test.
+
+| Story | Scenario | Test file | Test name |
+|-------|----------|-----------|-----------|
+| US–3.1 | Signed-in student navigates to course page | `frontend/tests/CourseList.test.js` | `it("Signed-in student navigates to course page")` |
+| US–3.1 | Course menu item hidden for faculty | `frontend/tests/AppHeader.test.js` | `it("Course menu item hidden for faculty")` |
+| US–3.2 | Signed-in student creates a new course | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Signed-in student creates a new course")` |
+| US–3.2 | Create without course number is rejected | `backend/tests/courses.test.js` | `it("Create without course number is rejected")` |
+| US–3.2 | Create without course name is rejected | `backend/tests/courses.test.js` | `it("Create without course name is rejected")` |
+| US–3.3 | Signed-in student views courses catalog | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Signed-in student views courses catalog")` |
+| US–3.4 | Row action buttons visible for student | `frontend/tests/CourseList.test.js` | `it("Row action buttons visible for student")` |
+| US–3.5 | Signed-in student updates course details | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Signed-in student updates course details")` |
+| US–3.6 | Signed-in student deletes a course with confirmation | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Signed-in student deletes a course with confirmation")` |
+| US–3.7 | Faculty user access restricted | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Faculty user access restricted")` |
