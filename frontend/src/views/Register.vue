@@ -43,14 +43,16 @@ const handleSubmit = async () => {
   }
 
   loading.value = true;
+  const role = universityId.value.trim().toUpperCase().startsWith("FA") ? "faculty" : "student";
 
   try {
     const response = await authServices.registerUser({
       fName: fName.value.trim(),
       lName: lName.value.trim(),
       email: email.value.trim(),
-      universityId: universityId.value.trim(), 
+      universityId: universityId.value.trim().toUpperCase(), 
       password: password.value,
+      role: role,
     });
 
     Utils.setStore("user", response.data);

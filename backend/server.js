@@ -40,9 +40,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/courses", routes);
+app.use("/course-t4", routes);
 
-const PORT = process.env.PORT || 3200;
+const PORT = process.env.PORT || 3014;
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
