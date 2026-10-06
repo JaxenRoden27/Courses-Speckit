@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import semesterServices from "../services/semesterServices.js";
 import SemesterForm from "../components/SemesterForm.vue";
-import Utils from "../config/Utils.js";
+import Utils from "../config/utils.js";
 
 const emptyForm = () => ({
   term: "",

@@ -17,7 +17,7 @@ const registerPayload = (overrides = {}) => ({
   ...overrides,
 });
 
-const register = (payload) => request(app).post("/courses/register").send(payload);
+const register = (payload) => request(app).post("/course-t4/register").send(payload);
 
 describe("Feature 1 — User Authentication & Session Management", () => {
   beforeEach(async () => {
@@ -120,7 +120,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
         })
       );
 
-      const response = await request(app).post("/courses/login").send({
+      const response = await request(app).post("/course-t4/login").send({
         universityId: "ST2222",
         password: "password123",
       });
@@ -151,7 +151,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
         })
       );
 
-      const response = await request(app).post("/courses/login").send({
+      const response = await request(app).post("/course-t4/login").send({
         universityId: "ST2222",
         password: "wrong-password",
       });
@@ -163,7 +163,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
     });
 
     it("User signs in with missing universityId", async () => {
-      const response = await request(app).post("/courses/login").send({
+      const response = await request(app).post("/course-t4/login").send({
         universityId: "",
         password: "password123",
       });
@@ -173,7 +173,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
     });
 
     it("User signs in with missing password", async () => {
-      const response = await request(app).post("/courses/login").send({
+      const response = await request(app).post("/course-t4/login").send({
         universityId: "ST2222",
         password: "",
       });
@@ -189,7 +189,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       const { token, userId } = registered.body;
 
       const response = await request(app)
-        .post("/courses/logout")
+        .post("/course-t4/logout")
         .set(authHeader(token));
 
       expect(response.status).toBe(200);
@@ -198,7 +198,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expect(session).toBeNull();
 
       const protectedResponse = await request(app)
-        .get(`/courses/users/${userId}`)
+        .get(`/course-t4/users/${userId}`)
         .set(authHeader(token));
 
       expect(protectedResponse.status).toBe(401);
