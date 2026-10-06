@@ -35,7 +35,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          SOURCE: frontend/deploy/dist/
+          SOURCE: frontend/dist/
           TARGET: ${{ secrets.FRONTEND_DEPLOY_TARGET }}
           ARGS: "-rltgoDzvO --delete"
 
@@ -79,6 +79,25 @@ jobs:
           echo NODE_ENV="$NODE_ENV" >> .env
           echo SEQUELIZE_SYNC_ALTER="$SEQUELIZE_SYNC_ALTER" >> .env
 
+      - name: Create systemd unit
+        run: |
+          printf '%s\n' \
+            '[Unit]' \
+            'Description=course-t4 backend' \
+            'After=network.target' \
+            '' \
+            '[Service]' \
+            'Type=simple' \
+            "User=${{ secrets.REMOTE_USER }}" \
+            "WorkingDirectory=${{ secrets.BACKEND_DEPLOY_TARGET }}" \
+            'ExecStart=/usr/bin/node server.js' \
+            'Restart=on-failure' \
+            'Environment=NODE_ENV=production' \
+            '' \
+            '[Install]' \
+            'WantedBy=multi-user.target' \
+            > course-t4-backend.service
+
       - name: Bundle deploy folder
         run: npm run bundle
 
@@ -101,7 +120,8 @@ jobs:
           command: |
             cd ${{ secrets.BACKEND_DEPLOY_TARGET }}
             npm install --omit=dev
-            sudo systemctl stop courses-speckit-backend || true
-            sudo cp courses-speckit-backend.service /lib/systemd/system/courses-speckit-backend.service
+            sudo systemctl stop course-t4-backend || true
+            sudo cp course-t4-backend.service /lib/systemd/system/course-t4-backend.service
             sudo systemctl daemon-reload
-            sudo systemctl start courses-speckit-backend
+            sudo systemctl enable course-t4-backend
+            sudo systemctl start course-t4-backend

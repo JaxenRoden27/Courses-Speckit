@@ -8,7 +8,7 @@ import db from "../app/models/index.js";
 import { syncTestDatabase, authHeader } from "./helpers.js";
 
 const registerStudent = () =>
-  request(app).post("/courses/register").send({
+  request(app).post("/course-t4/register").send({
     fName: "Sam",
     lName: "Student",
     email: "sam@example.com",
@@ -30,7 +30,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       expect(registered.body.role).toBe("student");
 
       const response = await request(app)
-        .get(`/courses/users/${userId}`)
+        .get(`/course-t4/users/${userId}`)
         .set(authHeader(token));
 
       expect(response.status).toBe(200);
@@ -50,7 +50,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       );
 
       const expired = await request(app)
-        .get(`/courses/users/${userId}`)
+        .get(`/course-t4/users/${userId}`)
         .set(authHeader(token));
 
       expect(expired.status).toBe(401);
@@ -61,7 +61,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
       await db.session.update({ token: "" }, { where: { userId } });
 
       const revoked = await request(app)
-        .get(`/courses/users/${userId}`)
+        .get(`/course-t4/users/${userId}`)
         .set(authHeader(token));
 
       expect(revoked.status).toBe(401);
@@ -73,7 +73,7 @@ describe("Feature 1 — User Authentication & Session Management", () => {
 
   describe("US-1.5 — Block unauthenticated access", () => {
     it("Unauthenticated user accesses a protected route", async () => {
-      const response = await request(app).get("/courses/users/1");
+      const response = await request(app).get("/course-t4/users/1");
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
