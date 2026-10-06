@@ -2,7 +2,7 @@
 
 **Status:** empty starter — no application endpoints yet.
 
-API mount path is `/courses` (see `backend/server.js`). Update this file when endpoints merge to `dev`.
+API mount path is `/course-t4` (see `backend/server.js`). Update this file when endpoints merge to `dev`.
 
 ## Endpoints
 

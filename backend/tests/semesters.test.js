@@ -8,12 +8,12 @@ import app from "../server.js";
 import db from "../app/models/index.js";
 import { syncTestDatabase, authHeader } from "./helpers.js";
 
-const semestersPath = "/courses/semesters";
+const semestersPath = "/course-t4/semesters";
 const oneSemesterPath = (semesterId) => `${semestersPath}/${semesterId}`;
 
 const registerStudent = (overrides = {}) =>
   request(app)
-    .post("/courses/register")
+    .post("/course-t4/register")
     .send({
       fName: "Jane",
       lName: "Doe",
