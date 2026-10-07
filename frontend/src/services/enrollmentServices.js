@@ -1,21 +1,30 @@
 import apiClient from "./services.js";
 
-const gameServices = {
-  getGames() {
-    return apiClient.get("games");
+const enrollmentServices = {
+  getStudentEnrollments(studentId) {
+    return apiClient.get(`students/${studentId}/enrollments`);
   },
 
-  createGame(game) {
-    return apiClient.post("games", game);
+  getEnrollments() {
+    return apiClient.get("enrollments");
   },
 
-  updateGame(gameId, game) {
-    return apiClient.put(`games/${gameId}`, game);
+  createEnrollment(studentId, enrollment) {
+    return apiClient.post(`students/${studentId}/enrollments`, enrollment);
   },
 
-  deleteGame(gameId) {
-    return apiClient.delete(`games/${gameId}`);
+  updateEnrollment(studentId, enrollmentId, enrollment) {
+    return apiClient.put(
+      `students/${studentId}/enrollments/${enrollmentId}`,
+      enrollment,
+    );
+  },
+
+  deleteEnrollment(studentId, enrollmentId) {
+    return apiClient.delete(
+      `students/${studentId}/enrollments/${enrollmentId}`,
+    );
   },
 };
 
-export default gameServices;
+export default enrollmentServices;

@@ -1,11 +1,11 @@
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
   semesters: { type: Array, default: () => [] },
+  courses: { type: Array, default: () => [] },
   sections: { type: Array, default: () => [] },
-  faculty: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["update:modelValue", "submit"]);
@@ -16,10 +16,29 @@ const updateField = (field, value) => {
   emit("update:modelValue", { ...props.modelValue, [field]: value });
 };
 
-const requiredRule = [(value) => !!value?.toString().trim() || "Required"];
+const updateCourse = (courseId) => {
+  const sectionStillValid = props.sections.some(
+    (section) =>
+      section.id === props.modelValue.sectionId &&
+      section.courseId === courseId,
+  );
+
+  emit("update:modelValue", {
+    ...props.modelValue,
+    courseId,
+    sectionId: sectionStillValid ? props.modelValue.sectionId : null,
+  });
+};
+
+const sectionChoices = computed(() =>
+  props.sections.filter(
+    (section) => section.courseId === props.modelValue.courseId,
+  ),
+);
+
 const semesterRules = [(value) => !!value || "Required"];
+const courseRules = [(value) => !!value || "Required"];
 const sectionRules = [(value) => !!value || "Required"];
-const facultyRules = [(value) => !!value || "Required"];
 
 const validate = () => formRef.value.validate();
 
@@ -39,24 +58,24 @@ defineExpose({ validate });
       @update:model-value="updateField('semesterId', $event)"
     />
     <v-select
+      :model-value="modelValue.courseId"
+      label="Course"
+      :items="courses"
+      item-title="name"
+      item-value="id"
+      density="comfortable"
+      :rules="courseRules"
+      @update:model-value="updateCourse"
+    />
+    <v-select
       :model-value="modelValue.sectionId"
       label="Section"
-      :items="sections"
-      item-title="name"
+      :items="sectionChoices"
+      item-title="sectionNumber"
       item-value="id"
       density="comfortable"
       :rules="sectionRules"
       @update:model-value="updateField('sectionId', $event)"
-    />
-    <v-select
-      :model-value="modelValue.facultyId"
-      label="Faculty"
-      :items="faculty"
-      item-title="name"
-      item-value="id"
-      density="comfortable"
-      :rules="facultyRules"
-      @update:model-value="updateField('facultyId', $event)"
     />
   </v-form>
 </template>

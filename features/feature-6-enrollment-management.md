@@ -228,9 +228,9 @@ Section delete is Feature 5's section `DELETE` and MUST return `400` with `{ "me
 - Heading: **Enrollments**
 - Primary action for a signed-in `student`: **+ New enrollment** (`oc-cta`) opens the **Add Enrollment** `<v-dialog>`. A signed-in `faculty` user MUST NOT see **+ New enrollment**.
 - **Add Enrollment** fields:
+  - **Semester** (`v-select` from `GET /courses/semesters`, display the semester `name`)
   - **Course** (`v-select` from `GET /courses/courses`, display the course name)
   - **Section** (`v-select` of sections from `GET /courses/sections` whose `courseId` is the selected course, display `sectionNumber`)
-  - **Semester** (`v-select` from `GET /courses/semesters`, display the semester `name`)
 - There is no student field. Create and edit use the signed-in student's `users.id` as `:studentId`. Edit MUST NOT change `studentId`.
 - **Edit Enrollment** uses the same course, section, and semester fields, pre-filled from the row.
 - **Add Enrollment** actions: **Create** (`oc-cta`) / **Cancel** (secondary `variant="text"` or `outlined`).
