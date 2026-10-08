@@ -74,7 +74,7 @@ exports.register = async (req, res) => {
       return res.status(400).send({ message: "Password must be at least 8 characters." });
     }
 
-      const normalizedUniversityId = universityId.trim();
+    const normalizedUniversityId = universityId.trim().toUpperCase();
 
     const existingUniversityId = await db.user.findOne({
       where: { universityId: normalizedUniversityId },
@@ -91,12 +91,14 @@ exports.register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const role = normalizedUniversityId.startsWith("FA") ? "faculty" : "student";
     const user = await db.user.create({
       fName: fName.trim(),
       lName: lName.trim(),
       email: email.trim(),
       universityId: normalizedUniversityId,
       password: hashedPassword,
+      role: role,
     });
 
     const token = await createOrReuseSession(user);
@@ -119,7 +121,7 @@ exports.login = async (req, res) => {
       return res.status(400).send({ message: "Password is required." });
     }
 
-    const normalizedUniversityId = universityId.trim();
+    const normalizedUniversityId = universityId.trim().toUpperCase();
     const user = await db.user.unscoped().findOne({
       where: { universityId: normalizedUniversityId },
     });

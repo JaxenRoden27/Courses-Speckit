@@ -31,7 +31,7 @@ const handleSubmit = async () => {
 
   try {
     const response = await authServices.loginUser({
-      universityId: universityId.value.trim(), 
+      universityId: universityId.value.trim().toUpperCase(), 
       password: password.value,
     });
 
