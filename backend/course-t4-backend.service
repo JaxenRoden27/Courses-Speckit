@@ -6,8 +6,8 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/nodeapps/2026/project3/t4
-ExecStart=/usr/bin/node server.js
+WorkingDirectory=/home/ubuntu/nodeapps/2026/project3/t4
+ExecStart=/usr/bin/npm run start
 Restart=on-failure
 Environment=NODE_ENV=production
 
