@@ -130,3 +130,158 @@ const saveFaculty = async () => {
     saving.value = false;
   }
 };
+
+const openDeleteDialog = (member) => {
+  facultyToDelete.value = member;
+  deleteDialogOpen.value = true;
+};
+
+const closeDeleteDialog = () => {
+  deleteDialogOpen.value = false;
+  facultyToDelete.value = null;
+};
+
+const confirmDeleteFaculty = async () => {
+  if (!facultyToDelete.value?.id) {
+    return;
+  }
+
+  deleting.value = true;
+  facultyError.value = "";
+
+  try {
+    await facultyServices.deleteFaculty(facultyToDelete.value.id);
+    closeDeleteDialog();
+    await retrieveFaculty();
+  } catch (error) {
+    facultyError.value =
+      error.response?.data?.message || "Failed to delete faculty.";
+  } finally {
+    deleting.value = false;
+  }
+};
+
+onMounted(async () => {
+  await Promise.all([retrieveFaculty(), retrieveUsers()]);
+});
+</script>
+
+<template>
+  <v-container class="py-8">
+    <v-card rounded="lg">
+      <v-card-item>
+        <v-card-title>Faculty</v-card-title>
+        <template #append>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            class="oc-cta"
+            @click="openAddDialog"
+          >
+            + New faculty
+          </v-btn>
+        </template>
+      </v-card-item>
+
+      <v-card-text>
+        <v-progress-linear v-if="facultyLoading" indeterminate class="mb-4" />
+
+        <v-alert v-if="facultyError" type="error" density="compact" class="mb-4">
+          {{ facultyError }}
+        </v-alert>
+
+        <p v-if="!facultyLoading && faculty.length === 0" class="text-body-1">
+          No faculty yet. Create your first faculty member.
+        </p>
+
+        <v-table v-if="!facultyLoading && faculty.length > 0">
+          <thead>
+            <tr>
+              <th class="text-left">Last name</th>
+              <th class="text-left">First name</th>
+              <th class="text-left">Department</th>
+              <th class="text-left">User</th>
+              <th class="text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="member in faculty" :key="member.id">
+              <td>{{ member.lastName }}</td>
+              <td>{{ member.firstName }}</td>
+              <td>{{ member.dept }}</td>
+              <td>{{ universityIdFor(member.userId) }}</td>
+              <td>
+                <v-icon
+                  size="small"
+                  class="mx-4"
+                  aria-label="Edit faculty"
+                  @click.stop="openEditDialog(member)"
+                >
+                  mdi-pencil
+                </v-icon>
+                <v-icon
+                  size="small"
+                  class="mx-4"
+                  aria-label="Delete faculty"
+                  @click.stop="openDeleteDialog(member)"
+                >
+                  mdi-trash-can
+                </v-icon>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card-text>
+    </v-card>
+
+    <v-dialog v-model="formDialogOpen" max-width="520">
+      <v-card rounded="lg">
+        <v-card-title>{{ formTitle }}</v-card-title>
+        <v-card-text>
+          <FacultyForm
+            ref="formRef"
+            v-model="form"
+            :users="users"
+            @submit="saveFaculty"
+          />
+          <v-alert v-if="formError" type="error" density="compact" class="mt-2">
+            {{ formError }}
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeFormDialog">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            class="oc-cta"
+            :loading="saving"
+            @click="saveFaculty"
+          >
+            {{ saveLabel }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="deleteDialogOpen" max-width="420">
+      <v-card rounded="lg">
+        <v-card-title>Delete Faculty</v-card-title>
+        <v-card-text>Delete this faculty member?</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeDeleteDialog">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            class="oc-cta"
+            :loading="deleting"
+            @click="confirmDeleteFaculty"
+          >
+            Delete Faculty
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
+</template>
