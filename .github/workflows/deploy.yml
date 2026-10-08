@@ -79,25 +79,6 @@ jobs:
           echo NODE_ENV="$NODE_ENV" >> .env
           echo SEQUELIZE_SYNC_ALTER="$SEQUELIZE_SYNC_ALTER" >> .env
 
-      - name: Create systemd unit
-        run: |
-          printf '%s\n' \
-            '[Unit]' \
-            'Description=course-t4 backend' \
-            'After=network.target' \
-            '' \
-            '[Service]' \
-            'Type=simple' \
-            "User=${{ secrets.REMOTE_USER }}" \
-            "WorkingDirectory=${{ secrets.BACKEND_DEPLOY_TARGET }}" \
-            'ExecStart=/usr/bin/node server.js' \
-            'Restart=on-failure' \
-            'Environment=NODE_ENV=production' \
-            '' \
-            '[Install]' \
-            'WantedBy=multi-user.target' \
-            > course-t4-backend.service
-
       - name: Bundle deploy folder
         run: npm run bundle
 
