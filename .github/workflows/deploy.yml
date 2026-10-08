@@ -104,5 +104,4 @@ jobs:
             sudo systemctl stop course-t4-backend || true
             sudo cp course-t4-backend.service /lib/systemd/system/course-t4-backend.service
             sudo systemctl daemon-reload
-            sudo systemctl enable course-t4-backend
             sudo systemctl start course-t4-backend
