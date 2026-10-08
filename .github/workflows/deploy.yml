@@ -120,8 +120,25 @@ jobs:
           command: |
             cd ${{ secrets.BACKEND_DEPLOY_TARGET }}
             npm install --omit=dev
+            DEPLOY_DIR="$(pwd -P)"
+            SERVICE_USER="$(id -un)"
             sudo systemctl stop course-t4-backend || true
-            sudo cp course-t4-backend.service /lib/systemd/system/course-t4-backend.service
+            sudo tee /lib/systemd/system/course-t4-backend.service > /dev/null <<EOF
+            [Unit]
+            Description=course-t4 backend
+            After=network.target
+
+            [Service]
+            Type=simple
+            User=${SERVICE_USER}
+            WorkingDirectory=${DEPLOY_DIR}
+            ExecStart=/usr/bin/node server.js
+            Restart=on-failure
+            Environment=NODE_ENV=production
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
             sudo systemctl daemon-reload
             sudo systemctl enable course-t4-backend
             sudo systemctl start course-t4-backend
