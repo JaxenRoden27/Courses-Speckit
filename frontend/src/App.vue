@@ -1,8 +1,10 @@
 <script setup>
+import MenuBar from './components/MenuBar.vue';
 </script>
 
 <template>
   <v-app>
+    <MenuBar />
     <v-main>
       <router-view />
     </v-main>
