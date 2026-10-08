@@ -8,9 +8,9 @@ import app from "../server.js";
 import db from "../app/models/index.js";
 import { syncTestDatabase, authHeader } from "./helpers.js";
 
-const facultyPath = "/courses/faculty";
+const facultyPath = "/course-t4/faculty";
 const oneFacultyPath = (facultyId) => `${facultyPath}/${facultyId}`;
-const usersPath = "/courses/users";
+const usersPath = "/course-t4/users";
 
 const validFaculty = (overrides = {}) => ({
   firstName: "Jane",
@@ -21,7 +21,7 @@ const validFaculty = (overrides = {}) => ({
 
 const registerStudent = (overrides = {}) =>
   request(app)
-    .post("/courses/register")
+    .post("/course-t4/register")
     .send({
       fName: "Jane",
       lName: "Doe",
