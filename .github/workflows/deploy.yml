@@ -38,6 +38,7 @@ jobs:
           SOURCE: frontend/dist/
           TARGET: ${{ secrets.FRONTEND_DEPLOY_TARGET }}
           ARGS: "-rltgoDzvO --delete"
+          EXCLUDE: "logs/ node_modules/"
 
   deploy-backend:
     needs: test
