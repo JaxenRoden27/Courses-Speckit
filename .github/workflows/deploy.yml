@@ -87,7 +87,7 @@ jobs:
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
           ARGS: "-rltgoDzvO --delete"
-          EXCLUDE: "logs/ node_modules/"
+          EXCLUDE: "logs/, node_modules/"
           SOURCE: backend/deploy/
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
