@@ -413,3 +413,54 @@ Each scenario above must map to at least one automated test.
 | US–3.5 | Signed-in student updates course details | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Signed-in student updates course details")` |
 | US–3.6 | Signed-in student deletes a course with confirmation | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Signed-in student deletes a course with confirmation")` |
 | US–3.7 | Faculty user access restricted | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `it("Faculty user access restricted")` |
+
+
+---
+
+## Agent implementation request
+
+Copy when asking Cursor to implement this feature (`@` this file):
+
+```text
+Implement Feature 3 from @features/feature-3-course-management.md on branch `feature/feature-3-course-management`.
+
+Follow layer order in @features/framework.md (models → routes → backend tests → frontend → frontend tests).
+Map every Gherkin scenario in the Test Coverage Map; run `npm test` before finishing.
+If API routes, payloads, schema, or product rules changed per this spec, update @features/reference/api.md, @features/reference/data-model.md, and/or @features/reference/behavior.md in the same PR to match shipped code.
+Complete Definition of Done and the merge checklist in @features/framework.md.
+Do not implement behavior not in this spec.
+```
+
+**Reference updates for this feature:** `features/reference/data-model.md`, `features/reference/api.md`, `features/reference/behavior.md`
+
+---
+
+## Definition of Done
+
+- [ ] Backend and frontend implemented per this spec (**FR-00N** satisfied)
+- [ ] **Success Criteria (SC-00N)** met
+- [ ] All mapped tests pass (`npm test`)
+- [ ] Test Coverage Map complete
+- [ ] `features/reference/data-model.md` updated (if schema changed)
+- [ ] `features/reference/api.md` updated (if API changed)
+- [ ] `features/reference/behavior.md` updated (if product rules changed)
+
+---
+
+## Out of Scope
+
+- Faculty CRUD / **Faculty** nav item ([Feature 4](feature-4-faculty-management.md))
+- Section CRUD / **Section** nav item ([Feature 5](feature-5-section-management.md))
+- Enrollment CRUD / **Enrollment** nav item ([Feature 6](feature-6-enrollment-management.md))
+- Student course listing / **Student Course Listing** nav item ([Feature 7](feature-7-student-course-listing.md))
+- Section student listing / **Section Student Listing** nav item ([Feature 8](feature-8-section-student-listing.md))
+
+---
+
+## Delivered to Feature 2
+
+- Feature 4 adds **Faculty** (allowed role `faculty`) to this `MenuBar`.
+- Feature 5 adds **Section** (allowed role `faculty`) to this `MenuBar`.
+- Feature 6 adds **Enrollment** (allowed role `faculty` && `student`) to this `MenuBar`.
+- Feature 7 adds **Student Course Listing** (allowed role `faculty`) to this `MenuBar`.
+- Feature 8 adds **Section Student Listing** (allowed role `faculty`) to this `MenuBar`.
