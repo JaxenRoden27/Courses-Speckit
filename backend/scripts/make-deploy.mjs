@@ -16,6 +16,11 @@ if (!existsSync(envPath)) {
   process.exit(1);
 }
 
+if (!existsSync(join(root, "course-t4-backend.service"))) {
+  console.error("course-t4-backend.service is required for deploy.");
+  process.exit(1);
+}
+
 rmSync(deployDir, { recursive: true, force: true });
 mkdirSync(deployDir, { recursive: true });
 
@@ -25,6 +30,7 @@ const entries = [
   "package.json",
   "package-lock.json",
   ".env",
+  "course-t4-backend.service",
 ];
 
 for (const name of entries) {
@@ -34,11 +40,6 @@ for (const name of entries) {
     continue;
   }
   cpSync(from, join(deployDir, name), { recursive: true });
-}
-
-const serviceFile = join(root, "todo-speckit-backend.service");
-if (existsSync(serviceFile)) {
-  cpSync(serviceFile, join(deployDir, "todo-speckit-backend.service"));
 }
 
 console.log(`Backend deploy artifact: ${deployDir}`);

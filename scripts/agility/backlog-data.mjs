@@ -68,8 +68,7 @@ export function epicRef(featureNum) {
 export function parseUserStories(content) {
   const stories = [];
   const storyRegex =
-    /### US-\d+\.(\d+): ([^\n]+)\n\*\*As (?:a|the)\*\* ([^\n]+)\n\*\*I want(?: to)?\*\* ([^\n]+)\n\*\*So that\*\* ([^\n]+)/g;
-
+    /### US-\d+\.(\d+): ([^\r\n]+)(?:\r?\n[ \t]*)+\*\*As (?:a|the)\*\*[ \t]*([^\r\n]+)(?:\r?\n[ \t]*)+\*\*I want(?: to)?\*\*[ \t]*([^\r\n]+)(?:\r?\n[ \t]*)+\*\*So that\*\*[ \t]*([^\r\n]+)/g;
   let match;
   while ((match = storyRegex.exec(content)) !== null) {
     stories.push({
@@ -95,8 +94,17 @@ export function parseScenarios(content) {
   const scenarios = [];
   let section = "";
   let current = null;
+  let passedOpeningHeading = false;
 
   for (const line of lines) {
+    if (line.startsWith("## ")) {
+      if (!passedOpeningHeading) {
+        passedOpeningHeading = true;
+        continue;
+      }
+      break;
+    }
+
     if (line.startsWith("### ") && !line.startsWith("#### ")) {
       const heading = line.slice(4).trim();
       if (!heading.startsWith("US-") && !heading.startsWith("`") && !heading.startsWith("[")) {
@@ -119,8 +127,9 @@ export function parseScenarios(content) {
       continue;
     }
 
-    if (current && line.startsWith("*")) {
-      current.steps.push(line.replace(/^\*\s*/, "").trim());
+    const stepLine = line.trim();
+    if (current && /^[-*]\s+\S/.test(stepLine)) {
+      current.steps.push(stepLine.replace(/^[-*]\s+/, "").trim());
     }
   }
 

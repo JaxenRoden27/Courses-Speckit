@@ -101,7 +101,7 @@
 - Product roles are `student` and `faculty`. The starter role `worker` in ADR-0002 does not apply.
 - A `faculty` user in US-1.6 is test data. Registration always stores `student`. Feature 4 manages Faculty records, not user accounts.
 - Semester catalog UI is deferred to Feature 2; course catalog UI is deferred to Feature 3. Feature 1 delivers auth, a minimal protected home, and `MenuBar` (**Sign out** only).
-- University IDs for students are in the form ST####, Faculty are FA#### and Admin are AD####
+- University IDs for students are in the form ST####, Faculty are FA####
 
 ## Edge Cases
 
@@ -510,7 +510,7 @@ Do not implement behavior not in this spec.
 - Password reset
 - Email verification
 - OAuth / social login
-- Admin user management
+- Faculty user management
 - Semester CRUD / **Semester** nav item ([Feature 2](feature-2-semester-management.md))
 - Course CRUD / **Course** nav item ([Feature 3](feature-3-course-management.md))
 - Faculty CRUD / **Faculty** nav item ([Feature 4](feature-4-faculty-management.md))

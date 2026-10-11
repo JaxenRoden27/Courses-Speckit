@@ -4,7 +4,7 @@ const dbConfig = {
   HOST: process.env.DB_HOST || "localhost",
   USER: process.env.DB_USER || "root",
   PASSWORD: process.env.DB_PW || "",
-  DB: process.env.DB_NAME || "course-speckit-db",
+  DB: process.env.DB_NAME || "course-t4",
   dialect: "mysql",
   pool: {
     max: 5,
