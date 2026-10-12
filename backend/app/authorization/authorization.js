@@ -78,3 +78,11 @@ export const authenticateFaculty = async (req, res, next) => {
 
   next();
 };
+
+export const requireFaculty = (req, res, next) => {
+  if (req.user?.role?.toLowerCase?.().trim() !== "faculty") {
+    return res.status(403).send({ message: "Faculty role required." });
+  }
+  next();
+
+};
