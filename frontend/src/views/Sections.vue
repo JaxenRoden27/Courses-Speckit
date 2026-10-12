@@ -32,7 +32,7 @@ const sectionToDelete = ref(null);
 const deleting = ref(false);
 const courseGroups = computed(() =>
   [...courses.value]
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => a.courseName.localeCompare(b.courseName))
     .map((course) => ({
       ...course,
       sections: sections.value
@@ -48,7 +48,7 @@ const retrieveSections = async () => {
   try {
     const [sectionsResponse, courseResponse, facultyResponse] = await Promise.all([
       sectionServices.getSections(),
-      courseServices.getCourses(),
+      courseServices.findAll(),
       facultyServices.getFaculty(),
     ]);
     sections.value = sectionsResponse.data;
@@ -159,7 +159,7 @@ onMounted(retrieveSections);
 
         <div v-for="course in courseGroups" :key="course.id" class="mb-8">
           <div class="d-flex align-center justify-space-between mb-2">
-            <h2 class="text-h6">{{ course.name }}</h2>
+            <h2 class="text-h6">{{ course.courseName }}</h2>
             <v-btn
               color="primary"
               variant="elevated"

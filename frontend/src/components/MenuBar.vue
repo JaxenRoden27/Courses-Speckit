@@ -181,6 +181,15 @@ const handleLogout = async () => {
     <v-app-bar-title>Courses Management System</v-app-bar-title>
 
     <v-btn
+      v-if="user"
+      variant="text"
+      color="white"
+      @click="router.push('/semesters')"
+    >
+      Semesters
+    </v-btn>
+
+    <v-btn
       v-if="isFaculty"
       variant="text"
       color="white"
@@ -190,29 +199,21 @@ const handleLogout = async () => {
     </v-btn>
 
     <v-btn
-      variant="text"
-      color="white"
-      @click="router.push('/semesters')"
-    >
-      Semesters
-    </v-btn>
-  
-    <v-btn
-      v-if="user.role === 'faculty'"
-      variant="text"
-      color="white"
-      @click="router.push('/sections')"
-    >
-      Sections
-
-
-    <v-btn
       v-if="user"
       variant="text"
       color="white"
       @click="router.push('/course')"
     >
       Course
+    </v-btn>
+
+    <v-btn
+      v-if="user?.role?.toLowerCase?.().trim() === 'faculty'"
+      variant="text"
+      color="white"
+      @click="router.push('/sections')"
+    >
+      Sections
     </v-btn>
     <v-spacer />
 

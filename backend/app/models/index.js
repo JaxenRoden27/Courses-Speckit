@@ -13,11 +13,9 @@ db.sequelize = sequelize;
 db.user = userModel(sequelize, Sequelize);
 db.session = sessionModel(sequelize, Sequelize);
 db.semester = semesterModel(sequelize, Sequelize);
-db.section = sectionModel(sequelize, Sequelize);    //Make sure to keep updating this file
-db.semester = semesterModel(sequelize, Sequelize);    
-db.faculty = facultyModel(sequelize, Sequelize);    //Make sure to keep updating this file
-db.semester = semesterModel(sequelize, Sequelize);
-db.course = courseModel(sequelize, Sequelize);
+db.section = sectionModel(sequelize, Sequelize);
+db.faculty = facultyModel(sequelize, Sequelize);
+db.course = courseModel(sequelize, Sequelize); // Make sure to keep updating this file
 
 db.user.hasMany(db.session, {
   foreignKey: "userId",
@@ -50,6 +48,18 @@ db.section.belongsTo(db.course, {
 db.section.belongsTo(db.faculty, {
   foreignKey: "facultyId",
   as: "faculty",
+  onDelete: "RESTRICT",
+});
+
+db.course.hasMany(db.section, {
+  foreignKey: "courseId",
+  as: "sections",
+  onDelete: "RESTRICT",
+});
+
+db.faculty.hasMany(db.section, {
+  foreignKey: "facultyId",
+  as: "sections",
   onDelete: "RESTRICT",
 });
 

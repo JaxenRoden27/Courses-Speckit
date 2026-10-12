@@ -7,7 +7,7 @@ const sectionInclude = [
   {
     model: db.course,
     as: "course",
-    attributes: ["id", "name"],
+    attributes: ["id", "courseName"],
   },
 ];
 
@@ -89,7 +89,7 @@ exports.findAll = async (req, res) => {
     const sections = await db.section.findAll({
       include: sectionInclude,
       order: [
-        [{ model: db.course, as: "course" }, "name", "ASC"],
+        [{ model: db.course, as: "course" }, "courseName", "ASC"],
         ["sectionNumber", "ASC"],
       ],
     });

@@ -147,6 +147,13 @@ exports.remove = async (req, res) => {
       return res.status(404).send({ message: notFoundMessage(courseId) });
     }
 
+    const sectionCount = await db.section.count({ where: { courseId } });
+    if (sectionCount > 0) {
+      return res.status(400).send({
+        message: "Cannot delete course: sections still exist.",
+      });
+    }
+
     await existing.destroy();
     return res.status(200).send({ message: "Course was deleted successfully!" });
   } catch (err) {

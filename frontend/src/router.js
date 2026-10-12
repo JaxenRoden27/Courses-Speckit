@@ -46,9 +46,14 @@ const router = createRouter({
       path: "/sections/:sectionId",
       name: "section",
       component: Section,
+      props: true,
+    },
+    {
       path: "/faculty",
       name: "faculty",
       component: Faculty,
+    },
+    {
       path: "/course",
       name: "course",
       component: Courses,
@@ -86,7 +91,7 @@ router.beforeEach((to, _from, next) => {
 
   if (
     user &&
-    to.name === "faculty" &&
+    ["faculty", "sections", "section"].includes(to.name) &&
     user.role?.toLowerCase?.().trim() !== "faculty"
   ) {
     next({ name: "home" });

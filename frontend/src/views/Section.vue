@@ -38,7 +38,7 @@ const retrieveSection = async () => {
   try {
     const [sectionsResponse, coursesResponse, facultyResponse] = await Promise.all([
       sectionServices.getSections(),
-      courseServices.getCourses(),
+      courseServices.findAll(),
       facultyServices.getFaculty(),
     ]);
     courses.value = coursesResponse.data;
@@ -118,7 +118,7 @@ watch(() => route.params.sectionId, retrieveSection);
       <v-card-item>
         <v-card-title>{{ section?.sectionNumber || "Section" }}</v-card-title>
         <v-card-subtitle v-if="section">
-          {{ section.course?.name }}
+          {{ section.course?.courseName }}
           · {{ section.daysOfWeek }}
           · {{ section.startTime }} – {{ section.endTime }}
         </v-card-subtitle>

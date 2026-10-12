@@ -20,7 +20,7 @@ const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
 const courseName = computed(() => {
   const course = props.courses.find((row) => row.id === props.modelValue.courseId);
-  return course?.name ?? "";
+  return course?.courseName ?? "";
 });
 
 const facultyItems = computed(() =>
@@ -89,7 +89,7 @@ defineExpose({ validate });
       :model-value="modelValue.courseId"
       label="Course"
       :items="courses"
-      item-title="name"
+      item-title="courseName"
       item-value="id"
       density="comfortable"
       :rules="courseRules"
