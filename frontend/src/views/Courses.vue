@@ -39,7 +39,6 @@ const formTitle = computed(() =>
   isAddMode.value ? "Add Course" : "Edit Course",
 );
 
-const courseTitle = (course) => course.courseName || "";
 const saveLabel = computed(() =>
   isAddMode.value ? "Save" : "Update Course",
 );
@@ -208,7 +207,7 @@ onMounted(retrieveCourses);
               <th class="text-left">Term</th>
               <th class="text-left">Description</th>
               <th class="text-left">Sections</th>
-              <th class="text-left">Actions</th>
+              <th v-if="isFaculty" class="text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -218,9 +217,8 @@ onMounted(retrieveCourses);
               <td class="text-no-wrap">{{ course.courseTerm }}</td>
               <td class="text-no-wrap">{{ course.courseDescription }}</td>
               <td class="text-no-wrap">{{ course.sections }}</td>
-              <td>
+              <td v-if="isFaculty">
                 <v-icon
-                  v-if="isFaculty"
                   size="small"
                   class="mx-4"
                   aria-label="Edit course"
@@ -229,7 +227,6 @@ onMounted(retrieveCourses);
                   mdi-pencil
                 </v-icon>
                 <v-icon
-                  v-if="isFaculty"
                   size="small"
                   class="mx-4"
                   aria-label="Delete course"
@@ -289,7 +286,7 @@ onMounted(retrieveCourses);
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :timeout="4000">
+    <v-snackbar v-model="snackbar" :timeout="1500" color="success" icon="mdi-check">
       {{ snackbarMessage }}
     </v-snackbar>
   </v-container>
