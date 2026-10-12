@@ -24,6 +24,8 @@ const editingId = ref(null);
 const deleteDialogOpen = ref(false);
 const courseToDelete = ref(null);
 const deleting = ref(false);
+const snackbar = ref(false);
+const snackbarMessage = ref("");
 
 const currentUser = ref(Utils.getStore("user"));
 const isFaculty = computed(() => {
@@ -39,8 +41,13 @@ const formTitle = computed(() =>
 
 const courseTitle = (course) => course.courseName || "";
 const saveLabel = computed(() =>
-  isAddMode.value ? "Create" : "Save Course",
+  isAddMode.value ? "Save" : "Update Course",
 );
+
+const showSnackbar = (message) => {
+  snackbarMessage.value = message;
+  snackbar.value = true;
+};
 
 const retrieveCourses = async () => {
   coursesLoading.value = true;
@@ -105,10 +112,13 @@ const saveCourse = async () => {
   };
 
   try {
+    const courseName = form.value.courseName;
     if (isAddMode.value) {
       await courseServices.create(payload);
+      showSnackbar(`${courseName} added successfully!`);
     } else {
       await courseServices.update(editingId.value, payload);
+      showSnackbar(`${courseName} updated successfully!`);
     }
 
     closeFormDialog();
@@ -144,6 +154,7 @@ const confirmDeleteCourse = async () => {
 
   try {
     await courseServices.delete(courseToDelete.value.id);
+    showSnackbar("Course deleted successfully!");
     closeDeleteDialog();
     await retrieveCourses();
   } catch (error) {
@@ -169,7 +180,7 @@ onMounted(retrieveCourses);
             class="oc-cta"
             @click="openAddDialog"
           >
-            + New course
+            Add Course
           </v-btn>
         </template>
       </v-card-item>
@@ -277,5 +288,9 @@ onMounted(retrieveCourses);
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="snackbar" :timeout="4000">
+      {{ snackbarMessage }}
+    </v-snackbar>
   </v-container>
 </template>
