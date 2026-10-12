@@ -5,9 +5,10 @@ import CourseForm from "../components/CourseForm.vue";
 import courseServices from "../services/courseServices.js";
 
 const emptyForm = () => ({
+  courseNumber: "",
   courseName: "",
-  term: "",
-  description: "",
+  courseTerm: "",
+  courseDescription: "",
 });
 
 const courses = ref([]);
@@ -69,9 +70,10 @@ const openEditDialog = (course) => {
   editingId.value = course.id;
 
   form.value = {
+    courseNumber: course.courseNumber,
     courseName: course.courseName,
-    term: course.term,
-    description: course.description,
+    courseTerm: course.courseTerm,
+    courseDescription: course.courseDescription,
     sections: course.sections,
   };
   formError.value = "";
@@ -96,8 +98,9 @@ const saveCourse = async () => {
 
   const payload = {
     courseName: form.value.courseName,
-    term: form.value.term,
-    description: form.value.description || "" ,
+    courseNumber: form.value.courseNumber,
+    courseTerm: form.value.courseTerm,
+    courseDescription: form.value.courseDescription || "",
     sections: form.value.sections,
   };
 
@@ -189,6 +192,7 @@ onMounted(retrieveCourses);
         <v-table v-if="!coursesLoading && courses.length > 0">
           <thead>
             <tr>
+              <th class="text-left">Course number</th>
               <th class="text-left">Course name</th>
               <th class="text-left">Term</th>
               <th class="text-left">Description</th>
@@ -198,9 +202,10 @@ onMounted(retrieveCourses);
           </thead>
           <tbody>
             <tr v-for="course in courses" :key="course.id">
-              <td>{{ courseTitle(course) }}</td>
-              <td class="text-no-wrap">{{ course.term }}</td>
-              <td class="text-no-wrap">{{ course.description }}</td>
+              <td>{{ course.courseNumber }}</td>
+              <td>{{ course.courseName }}</td>
+              <td class="text-no-wrap">{{ course.courseTerm }}</td>
+              <td class="text-no-wrap">{{ course.courseDescription }}</td>
               <td class="text-no-wrap">{{ course.sections }}</td>
               <td>
                 <v-icon

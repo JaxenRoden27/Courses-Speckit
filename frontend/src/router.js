@@ -34,6 +34,11 @@ const router = createRouter({
       props: true,
     },
     {
+      path: "/course",
+      name: "course",
+      component: Courses,
+    },
+    {
       path: "/courses",
       name: "courses",
       component: Courses,

@@ -6,16 +6,42 @@ const exports = {};
 
 const presentCourse = (row) => row.toJSON();
 
+const trimString = (value) => (typeof value === "string" ? value.trim() : "");
+
+const notFoundMessage = (courseId) => `Cannot find Course with id=${courseId}.`;
+
 const readCourse = (body) => {
-  const courseName = typeof body?.courseName === "string" ? body.courseName.trim() : "";
-  const term = typeof body?.term === "string" ? body.term.trim() : "";
-  const description = typeof body?.description === "string" ? body.description.trim() : "";
-  const sections = typeof body?.sections === "array" ? body.sections : [];
-  if (!courseName || !term || !description || !Array.isArray(sections)) {
-    return null;
+  const courseNumber = trimString(body?.courseNumber);
+  const courseName = trimString(body?.courseName);
+  const courseDescription = trimString(body?.courseDescription);
+  const courseTerm = trimString(body?.courseTerm);
+
+  if (!courseNumber) {
+    return { error: "Course Number cannot be empty for course!" };
+  }
+  if (courseNumber.length > 15) {
+    return { error: "Course number must be at most 15 characters." };
+  }
+  if (!courseName) {
+    return { error: "Course Name cannot be empty for course!" };
+  }
+  if (!courseTerm) {
+    return { error: "Course Term cannot be empty for course!" };
   }
 
-  return { courseName, term, description, sections };
+  return {
+    value: {
+      courseNumber,
+      courseName,
+      courseDescription,
+      courseTerm,
+    },
+  };
+};
+
+const parseCourseId = (value) => {
+  const courseId = parseInt(value, 10);
+  return Number.isNaN(courseId) ? null : courseId;
 };
 
 exports.findAll = async (req, res) => {
@@ -34,21 +60,39 @@ exports.findAll = async (req, res) => {
   }
 };
 
+exports.findOne = async (req, res) => {
+  try {
+    const courseId = parseCourseId(req.params.courseId);
+    if (courseId == null) {
+      return res.status(400).send({ message: "Invalid courseId." });
+    }
+
+    const courses = await db.course.findAll({
+      where: { id: courseId },
+    });
+
+    return res.send(courses.map(presentCourse));
+  } catch (err) {
+    logger.error(`course findOne failed: ${err.message}`);
+    return res.status(500).send({ message: "Failed to fetch course." });
+  }
+};
+
 exports.create = async (req, res) => {
   try {
     const input = readCourse(req.body);
-    if (!input) {
-      return res.status(400).send({ message: "Course, term, and description are required." });
+    if (input.error) {
+      return res.status(400).send({ message: input.error });
     }
 
     const existing = await db.course.findOne({
-      where: { courseName: input.courseName },
+      where: { courseNumber: input.value.courseNumber },
     });
     if (existing) {
-      return res.status(400).send({ message: "Course name already exists." });
+      return res.status(400).send({ message: "Course number already exists." });
     }
 
-    const created = await db.course.create(input);
+    const created = await db.course.create(input.value);
     return res.status(201).send(presentCourse(created));
   } catch (err) {
     logger.error(`course create failed: ${err.message}`);
@@ -58,41 +102,33 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const courseId = parseInt(req.params.courseId, 10);
-    if (Number.isNaN(courseId)) {
+    const courseId = parseCourseId(req.params.courseId);
+    if (courseId == null) {
       return res.status(400).send({ message: "Invalid courseId." });
     }
 
     const input = readCourse(req.body);
-    if (!input) {
-      return res.status(400).send({ message: "Course, term, and description are required." });
-    }
-
-    if (input.sections.length > 0) {
-      return res.status(400).send({ message: "Sections are not allowed to be updated." });
+    if (input.error) {
+      return res.status(400).send({ message: input.error });
     }
 
     const course = await db.course.findByPk(courseId);
     if (!course) {
-      return res.status(404).send({ message: "Course not found." });
+      return res.status(404).send({ message: notFoundMessage(courseId) });
     }
 
     const existing = await db.course.findOne({
       where: {
-        courseName: input.courseName,
+        courseNumber: input.value.courseNumber,
         id: { [Op.ne]: courseId },
       },
     });
     if (existing) {
-      return res.status(400).send({ message: "Course already exists." });
+      return res.status(400).send({ message: "Course number already exists." });
     }
 
-    await course.update({
-      courseName: input.courseName,
-      term: input.term,
-      description: input.description || "",
-    });
-    return res.status(200).send(presentCourse(course));
+    await course.update(input.value);
+    return res.status(200).send({ message: "Course was updated successfully." });
   } catch (err) {
     logger.error(`Course update failed: ${err.message}`);
     return res.status(500).send({ message: "Failed to update course." });
@@ -101,26 +137,22 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const courseId = parseInt(req.params.courseId, 10);
-    if (Number.isNaN(courseId)) {
+    const courseId = parseCourseId(req.params.courseId);
+    if (courseId == null) {
       return res.status(400).send({ message: "Invalid courseId." });
-    }
-
-    if (input.sections.length > 0) {
-      return res.status(400).send({ message: "Sections are not allowed to be deleted." });
     }
 
     const existing = await db.course.findByPk(courseId);
     if (!existing) {
-      return res.status(404).send({ message: "Course not found." });
+      return res.status(404).send({ message: notFoundMessage(courseId) });
     }
 
-    await existing.update({
-      sections: [],
-    });
-    return res.status(200).send(presentCourse(existing));
+    await existing.destroy();
+    return res.status(200).send({ message: "Course was deleted successfully!" });
   } catch (err) {
     logger.error(`Course delete failed: ${err.message}`);
     return res.status(500).send({ message: "Failed to delete course." });
   }
 };
+
+export default exports;

@@ -14,6 +14,7 @@ router.post("/", [authenticateStudent], semesterController.create);
 router.put("/:semesterId", [authenticateStudent], semesterController.update);
 router.delete("/:semesterId", [authenticateStudent], semesterController.remove);
 router.get("/courses", [authenticate], courseController.findAll);
+router.get("/courses/:courseId", [authenticate], courseController.findOne);
 router.post("/courses", [authenticateFaculty], courseController.create);
 router.put("/courses/:courseId", [authenticateFaculty], courseController.update);
 router.delete("/courses/:courseId", [authenticateFaculty], courseController.remove);

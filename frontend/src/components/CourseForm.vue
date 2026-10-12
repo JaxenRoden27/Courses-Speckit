@@ -1,9 +1,8 @@
 <script setup>
-import { computed, ref } from "vue";
+import { ref } from "vue";
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
-  courses: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["update:modelValue", "submit"]);
@@ -15,21 +14,22 @@ const termOptions = ref([
   { id: 3, name: "Fall" },
   { id: 4, name: "Winter" },
 ]);
-function courseOptionsList() {   
-  const courseOptions = [
-    "Math 101",
-    "Math 102",
-    "Science 101",
-    "Science 102",
-    "History 101",
-    "History 102",
-    "English 101",
-    "English 102",
-    "Art 101",
-    "Art 102",
-  ];
-
-  return courseOptions;
+const courseNumberOptions = ref([
+  { id: 1, name: "CS 101" },
+  { id: 2, name: "CS 201" },
+  { id: 3, name: "SCI 101" },
+  { id: 4, name: "SCI 102" },
+  { id: 5, name: "ENG 101" },
+  { id: 6, name: "HIST 101" },
+  { id: 7, name: "HIST 102" },
+  { id: 8, name: "ART 101" },
+  { id: 9, name: "ART 102" },
+]);
+function onCourseNumberUpdated(value) {
+  emit("update:modelValue", {
+    ...props.modelValue,
+    courseNumber: value,
+  });
 }
 
 function onCourseNameUpdated(value) {
@@ -41,13 +41,13 @@ function onCourseNameUpdated(value) {
 function onTermUpdated(value) {
   emit("update:modelValue", {
     ...props.modelValue,
-    term: value,
+    courseTerm: value,
   });
 }
 function onDescriptionUpdated(value) {
   emit("update:modelValue", {
     ...props.modelValue,
-    description: value,
+    courseDescription: value,
   });
 }
 const validate = () => formRef.value.validate();
@@ -56,18 +56,24 @@ defineExpose({ validate });
 </script>
 
 <template>
-  <v-form ref="formRef" @submit.prevent="emit('submit')">  
+  <v-form ref="formRef" @submit.prevent="emit('submit')">
     <v-select
-      :model-value="modelValue.courseName"
-      label="Course"
-      :items="courseOptionsList()"
+      :model-value="modelValue.courseNumber"
+      label="Course Number"
+      :items="courseNumberOptions"
       item-title="name"
       item-value="name"
       density="comfortable"
+      @update:model-value="onCourseNumberUpdated"
+    />
+    <v-textarea
+      :model-value="modelValue.courseName"
+      label="Course Name"
+      density="compact"
       @update:model-value="onCourseNameUpdated"
     />
     <v-select
-      :model-value="modelValue.term"
+      :model-value="modelValue.courseTerm"
       label="Term"
       :items="termOptions"
       item-title="name"
@@ -76,7 +82,7 @@ defineExpose({ validate });
       @update:model-value="onTermUpdated"
     />
     <v-textarea
-      :model-value="modelValue.description"
+      :model-value="modelValue.courseDescription"
       label="Description"
       density="comfortable"
       @update:model-value="onDescriptionUpdated"

@@ -182,11 +182,12 @@ const handleLogout = async () => {
 
 
     <v-btn
+      v-if="user"
       variant="text"
       color="white"
-      @click="router.push('/courses')"
+      @click="router.push('/course')"
     >
-      Courses
+      Course
     </v-btn>
     <v-spacer />
 
