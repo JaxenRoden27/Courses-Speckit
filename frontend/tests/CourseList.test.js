@@ -163,9 +163,9 @@ describe("Feature 3 — Course Management", () => {
 
   const findField = (root, label) =>
     [
-      ...root.findAllComponents({ name: "VTextField" }),
-      ...root.findAllComponents({ name: "VTextarea" }),
       ...root.findAllComponents({ name: "VSelect" }),
+      ...root.findAllComponents({ name: "VTextarea" }),
+      ...root.findAllComponents({ name: "VTextField" }),
     ].find((field) => field.props("label") === label);
 
   const dialogText = (dialog) =>

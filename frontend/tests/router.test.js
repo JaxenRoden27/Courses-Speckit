@@ -7,6 +7,9 @@
  *
  * Feature 4 — Faculty Management
  * Spec: features/feature-4-faculty-management.md
+ *
+ * Feature 5 — Section Management
+ * Spec: features/feature-5-section-management.md
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import router from "../src/router.js";
@@ -72,6 +75,27 @@ describe("Feature 4 — Faculty Management", () => {
   describe("US-4.7 — Restrict faculty management to faculty users", () => {
     it("Unauthenticated user navigates to faculty", async () => {
       await router.push("/faculty");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 5 — Section Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-5.8 — Restrict section management to faculty", () => {
+    it("Unauthenticated user navigates to sections", async () => {
+      await router.push("/sections");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+
+    it("Unauthenticated user navigates to a section", async () => {
+      await router.push("/sections/1");
 
       expect(router.currentRoute.value.name).toBe("login");
     });

@@ -76,7 +76,7 @@ defineExpose({ validate });
     />
     <v-select
       :model-value="modelValue.courseTerm"
-      label="Term"
+      label="courseTerm"
       :items="termOptions"
       item-title="name"
       item-value="name"

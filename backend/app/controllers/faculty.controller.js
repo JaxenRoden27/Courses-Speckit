@@ -168,6 +168,13 @@ exports.findAll = async (req, res) => {
           message: `Faculty with id=${facultyId} not found.`,
         });
       }
+
+      const sectionCount = await db.section.count({ where: { facultyId } });
+      if (sectionCount > 0) {
+        return res.status(400).send({
+          message: "Cannot delete faculty: sections still exist.",
+        });
+      }
   
       await existing.destroy();
   
