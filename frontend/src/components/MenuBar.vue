@@ -179,6 +179,16 @@ const handleLogout = async () => {
     >
       Semesters
     </v-btn>
+
+
+    <v-btn
+      v-if="user"
+      variant="text"
+      color="white"
+      @click="router.push('/course')"
+    >
+      Course
+    </v-btn>
     <v-spacer />
 
     <v-menu

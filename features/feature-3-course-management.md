@@ -277,7 +277,14 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ## Acceptance Criteria (Gherkin)
 
-### US–3.1 – View Course List Page
+### US-3.1 – View Course List Page
+
+#### Scenario: Signed-in faculty navigates to course page
+
+- **Given** I am signed in as a faculty
+- **When** I select **Course** from the navigation menu
+- **Then** I am redirected to the `/course` view
+- **And** the course management screen is displayed
 
 #### Scenario: Signed-in faculty navigates to course page
 
@@ -295,7 +302,7 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ---
 
-### US–3.2 – Create Course
+### US-3.2 – Create Course
 
 #### Scenario: Signed-in faculty creates a new course
 
@@ -322,7 +329,7 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ---
 
-### US–3.3 – Read Course Catalog
+### US-3.3 – Read Course Catalog
 
 #### Scenario: Signed-in faculty views courses catalog
 
@@ -333,7 +340,7 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ---
 
-### US–3.4 – Row Action Icons
+### US-3.4 – Row Action Icons
 
 #### Scenario: Row action buttons visible for faculty
 
@@ -343,7 +350,7 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ---
 
-### US–3.5 – Edit Course
+### US-3.5 – Edit Course
 
 #### Scenario: Signed-in faculty updates course details
 
@@ -359,7 +366,7 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ---
 
-### US–3.6 – Delete Course
+### US-3.6 – Delete Course
 
 #### Scenario: Signed-in faculty deletes a course with confirmation
 
@@ -374,7 +381,7 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 
 ---
 
-### US–3.7 – Role-Based Access Control
+### US-3.7 – Role-Based Access Control
 
 #### Scenario: Student user edit access restricted
 
