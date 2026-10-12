@@ -1,6 +1,9 @@
 /**
  * Feature 5 — Section Management
  * Spec: features/feature-5-section-management.md
+ *
+ * Feature 6 — Enrollment Management
+ * Spec: features/feature-6-enrollment-management.md
  */
 import request from "supertest";
 import bcrypt from "bcryptjs";
@@ -424,6 +427,46 @@ describe("Feature 5 — Section Management", () => {
         .set(authHeader("expired-section-token"));
       expect(expired.status).toBe(401);
       expect(expired.body).toEqual({ message: expiredMessage });
+    });
+  });
+});
+
+describe("Feature 6 — Enrollment Management", () => {
+  beforeEach(async () => {
+    await syncTestDatabase();
+  });
+
+  describe("US-6.9 — Block delete of a section and semester that has an enrollment", () => {
+    it("User cannot delete a section that has an enrollment", async () => {
+      const { token } = await insertFacultyUser();
+      const student = await registerStudent();
+      const course = await seedCourse();
+      const facultyMember = await seedFacultyMember();
+      const created = await createSection(
+        token,
+        validSection(course.id, facultyMember.id),
+      );
+      const sectionId = created.body.id;
+      const semester = await db.semester.create({
+        semester: "Fall 2026",
+        startDate: "2026-08-27",
+        endDate: "2026-12-18",
+        userId: student.body.userId,
+      });
+      const enrollment = await db.enrollment.create({
+        sectionId,
+        semesterId: semester.id,
+        studentId: student.body.userId,
+      });
+
+      const response = await deleteSection(token, sectionId);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "Cannot delete section: enrollments still exist.",
+      });
+      expect(await db.section.findByPk(sectionId)).not.toBeNull();
+      expect(await db.enrollment.findByPk(enrollment.id)).not.toBeNull();
     });
   });
 });

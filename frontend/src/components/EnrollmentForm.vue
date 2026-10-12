@@ -16,6 +16,22 @@ const updateField = (field, value) => {
   emit("update:modelValue", { ...props.modelValue, [field]: value });
 };
 
+const updateSemester = (semesterId) => {
+  const semester = props.semesters.find((item) => item.id === semesterId);
+  const term = semester?.name?.split(" ")[0];
+  const courseStillValid = props.courses.some(
+    (course) =>
+      course.id === props.modelValue.courseId && course.courseTerm === term,
+  );
+
+  emit("update:modelValue", {
+    ...props.modelValue,
+    semesterId,
+    courseId: courseStillValid ? props.modelValue.courseId : null,
+    sectionId: courseStillValid ? props.modelValue.sectionId : null,
+  });
+};
+
 const updateCourse = (courseId) => {
   const sectionStillValid = props.sections.some(
     (section) =>
@@ -29,6 +45,15 @@ const updateCourse = (courseId) => {
     sectionId: sectionStillValid ? props.modelValue.sectionId : null,
   });
 };
+
+const courseChoices = computed(() => {
+  const semester = props.semesters.find(
+    (item) => item.id === props.modelValue.semesterId,
+  );
+  const term = semester?.name?.split(" ")[0];
+  if (!term) return [];
+  return props.courses.filter((course) => course.courseTerm === term);
+});
 
 const sectionChoices = computed(() =>
   props.sections.filter(
@@ -55,12 +80,12 @@ defineExpose({ validate });
       item-value="id"
       density="comfortable"
       :rules="semesterRules"
-      @update:model-value="updateField('semesterId', $event)"
+      @update:model-value="updateSemester"
     />
     <v-select
       :model-value="modelValue.courseId"
       label="Course"
-      :items="courses"
+      :items="courseChoices"
       item-title="courseName"
       item-value="id"
       density="comfortable"

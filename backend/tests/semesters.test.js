@@ -1,6 +1,9 @@
 /**
  * Feature 2 — Semester Management
  * Spec: features/feature-2-semester-management.md
+ *
+ * Feature 6 — Enrollment Management
+ * Spec: features/feature-6-enrollment-management.md
  */
 import request from "supertest";
 import bcrypt from "bcryptjs";
@@ -354,6 +357,58 @@ describe("Feature 2 — Semester Management", () => {
       expect(response.body).toEqual({
         message: "Unauthorized! No token provided.",
       });
+    });
+  });
+});
+
+describe("Feature 6 — Enrollment Management", () => {
+  beforeEach(async () => {
+    await syncTestDatabase();
+  });
+
+  describe("US-6.9 — Block delete of a section and semester that has an enrollment", () => {
+    it("User cannot delete a semester that has an enrollment", async () => {
+      const student = await registerStudent();
+      const created = await createSemester(student.body.token, {
+        term: "Fall",
+        year: 2026,
+      });
+      const semesterId = created.body.id;
+      const course = await db.course.create({
+        courseNumber: "CS101",
+        courseName: "Programming 1",
+        courseDescription: "Intro programming",
+        courseTerm: "Fall",
+      });
+      const facultyMember = await db.faculty.create({
+        firstName: "David",
+        lastName: "North",
+        dept: "Computer Science",
+      });
+      const section = await db.section.create({
+        sectionNumber: "01",
+        courseId: course.id,
+        facultyId: facultyMember.id,
+        daysOfWeek: "MWF",
+        startTime: "09:00:00",
+        endTime: "09:50:00",
+      });
+      const enrollment = await db.enrollment.create({
+        sectionId: section.id,
+        semesterId,
+        studentId: student.body.userId,
+      });
+
+      const response = await request(app)
+        .delete(oneSemesterPath(semesterId))
+        .set(authHeader(student.body.token));
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "Cannot delete semester: enrollments still exist.",
+      });
+      expect(await db.semester.findByPk(semesterId)).not.toBeNull();
+      expect(await db.enrollment.findByPk(enrollment.id)).not.toBeNull();
     });
   });
 });

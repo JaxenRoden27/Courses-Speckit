@@ -10,6 +10,9 @@
  *
  * Feature 5 — Section Management
  * Spec: features/feature-5-section-management.md
+ *
+ * Feature 6 — Enrollment Management
+ * Spec: features/feature-6-enrollment-management.md
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import router from "../src/router.js";
@@ -96,6 +99,21 @@ describe("Feature 5 — Section Management", () => {
 
     it("Unauthenticated user navigates to a section", async () => {
       await router.push("/sections/1");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 6 — Enrollment Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-6.8 — Restrict enrollment management to students", () => {
+    it("Unauthenticated user navigates to enrollments", async () => {
+      await router.push("/enrollments");
 
       expect(router.currentRoute.value.name).toBe("login");
     });
