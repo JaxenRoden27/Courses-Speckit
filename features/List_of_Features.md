@@ -47,7 +47,7 @@ Faculty
 
 Sections
 • sectionNumber
-• semesterId
+• semesterId    --Romove this from sections
 • courseId
 • facultyId
 • daysOfWeek
@@ -55,5 +55,6 @@ Sections
 • endTime
 
 Enrollments
+• semesterId
 • sectionId
 • studentId

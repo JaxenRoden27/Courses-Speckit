@@ -10,6 +10,7 @@ const exports = {};
 exports.findAll = async (req, res) => {
   try {
     const users = await db.user.findAll({
+      where: { role: "faculty" },
       attributes: ["id", "universityId", "fName", "lName"],
       order: [["universityId", "ASC"]],
     });

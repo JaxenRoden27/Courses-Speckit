@@ -4,6 +4,12 @@
  *
  * Feature 2 — Semester Management
  * Spec: features/feature-2-semester-management.md
+ *
+ * Feature 4 — Faculty Management
+ * Spec: features/feature-4-faculty-management.md
+ *
+ * Feature 5 — Section Management
+ * Spec: features/feature-5-section-management.md
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { defineComponent } from "vue";
@@ -12,9 +18,15 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import App from "../src/App.vue";
 import MenuBar from "../src/components/MenuBar.vue";
 import Semesters from "../src/views/Semesters.vue";
+import Faculty from "../src/views/Faculty.vue";
+import Sections from "../src/views/Sections.vue";
 import Utils from "../src/config/utils.js";
 import authServices from "../src/services/authServices.js";
 import semesterServices from "../src/services/semesterServices.js";
+import facultyServices from "../src/services/facultyServices.js";
+import sectionServices from "../src/services/sectionServices.js";
+import courseServices from "../src/services/courseServices.js";
+import userServices from "../src/services/userServices.js";
 import { mountWithPlugins, createTestRouter } from "./testUtils.js";
 
 vi.mock("../src/services/authServices.js", () => ({
@@ -27,8 +39,18 @@ vi.mock("../src/services/authServices.js", () => ({
 
 vi.mock("../src/services/userServices.js", () => ({
   default: {
+    getUsers: vi.fn(),
     getUser: vi.fn(),
     updateUser: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/facultyServices.js", () => ({
+  default: {
+    getFaculty: vi.fn(),
+    createFaculty: vi.fn(),
+    updateFaculty: vi.fn(),
+    deleteFaculty: vi.fn(),
   },
 }));
 
@@ -40,6 +62,24 @@ vi.mock("../src/services/semesterServices.js", () => ({
     createSemester: vi.fn(),
     updateSemester: vi.fn(),
     deleteSemester: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/sectionServices.js", () => ({
+  default: {
+    getSections: vi.fn(),
+    createSection: vi.fn(),
+    updateSection: vi.fn(),
+    deleteSection: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/courseServices.js", () => ({
+  default: {
+    findAll: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -287,6 +327,142 @@ describe("Feature 2 — Semester Management", () => {
 
     it("Faculty opens semesters from the menu", async () => {
       await openSemesters(facultyUser);
+    });
+  });
+});
+
+describe("Feature 4 — Faculty Management", () => {
+  let wrapper;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    facultyServices.getFaculty.mockResolvedValue({ data: [] });
+    userServices.getUsers.mockResolvedValue({ data: [] });
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+  });
+
+  const findButton = (root, label) =>
+    root.findAllComponents({ name: "VBtn" }).find((btn) => btn.text().trim() === label);
+
+  const mountSignedInApp = async (user) => {
+    Utils.setStore("user", user);
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: "/", name: "home", component: { template: "<div>Home</div>" } },
+        { path: "/login", name: "login", component: { template: "<div>Login</div>" } },
+        {
+          path: "/register",
+          name: "register",
+          component: { template: "<div>Register</div>" },
+        },
+        { path: "/faculty", name: "faculty", component: Faculty },
+      ],
+    });
+    await router.push("/");
+    await router.isReady();
+
+    const mounted = await mountWithPlugins(App, {
+      router,
+      ...mountOptions,
+    });
+    wrapper = mounted.wrapper;
+    return mounted.router;
+  };
+
+  describe("US-4.1 — Select to work with Faculty", () => {
+    it("Menu Selection", async () => {
+      const router = await mountSignedInApp(facultyUser);
+      const facultyButton = findButton(wrapper, "Faculty");
+
+      expect(facultyButton).toBeTruthy();
+      await facultyButton.trigger("click");
+      await vi.waitFor(() => {
+        expect(router.currentRoute.value.name).toBe("faculty");
+      });
+      expect(router.currentRoute.value.path).toBe("/faculty");
+      expect(wrapper.findComponent(Faculty).exists()).toBe(true);
+    });
+  });
+
+  describe("US-4.7 — Restrict faculty management to faculty users", () => {
+    it("Student does not see Faculty in the menu", async () => {
+      await mountSignedInApp(studentUser);
+
+      expect(findButton(wrapper, "Faculty")).toBeUndefined();
+    });
+  });
+});
+
+describe("Feature 5 — Section Management", () => {
+  let wrapper;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    sectionServices.getSections.mockResolvedValue({ data: [] });
+    courseServices.findAll.mockResolvedValue({ data: [] });
+    facultyServices.getFaculty.mockResolvedValue({ data: [] });
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+  });
+
+  const findButton = (root, label) =>
+    root.findAllComponents({ name: "VBtn" }).find((btn) => btn.text().trim() === label);
+
+  const mountSignedInApp = async (user) => {
+    Utils.setStore("user", user);
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: "/", name: "home", component: { template: "<div>Home</div>" } },
+        { path: "/login", name: "login", component: { template: "<div>Login</div>" } },
+        {
+          path: "/register",
+          name: "register",
+          component: { template: "<div>Register</div>" },
+        },
+        { path: "/sections", name: "sections", component: Sections },
+      ],
+    });
+    await router.push("/");
+    await router.isReady();
+
+    const mounted = await mountWithPlugins(App, {
+      router,
+      ...mountOptions,
+    });
+    wrapper = mounted.wrapper;
+    return mounted.router;
+  };
+
+  describe("US-5.1 — Select to work with Sections", () => {
+    it("Menu Selection", async () => {
+      const router = await mountSignedInApp(facultyUser);
+      const sectionsButton = findButton(wrapper, "Sections");
+
+      expect(sectionsButton).toBeTruthy();
+      await sectionsButton.trigger("click");
+      await vi.waitFor(() => {
+        expect(router.currentRoute.value.name).toBe("sections");
+      });
+      expect(router.currentRoute.value.path).toBe("/sections");
+      expect(wrapper.findComponent(Sections).exists()).toBe(true);
+      expect(wrapper.text()).toContain("Sections");
+    });
+  });
+
+  describe("US-5.8 — Restrict section management to faculty", () => {
+    it("Student does not see Sections in the menu", async () => {
+      await mountSignedInApp(studentUser);
+
+      expect(findButton(wrapper, "Sections")).toBeUndefined();
     });
   });
 });

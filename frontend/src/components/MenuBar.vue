@@ -50,6 +50,14 @@ const displayName = computed(() => {
   return parts.length ? parts.join(" ") : (user.value.universityId ?? "");
 });
 
+const isFaculty = computed(() => {
+  const role = user.value?.role?.toLowerCase?.().trim();
+  const universityId = String(user.value?.universityId ?? "")
+    .trim()
+    .toLowerCase();
+  return role === "faculty" || universityId.startsWith("fa");
+});
+
 const refreshUser = () => {
   user.value = Utils.getStore("user");
 };
@@ -173,11 +181,39 @@ const handleLogout = async () => {
     <v-app-bar-title>Courses Management System</v-app-bar-title>
 
     <v-btn
+      v-if="user"
       variant="text"
       color="white"
       @click="router.push('/semesters')"
     >
       Semesters
+    </v-btn>
+
+    <v-btn
+      v-if="isFaculty"
+      variant="text"
+      color="white"
+      @click="router.push('/faculty')"
+    >
+      Faculty
+    </v-btn>
+
+    <v-btn
+      v-if="user"
+      variant="text"
+      color="white"
+      @click="router.push('/course')"
+    >
+      Course
+    </v-btn>
+
+    <v-btn
+      v-if="user?.role?.toLowerCase?.().trim() === 'faculty'"
+      variant="text"
+      color="white"
+      @click="router.push('/sections')"
+    >
+      Sections
     </v-btn>
     <v-spacer />
 
