@@ -73,7 +73,7 @@
 
 ### US-3.7: Role-Based Access Control
 
-**As the** application
+**As** the application
 **I want** to restrict Course catalog modifications and menu visibility exclusively to faculty
 **So that** student users cannot modify or see the course management view
 
@@ -118,8 +118,8 @@
 ## Success criteria
 
 - **SC-001**: Every Gherkin scenario is covered by automated unit/integration tests.
-- **SC-002**: Students can perform complete CRUD operations on courses within a single screen using dialogs.
-- **SC-003**: Faculty users can perform GET requests but don't see the "Course" menu item or have mutation access.
+- **SC-002**: Faculty can perform complete CRUD operations on courses within a single screen using dialogs.
+- **SC-003**: Students users can perform GET requests but don't have mutation access.
 - **SC-004**: All test suites (`npm test`) pass completely without failiures.
 
 ## Data Ownership & Isolation
@@ -220,7 +220,7 @@ Feature 1 already specifies who may open this screen and the list navigation. Th
 **Shell**
 
 - Heading: **Courses**
-- Primary action: **Add Course** (`v-if="user && user.role === 'faculty'"`) – student role only
+- Primary action: **Add Course** (`v-if="user && user.role === 'faculty'"`) – faculty role only
 - **Error:** snackbar with API `message`
 - No empty-state copy in the running view – do not invent one
 
@@ -278,6 +278,13 @@ Session required (Feature 1). This feature owns the course **metadata** form onl
 ## Acceptance Criteria (Gherkin)
 
 ### US-3.1 – View Course List Page
+
+#### Scenario: Signed-in faculty navigates to course page
+
+- **Given** I am signed in as a faculty
+- **When** I select **Course** from the navigation menu
+- **Then** I am redirected to the `/course` view
+- **And** the course management screen is displayed
 
 #### Scenario: Signed-in faculty navigates to course page
 
@@ -411,18 +418,18 @@ Each Gherkin scenario above maps to at least one automated test. Faculty creates
 
 | Story | Scenario | Test file | Test name |
 | ----- | -------- | --------- | --------- |
-| US-3.1 | Signed-in faculty navigates to course page | `frontend/tests/CourseList.test.js` | `Signed-in faculty navigates to course page` |
-| US-3.1 | Signed-in student navigates to course page | `frontend/tests/CourseList.test.js` | `Signed-in student navigates to course page` |
-| US-3.2 | Signed-in faculty creates a new course | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty creates a new course` |
-| US-3.2 | Create without course number is rejected | `backend/tests/courses.test.js` | `Create without course number is rejected` |
-| US-3.2 | Create without course name is rejected | `backend/tests/courses.test.js` | `Create without course name is rejected` |
-| US-3.3 | Signed-in faculty views courses catalog | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty views courses catalog` |
-| US-3.4 | Row action buttons visible for faculty | `frontend/tests/CourseList.test.js` | `Row action buttons visible for faculty` |
-| US-3.5 | Signed-in faculty updates course details | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty updates course details` |
-| US-3.6 | Signed-in faculty deletes a course with confirmation | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty deletes a course with confirmation` |
-| US-3.7 | Student user edit access restricted | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Student user edit access restricted` |
-| US-3.7 | Student user GET access | `backend/tests/courses.test.js` | `Student user GET access` |
-| US-3.7 | Student user view list of courses access | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Student user view list of courses access` |
+| US–3.1 | Signed-in faculty navigates to course page | `frontend/tests/CourseList.test.js` | `Signed-in faculty navigates to course page` |
+| US–3.1 | Signed-in student navigates to course page | `frontend/tests/CourseList.test.js` | `Signed-in student navigates to course page` |
+| US–3.2 | Signed-in faculty creates a new course | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty creates a new course` |
+| US–3.2 | Create without course number is rejected | `backend/tests/courses.test.js` | `Create without course number is rejected` |
+| US–3.2 | Create without course name is rejected | `backend/tests/courses.test.js` | `Create without course name is rejected` |
+| US–3.3 | Signed-in faculty views courses catalog | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty views courses catalog` |
+| US–3.4 | Row action buttons visible for faculty | `frontend/tests/CourseList.test.js` | `Row action buttons visible for faculty` |
+| US–3.5 | Signed-in faculty updates course details | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty updates course details` |
+| US–3.6 | Signed-in faculty deletes a course with confirmation | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Signed-in faculty deletes a course with confirmation` |
+| US–3.7 | Student user edit access restricted | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Student user edit access restricted` |
+| US–3.7 | Student user GET access | `backend/tests/courses.test.js` | `Student user GET access` |
+| US–3.7 | Student user view list of courses access | `backend/tests/courses.test.js`, `frontend/tests/CourseList.test.js` | `Student user view list of courses access` |
 
 
 ---
