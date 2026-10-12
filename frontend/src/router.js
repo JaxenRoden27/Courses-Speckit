@@ -70,13 +70,13 @@ const router = createRouter({
       component: Home,
     },
     {
-      path: "/:pathMatch(.*)*",
-      redirect: { name: "home" },
-    },
-    {
       path: "/enrollments",
       name: "enrollments",
       component: Enrollments,
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      redirect: { name: "home" },
     },
   ],
 });

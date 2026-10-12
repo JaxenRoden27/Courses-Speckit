@@ -205,6 +205,15 @@ exports.remove = async (req, res) => {
       });
     }
 
+    const enrollmentCount = await db.enrollment.count({
+      where: { sectionId },
+    });
+    if (enrollmentCount > 0) {
+      return res.status(400).send({
+        message: "Cannot delete section: enrollments still exist.",
+      });
+    }
+    
     await db.section.destroy({ where: { id: sectionId } });
     return res.status(200).send({ message: "section deleted successfully." });
   } catch (err) {

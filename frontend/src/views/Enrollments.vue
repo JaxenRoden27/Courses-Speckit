@@ -51,7 +51,7 @@ const sectionFor = (enrollment) =>
 
 const courseName = (enrollment) => {
   const section = sectionFor(enrollment);
-  return courses.value.find((course) => course.id === section?.courseId)?.name ?? "";
+  return courses.value.find((course) => course.id === section?.courseId)?.courseName ?? "";
 };
 
 const sectionNumber = (enrollment) => sectionFor(enrollment)?.sectionNumber ?? "";
@@ -69,7 +69,7 @@ const retrieveEnrollments = async () => {
     const [enrollmentsResponse, coursesResponse, sectionsResponse, semestersResponse] =
       await Promise.all([
         enrollmentsRequest,
-        courseServices.getCourses(),
+        courseServices.findAll(),
         sectionServices.getSections(),
         semesterServices.getSemesters(),
       ]);

@@ -61,7 +61,7 @@ defineExpose({ validate });
       :model-value="modelValue.courseId"
       label="Course"
       :items="courses"
-      item-title="name"
+      item-title="courseName"
       item-value="id"
       density="comfortable"
       :rules="courseRules"
