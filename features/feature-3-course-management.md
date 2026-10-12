@@ -118,8 +118,8 @@
 ## Success criteria
 
 - **SC-001**: Every Gherkin scenario is covered by automated unit/integration tests.
-- **SC-002**: Students can perform complete CRUD operations on courses within a single screen using dialogs.
-- **SC-003**: Faculty users can perform GET requests but don't see the "Course" menu item or have mutation access.
+- **SC-002**: Faculty can perform complete CRUD operations on courses within a single screen using dialogs.
+- **SC-003**: Students users can perform GET requests but don't have mutation access.
 - **SC-004**: All test suites (`npm test`) pass completely without failiures.
 
 ## Data Ownership & Isolation
@@ -220,7 +220,7 @@ Feature 1 already specifies who may open this screen and the list navigation. Th
 **Shell**
 
 - Heading: **Courses**
-- Primary action: **Add Course** (`v-if="user && user.role === 'faculty'"`) – student role only
+- Primary action: **Add Course** (`v-if="user && user.role === 'faculty'"`) – faculty role only
 - **Error:** snackbar with API `message`
 - No empty-state copy in the running view – do not invent one
 
