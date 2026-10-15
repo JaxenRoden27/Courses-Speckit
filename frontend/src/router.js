@@ -5,6 +5,7 @@ import Home from "./views/Home.vue";
 import Register from "./views/Register.vue";
 import Semesters from "./views/Semesters.vue";
 import SemesterDetail from "./views/SemesterDetail.vue";
+import Enrollments from "./views/Enrollments.vue";
 import Sections from "./views/Sections.vue";
 import Section from "./views/Section.vue";
 import Faculty from "./views/Faculty.vue";
@@ -67,6 +68,11 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: Home,
+    },
+    {
+      path: "/enrollments",
+      name: "enrollments",
+      component: Enrollments,
     },
     {
       path: "/:pathMatch(.*)*",

@@ -4,6 +4,7 @@ import userModel from "./user.model.js";
 import sessionModel from "./session.model.js";
 import semesterModel from "./semester.model.js";
 import sectionModel from "./section.model.js";
+import enrollmentModel from "./enrollment.model.js";
 import facultyModel from "./faculty.model.js";
 import courseModel from "./course.model.js";
 const db = {};
@@ -14,6 +15,7 @@ db.user = userModel(sequelize, Sequelize);
 db.session = sessionModel(sequelize, Sequelize);
 db.semester = semesterModel(sequelize, Sequelize);
 db.section = sectionModel(sequelize, Sequelize);
+db.enrollment = enrollmentModel(sequelize, Sequelize);
 db.faculty = facultyModel(sequelize, Sequelize);
 db.course = courseModel(sequelize, Sequelize); // Make sure to keep updating this file
 
@@ -72,6 +74,42 @@ db.faculty.belongsTo(db.user, {
 db.user.hasOne(db.faculty, {
   foreignKey: "userId",
   as: "faculty",
+});
+
+db.enrollment.belongsTo(db.section, {
+  foreignKey: "sectionId",
+  as: "section",
+  onDelete: "RESTRICT",
+});
+
+db.enrollment.belongsTo(db.semester, {
+  foreignKey: "semesterId",
+  as: "semester",
+  onDelete: "RESTRICT",
+});
+
+db.enrollment.belongsTo(db.user, {
+  foreignKey: "studentId",
+  as: "student",
+  onDelete: "RESTRICT",
+});
+
+db.section.hasMany(db.enrollment, {
+  foreignKey: "sectionId",
+  as: "enrollments",
+  onDelete: "RESTRICT",
+});
+
+db.semester.hasMany(db.enrollment, {
+  foreignKey: "semesterId",
+  as: "enrollments",
+  onDelete: "RESTRICT",
+});
+
+db.user.hasMany(db.enrollment, {
+  foreignKey: "studentId",
+  as: "enrollments",
+  onDelete: "RESTRICT",
 });
 
 export default db;

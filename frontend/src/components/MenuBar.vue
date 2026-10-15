@@ -215,6 +215,15 @@ const handleLogout = async () => {
     >
       Sections
     </v-btn>
+
+    <v-btn
+      v-if="user"
+      variant="text"
+      color="white"
+      @click="router.push('/enrollments')"
+    >
+      Enrollments
+    </v-btn>
     <v-spacer />
 
     <v-menu
