@@ -17,6 +17,13 @@ const sectionServices = {
     return apiClient.delete(`sections/${sectionId}`);
   },
 
+  getSectionStudents(sectionId) {
+    return apiClient.get(`academic/sections/${sectionId}/students`);
+  },
+
+  enrollStudent(sectionId, enrollmentData) {
+    return apiClient.post(`academic/sections/${sectionId}/students`, enrollmentData);
+  },
 };
 
 export default sectionServices;

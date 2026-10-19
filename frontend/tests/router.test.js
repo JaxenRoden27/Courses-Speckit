@@ -134,3 +134,18 @@ describe("Feature 7 — Student Course Listing", () => {
     });
   });
 });
+
+describe("Feature 8 — Section Student Listing", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-8.4 — Restrict the Section Student View to admins", () => {
+    it("Unauthenticated user navigates to a section", async () => {
+      await router.push("/sections/1/students");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});

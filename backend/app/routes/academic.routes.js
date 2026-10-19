@@ -232,4 +232,145 @@ router.put("/:enrollmentId", [authenticate], async (req, res) => {
   }
 });
 
+// GET /course-t4/academic/sections
+router.get("/sections", [authenticate], async (req, res) => {
+  try {
+    const sections = await db.section.findAll({
+      include: [
+        {
+          model: db.course,
+          as: "course",
+          attributes: ["id", "courseName", "courseNumber"],
+        },
+        {
+          model: db.faculty,
+          as: "faculty",
+          attributes: ["id", "firstName", "lastName"],
+        },
+      ],
+      order: [
+        [{ model: db.course, as: "course" }, "courseName", "ASC"],
+        ["sectionNumber", "ASC"],
+      ],
+    });
+    return res.send(sections);
+  } catch (err) {
+    logger.error(`academic getSections failed: ${err.message}`);
+    return res.status(500).send({ message: "Failed to fetch sections." });
+  }
+});
+
+// GET /course-t4/academic/sections/:sectionId/students
+router.get("/sections/:sectionId/students", [authenticate], async (req, res) => {
+  try {
+    const sectionId = parseInt(req.params.sectionId, 10);
+    if (Number.isNaN(sectionId)) {
+      return res.status(400).send({ message: "Invalid section id." });
+    }
+
+    const section = await db.section.findByPk(sectionId);
+    if (!section) {
+      return res.status(404).send({ message: `Section with id=${sectionId} not found.` });
+    }
+
+    const enrollments = await db.enrollment.findAll({
+      where: { sectionId },
+      include: [
+        {
+          model: db.user,
+          as: "student",
+          attributes: ["id", "fName", "lName", "email", "universityId"],
+        },
+      ],
+      order: [["id", "ASC"]],
+    });
+
+    const result = enrollments.map((e) => {
+      const student = e.student || {};
+      return {
+        id: e.id,
+        enrollmentId: e.id,
+        studentId: e.studentId,
+        sectionId: e.sectionId,
+        semesterId: e.semesterId,
+        firstName: student.fName || "",
+        lastName: student.lName || "",
+        fName: student.fName || "",
+        lName: student.lName || "",
+        universityId: student.universityId || `U${student.id || ""}`,
+        email: student.email || "",
+      };
+    });
+
+    return res.send(result);
+  } catch (err) {
+    logger.error(`academic getSectionStudents failed: ${err.message}`);
+    return res.status(500).send({ message: "Failed to fetch section students." });
+  }
+});
+
+// POST /course-t4/academic/sections/:sectionId/students
+router.post("/sections/:sectionId/students", [authenticate], async (req, res) => {
+  try {
+    const sectionId = parseInt(req.params.sectionId, 10);
+    if (Number.isNaN(sectionId)) {
+      return res.status(400).send({ message: "Invalid section id." });
+    }
+
+    const section = await db.section.findByPk(sectionId);
+    if (!section) {
+      return res.status(404).send({ message: `Section with id=${sectionId} not found.` });
+    }
+
+    const studentId = req.body.studentId ? parseInt(req.body.studentId, 10) : NaN;
+    if (Number.isNaN(studentId)) {
+      return res.status(400).send({ message: "Required" });
+    }
+
+    const student = await db.user.findByPk(studentId);
+    if (!student) {
+      return res.status(404).send({ message: "Student not found." });
+    }
+
+    const existing = await db.enrollment.findOne({
+      where: { studentId, sectionId },
+    });
+    if (existing) {
+      return res.status(400).send({ message: "Student is already enrolled in this section." });
+    }
+
+    let semesterId = req.body.semesterId ? parseInt(req.body.semesterId, 10) : null;
+    if (!semesterId) {
+      const firstSemester = await db.semester.findOne();
+      if (firstSemester) semesterId = firstSemester.id;
+    }
+    if (!semesterId) {
+      return res.status(400).send({ message: "Semester not found." });
+    }
+
+    const created = await db.enrollment.create({
+      studentId,
+      sectionId,
+      semesterId,
+    });
+
+    return res.status(201).send({
+      id: created.id,
+      enrollmentId: created.id,
+      studentId: created.studentId,
+      sectionId: created.sectionId,
+      semesterId: created.semesterId,
+      firstName: student.fName || "",
+      lastName: student.lName || "",
+      fName: student.fName || "",
+      lName: student.lName || "",
+      universityId: student.universityId || `U${student.id || ""}`,
+      email: student.email || "",
+    });
+  } catch (err) {
+    logger.error(`academic enrollSectionStudent failed: ${err.message}`);
+    return res.status(500).send({ message: "Failed to enroll student in section." });
+  }
+});
+
 export default router;
