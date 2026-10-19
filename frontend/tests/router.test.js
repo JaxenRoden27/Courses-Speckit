@@ -1,0 +1,136 @@
+/**
+ * Feature 1 — User Authentication & Session Management
+ * Spec: features/feature-1-user-auth.md
+ *
+ * Feature 2 — Semester Management
+ * Spec: features/feature-2-semester-management.md
+ *
+ * Feature 4 — Faculty Management
+ * Spec: features/feature-4-faculty-management.md
+ *
+ * Feature 5 — Section Management
+ * Spec: features/feature-5-section-management.md
+ *
+ * Feature 6 — Enrollment Management
+ * Spec: features/feature-6-enrollment-management.md
+ */
+import { describe, it, expect, beforeEach } from "vitest";
+import router from "../src/router.js";
+import Utils from "../src/config/utils.js";
+
+const signedInStudent = {
+  userId: 1,
+  universityId: "st2222",
+  email: "sam@example.com",
+  fName: "Sam",
+  lName: "Student",
+  role: "student",
+  token: "valid-token",
+};
+
+describe("Feature 1 — User Authentication & Session Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-1.3 — Stay signed in across page loads", () => {
+    it("Signed-in user visits login page", async () => {
+      Utils.setStore("user", signedInStudent);
+
+      await router.push("/");
+      await router.push("/login");
+
+      expect(router.currentRoute.value.name).toBe("home");
+    });
+  });
+
+  describe("US-1.5 — Block unauthenticated access", () => {
+    it("Unauthenticated user accesses a protected route", async () => {
+      await router.push("/");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 2 — Semester Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-2.10 — Show each role only the semesters they may see", () => {
+    it("Unauthenticated user navigates to semesters", async () => {
+      await router.push("/semesters");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 4 — Faculty Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-4.7 — Restrict faculty management to faculty users", () => {
+    it("Unauthenticated user navigates to faculty", async () => {
+      await router.push("/faculty");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 5 — Section Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-5.8 — Restrict section management to faculty", () => {
+    it("Unauthenticated user navigates to sections", async () => {
+      await router.push("/sections");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+
+    it("Unauthenticated user navigates to a section", async () => {
+      await router.push("/sections/1");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 6 — Enrollment Management", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-6.8 — Restrict enrollment management to students", () => {
+    it("Unauthenticated user navigates to enrollments", async () => {
+      await router.push("/enrollments");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
+
+describe("Feature 7 — Student Course Listing", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-7.4 — Restrict the Student Course View to admins", () => {
+    it("unauthenticated course view redirects to login", async () => {
+      await router.push("/students/1/courses");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});
