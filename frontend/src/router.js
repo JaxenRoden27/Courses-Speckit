@@ -5,6 +5,12 @@ import Home from "./views/Home.vue";
 import Register from "./views/Register.vue";
 import Semesters from "./views/Semesters.vue";
 import SemesterDetail from "./views/SemesterDetail.vue";
+import Enrollments from "./views/Enrollments.vue";
+import Sections from "./views/Sections.vue";
+import Section from "./views/Section.vue";
+import Faculty from "./views/Faculty.vue";
+import Courses from "./views/Courses.vue";
+
 
 const publicRouteNames = new Set(["login", "register"]);
 
@@ -33,9 +39,40 @@ const router = createRouter({
       props: true,
     },
     {
+      path: "/sections",
+      name: "sections",
+      component: Sections,
+    },
+    {
+      path: "/sections/:sectionId",
+      name: "section",
+      component: Section,
+      props: true,
+    },
+    {
+      path: "/faculty",
+      name: "faculty",
+      component: Faculty,
+    },
+    {
+      path: "/course",
+      name: "course",
+      component: Courses,
+    },
+    {
+      path: "/courses",
+      name: "courses",
+      component: Courses,
+    },
+    {
       path: "/",
       name: "home",
       component: Home,
+    },
+    {
+      path: "/enrollments",
+      name: "enrollments",
+      component: Enrollments,
     },
     {
       path: "/:pathMatch(.*)*",
@@ -54,6 +91,15 @@ router.beforeEach((to, _from, next) => {
   }
 
   if (user && isPublicRoute) {
+    next({ name: "home" });
+    return;
+  }
+
+  if (
+    user &&
+    ["faculty", "sections", "section"].includes(to.name) &&
+    user.role?.toLowerCase?.().trim() !== "faculty"
+  ) {
     next({ name: "home" });
     return;
   }
