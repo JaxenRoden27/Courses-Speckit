@@ -13,11 +13,14 @@ const enrollmentServices = {
     return apiClient.post(`students/${studentId}/enrollments`, enrollment);
   },
 
-  updateEnrollment(studentId, enrollmentId, enrollment) {
-    return apiClient.put(
-      `students/${studentId}/enrollments/${enrollmentId}`,
-      enrollment,
-    );
+  updateEnrollment(arg1, arg2, arg3) {
+    if (arg3 !== undefined) {
+      return apiClient.put(
+        `students/${arg1}/enrollments/${arg2}`,
+        arg3,
+      );
+    }
+    return apiClient.put(`academic/enrollments/${arg1}`, arg2);
   },
 
   deleteEnrollment(studentId, enrollmentId) {
