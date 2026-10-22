@@ -11,6 +11,8 @@ import StudentCourses from "../src/views/StudentCourses.vue";
 import studentServices from "../src/services/studentServices.js";
 import courseServices from "../src/services/courseServices.js";
 import enrollmentServices from "../src/services/enrollmentServices.js";
+import sectionServices from "../src/services/sectionServices.js";
+import semesterServices from "../src/services/semesterServices.js";
 import { mountWithPlugins } from "./testUtils.js";
 
 vi.mock("../src/services/studentServices.js", () => ({
@@ -27,6 +29,18 @@ vi.mock("../src/services/courseServices.js", () => ({
   default: {
     getCourses: vi.fn(),
     findAll: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/sectionServices.js", () => ({
+  default: {
+    getSections: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/semesterServices.js", () => ({
+  default: {
+    getSemesters: vi.fn(),
   },
 }));
 
@@ -134,6 +148,23 @@ describe("Feature 7 — Student Course Listing", () => {
 
     courseServices.getCourses.mockResolvedValue({
       data: [{ id: 1, courseNumber: "CS-101", courseName: "Intro to Programming" }],
+    });
+
+    sectionServices.getSections.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          sectionNumber: "1",
+          courseId: 1,
+          daysOfWeek: "MWF",
+          startTime: "10:00:00",
+          endTime: "10:50:00",
+        },
+      ],
+    });
+
+    semesterServices.getSemesters.mockResolvedValue({
+      data: [{ id: 1, semester: "Fall 2026", name: "Fall 2026" }],
     });
   });
 

@@ -23,7 +23,7 @@ const updateField = (field, value) => {
 };
 
 const requiredRule = [(value) => !!value?.toString().trim() || "Required"];
-const selectRule = [(value) => value !== null && value !== undefined && value !== "" || "Required"];
+const selectRule = [(value) => (value !== null && value !== undefined && value !== "") || "Required"];
 
 const studentItems = computed(() =>
   props.students.map((student) => ({
@@ -39,89 +39,261 @@ const sectionItems = computed(() =>
   }))
 );
 
-const courseSelectOptions = computed(() => {
-  return props.courses.map((course) => {
-    const code = course.courseNumber || course.code || "";
-    const name = course.courseName || course.title || "";
-    const hours = course.courseHours ?? course.credits ?? 3;
+const getSemesterTerm = (semester) => {
+  const name = semester?.semester || semester?.name || semester?.semesterName || "";
+  if (!name) return "";
+  const parts = name.split(" ");
+  return parts.find((p) => ["Fall", "Spring", "Summer", "Winter"].includes(p)) || parts[0];
+};
+
+const formatSectionSchedule = (section) => {
+  if (!section) return "";
+  if (section.schedule) return section.schedule;
+  const days = section.daysOfWeek || "";
+  const start = section.startTime || "";
+  const end = section.endTime || "";
+  if (days && start && end) {
+    return `${days} ${start} - ${end}`;
+  }
+  if (days && start) {
+    return `${days} ${start}`;
+  }
+  return days || start || "";
+};
+
+const semesterChoices = computed(() => {
+  return props.semesters.map((s) => ({
+    id: s.id,
+    name: s.semester || s.name || s.semesterName || `Semester ${s.id}`,
+    title: s.semester || s.name || s.semesterName || `Semester ${s.id}`,
+  }));
+});
+
+const currentSemesterId = computed(() => {
+  if (props.modelValue.semesterId) return props.modelValue.semesterId;
+  if (!props.modelValue.term) return null;
+  const sem = props.semesters.find(
+    (item) =>
+      (item.semester && item.semester.toLowerCase() === props.modelValue.term.toLowerCase()) ||
+      (item.name && item.name.toLowerCase() === props.modelValue.term.toLowerCase())
+  );
+  return sem?.id ?? null;
+});
+
+const currentCourseId = computed(() => {
+  if (props.modelValue.courseId) return props.modelValue.courseId;
+  const code = (props.modelValue.courseCode || "").trim().toLowerCase();
+  const title = (props.modelValue.courseTitle || "").trim().toLowerCase();
+  if (!code && !title) return null;
+  const c = props.courses.find(
+    (item) =>
+      (code && (item.courseNumber || item.code || "").trim().toLowerCase() === code) ||
+      (title && (item.courseName || item.title || "").trim().toLowerCase() === title)
+  );
+  return c?.id ?? null;
+});
+
+const currentSectionId = computed(() => {
+  if (props.modelValue.sectionId) return props.modelValue.sectionId;
+  const sched = (props.modelValue.schedule || "").trim();
+  const cId = currentCourseId.value;
+  if (!sched && !cId) return null;
+  const s = props.sections.find((item) => {
+    if (cId && item.courseId !== cId) return false;
+    return sched && formatSectionSchedule(item) === sched;
+  });
+  return s?.id ?? null;
+});
+
+const courseChoices = computed(() => {
+  const activeSemId = props.modelValue.semesterId ?? currentSemesterId.value;
+  const activeSemester = props.semesters.find((s) => s.id === activeSemId);
+
+  if (!activeSemester) {
+    return props.courses.map((c) => {
+      const code = c.courseNumber || c.code || "";
+      const name = c.courseName || c.title || "";
+      const cr = c.courseHours ?? c.credits ?? 3;
+      return {
+        id: c.id,
+        courseNumber: code,
+        courseName: name,
+        title: code && name ? `${code} — ${name} (${cr} cr)` : (code || name),
+      };
+    });
+  }
+
+  const term = getSemesterTerm(activeSemester);
+  const semName = (activeSemester.semester || activeSemester.name || "").toLowerCase();
+
+  const filtered = props.courses.filter((course) => {
+    const cTerm = (course.courseTerm || "").toLowerCase();
+    return (
+      (term && cTerm === term.toLowerCase()) ||
+      (semName && cTerm && semName.includes(cTerm))
+    );
+  });
+
+  const list = filtered.length > 0 ? filtered : props.courses;
+  return list.map((c) => {
+    const code = c.courseNumber || c.code || "";
+    const name = c.courseName || c.title || "";
+    const cr = c.courseHours ?? c.credits ?? 3;
     return {
-      id: course.id,
-      code,
-      name,
-      hours,
-      term: course.courseTerm || "",
-      title: code && name ? `${code} — ${name} (${hours} cr)` : (code || name),
-      value: code,
+      id: c.id,
+      courseNumber: code,
+      courseName: name,
+      title: code && name ? `${code} — ${name} (${cr} cr)` : (code || name),
     };
   });
 });
 
-const courseCodeOptions = computed(() => {
-  const codes = props.courses
-    .map((c) => c.courseNumber || c.code)
-    .filter(Boolean);
-  return Array.from(new Set(codes));
+const sectionChoices = computed(() => {
+  const activeCourseId = props.modelValue.courseId ?? currentCourseId.value;
+  const filtered = activeCourseId
+    ? props.sections.filter((section) => section.courseId === activeCourseId)
+    : props.sections;
+
+  return filtered.map((s) => {
+    const sched = formatSectionSchedule(s);
+    return {
+      id: s.id,
+      title: s.sectionNumber
+        ? `Section ${s.sectionNumber}${sched ? ` · ${sched}` : ""}`
+        : (sched || `Section ${s.id}`),
+      sectionNumber: s.sectionNumber,
+      schedule: sched,
+    };
+  });
 });
 
-const courseTitleOptions = computed(() => {
-  const titles = props.courses
-    .map((c) => c.courseName || c.title)
-    .filter(Boolean);
-  return Array.from(new Set(titles));
-});
+const updateSemester = (semesterId) => {
+  const semester = props.semesters.find((item) => item.id === semesterId);
+  const termName = semester?.semester || semester?.name || "";
+  const term = getSemesterTerm(semester);
 
-const termOptions = computed(() => {
-  const fromSemesters = (props.semesters || [])
-    .map((s) => s.name || s.semester || s.semesterName || "")
-    .filter(Boolean);
-  const defaults = ["2026 Fall", "2027 Spring", "2027 Summer", "2025 Fall", "2026 Spring"];
-  return Array.from(new Set([...fromSemesters, ...defaults]));
-});
+  const activeCourseId = props.modelValue.courseId ?? currentCourseId.value;
+  const courseStillValid = props.courses.some(
+    (course) =>
+      course.id === activeCourseId &&
+      ((course.courseTerm || "").toLowerCase() === term.toLowerCase() ||
+        termName.toLowerCase().includes((course.courseTerm || "").toLowerCase()))
+  );
+
+  const matchedCourse = courseStillValid ? props.courses.find((c) => c.id === activeCourseId) : null;
+  const activeSectionId = courseStillValid ? (props.modelValue.sectionId ?? currentSectionId.value) : null;
+
+  emit("update:modelValue", {
+    ...props.modelValue,
+    semesterId,
+    term: termName || props.modelValue.term,
+    courseId: courseStillValid ? activeCourseId : null,
+    courseCode: matchedCourse ? (matchedCourse.courseNumber || matchedCourse.code) : (courseStillValid ? props.modelValue.courseCode : ""),
+    courseTitle: matchedCourse ? (matchedCourse.courseName || matchedCourse.title) : (courseStillValid ? props.modelValue.courseTitle : ""),
+    credits: matchedCourse ? (matchedCourse.courseHours ?? matchedCourse.credits ?? 3) : (courseStillValid ? props.modelValue.credits : ""),
+    sectionId: activeSectionId,
+    schedule: courseStillValid ? props.modelValue.schedule : "",
+  });
+};
+
+const updateCourse = (courseId) => {
+  const course = props.courses.find((c) => c.id === courseId);
+  if (!course) {
+    emit("update:modelValue", {
+      ...props.modelValue,
+      courseId: null,
+      courseCode: "",
+      courseTitle: "",
+      sectionId: null,
+      schedule: "",
+    });
+    return;
+  }
+
+  let newSemesterId = props.modelValue.semesterId ?? currentSemesterId.value;
+  let newTerm = props.modelValue.term;
+  if (!newSemesterId && course.courseTerm) {
+    const matched = props.semesters.find((s) =>
+      (s.semester || s.name || "").toLowerCase().includes(course.courseTerm.toLowerCase())
+    );
+    if (matched) {
+      newSemesterId = matched.id;
+      newTerm = matched.semester || matched.name;
+    }
+  }
+
+  const matchingSections = props.sections.filter((s) => s.courseId === courseId);
+  const activeSectionId = props.modelValue.sectionId ?? currentSectionId.value;
+  const sectionStillValid = matchingSections.some((s) => s.id === activeSectionId);
+  const newSection = sectionStillValid
+    ? props.sections.find((s) => s.id === activeSectionId)
+    : (matchingSections.length === 1 ? matchingSections[0] : null);
+
+  const newSchedule = newSection ? formatSectionSchedule(newSection) : "";
+
+  emit("update:modelValue", {
+    ...props.modelValue,
+    courseId,
+    courseCode: course.courseNumber || course.code || "",
+    courseTitle: course.courseName || course.title || "",
+    credits: course.courseHours ?? course.credits ?? 3,
+    semesterId: newSemesterId,
+    term: newTerm,
+    sectionId: newSection?.id ?? null,
+    schedule: newSchedule || (sectionStillValid ? props.modelValue.schedule : ""),
+  });
+};
+
+const updateSection = (sectionId) => {
+  const section = props.sections.find((s) => s.id === sectionId);
+  if (!section) {
+    emit("update:modelValue", {
+      ...props.modelValue,
+      sectionId: null,
+    });
+    return;
+  }
+
+  const newSchedule = formatSectionSchedule(section);
+  const newCourseId = section.courseId ?? props.modelValue.courseId ?? currentCourseId.value;
+  const course = props.courses.find((c) => c.id === newCourseId);
+
+  let newSemesterId = props.modelValue.semesterId ?? currentSemesterId.value;
+  let newTerm = props.modelValue.term;
+  if (!newSemesterId && course?.courseTerm) {
+    const matched = props.semesters.find((s) =>
+      (s.semester || s.name || "").toLowerCase().includes(course.courseTerm.toLowerCase())
+    );
+    if (matched) {
+      newSemesterId = matched.id;
+      newTerm = matched.semester || matched.name;
+    }
+  }
+
+  emit("update:modelValue", {
+    ...props.modelValue,
+    sectionId,
+    schedule: newSchedule,
+    courseId: newCourseId,
+    semesterId: newSemesterId,
+    term: newTerm,
+    ...(course
+      ? {
+          courseCode: course.courseNumber || course.code || "",
+          courseTitle: course.courseName || course.title || "",
+          credits: course.courseHours ?? course.credits ?? 3,
+        }
+      : {}),
+  });
+};
+
+const semesterRule = [(value) => !!value || !!props.modelValue.term || "Required"];
+const courseRule = [(value) => !!value || !!props.modelValue.courseCode || "Required"];
+const sectionRule = [(value) => !!value || !!props.modelValue.schedule || "Required"];
+const scheduleRule = [(value) => !!value?.toString().trim() || "Required"];
 
 const gradeOptions = ["A", "B", "C", "D", "F", "I", "W"];
 const creditOptions = [1, 2, 3, 4, 5];
-
-const onCourseSelect = (courseCode) => {
-  const code = typeof courseCode === "object" ? (courseCode?.code || courseCode?.value || "") : String(courseCode || "");
-  const matchedCourse = props.courses.find(
-    (c) => (c.code || c.courseNumber || "").toLowerCase() === code.trim().toLowerCase()
-  );
-  if (matchedCourse) {
-    const hours = matchedCourse.courseHours ?? matchedCourse.credits ?? 3;
-    const title = matchedCourse.title || matchedCourse.courseName || "";
-    const term = matchedCourse.courseTerm ? `2026 ${matchedCourse.courseTerm}` : props.modelValue.term;
-    emit("update:modelValue", {
-      ...props.modelValue,
-      courseCode: matchedCourse.courseNumber || matchedCourse.code || code,
-      courseTitle: title,
-      credits: hours,
-      ...(props.modelValue.term ? {} : (term ? { term } : {})),
-    });
-  } else {
-    updateField("courseCode", code);
-  }
-};
-
-const onCourseTitleSelect = (courseTitle) => {
-  const title = typeof courseTitle === "object" ? (courseTitle?.title || courseTitle?.value || "") : String(courseTitle || "");
-  const matchedCourse = props.courses.find(
-    (c) => (c.title || c.courseName || "").toLowerCase() === title.trim().toLowerCase()
-  );
-  if (matchedCourse) {
-    const hours = matchedCourse.courseHours ?? matchedCourse.credits ?? 3;
-    const code = matchedCourse.courseNumber || matchedCourse.code || "";
-    const term = matchedCourse.courseTerm ? `2026 ${matchedCourse.courseTerm}` : props.modelValue.term;
-    emit("update:modelValue", {
-      ...props.modelValue,
-      courseCode: code,
-      courseTitle: matchedCourse.courseName || matchedCourse.title || title,
-      credits: hours,
-      ...(props.modelValue.term ? {} : (term ? { term } : {})),
-    });
-  } else {
-    updateField("courseTitle", title);
-  }
-};
 
 const validate = () => formRef.value?.validate();
 
@@ -132,6 +304,7 @@ defineExpose({ validate });
   <v-form ref="formRef" @submit.prevent="emit('submit')">
     <!-- Mode: Enrolling a course for a student (Feature 7) -->
     <template v-if="mode === 'course'">
+      <!-- Student (read-only) -->
       <v-select
         :model-value="modelValue.studentId"
         label="Student"
@@ -144,53 +317,55 @@ defineExpose({ validate });
         @update:model-value="updateField('studentId', $event)"
       />
 
-      <!-- Quick select course dropdown that autofills Code, Title, and Credits -->
+      <!-- 1. Semester (First selection) -->
       <v-select
-        v-if="courseSelectOptions.length > 0 && !isEdit"
-        label="Select Course (Autofill)"
-        :items="courseSelectOptions"
+        :model-value="modelValue.semesterId ?? currentSemesterId"
+        label="Semester"
+        :items="semesterChoices"
         item-title="title"
-        item-value="code"
+        item-value="id"
         density="comfortable"
-        clearable
-        @update:model-value="onCourseSelect"
+        :rules="semesterRule"
+        @update:model-value="updateSemester"
       />
 
-      <v-combobox
-        :model-value="modelValue.courseCode"
-        label="Course Code"
-        :items="courseCodeOptions"
+      <!-- 2. Course (Filtered by selected semester) -->
+      <v-select
+        :model-value="modelValue.courseId ?? currentCourseId"
+        label="Course"
+        :items="courseChoices"
+        item-title="title"
+        item-value="id"
         density="comfortable"
-        :rules="requiredRule"
-        @update:model-value="onCourseSelect"
+        :rules="courseRule"
+        :disabled="!(modelValue.semesterId ?? currentSemesterId) && semesterChoices.length > 0"
+        @update:model-value="updateCourse"
       />
 
-      <v-combobox
-        :model-value="modelValue.courseTitle"
-        label="Course Title"
-        :items="courseTitleOptions"
+      <!-- 3. Section (Filtered by selected course) -->
+      <v-select
+        :model-value="modelValue.sectionId ?? currentSectionId"
+        label="Section"
+        :items="sectionChoices"
+        item-title="title"
+        item-value="id"
         density="comfortable"
-        :rules="requiredRule"
-        @update:model-value="onCourseTitleSelect"
+        :rules="sectionRule"
+        :disabled="!(modelValue.courseId ?? currentCourseId) && courseChoices.length > 0"
+        @update:model-value="updateSection"
       />
 
-      <v-combobox
-        :model-value="modelValue.term"
-        label="Term"
-        :items="termOptions"
-        density="comfortable"
-        :rules="requiredRule"
-        @update:model-value="updateField('term', $event)"
-      />
-
+      <!-- 4. Schedule (Tied to the selected section/course) -->
       <v-text-field
         :model-value="modelValue.schedule"
         label="Schedule"
         density="comfortable"
-        :rules="requiredRule"
+        :rules="scheduleRule"
+        readonly
         @update:model-value="updateField('schedule', $event)"
       />
 
+      <!-- Room (Edit mode only) -->
       <v-text-field
         v-if="isEdit"
         :model-value="modelValue.room"
@@ -199,6 +374,7 @@ defineExpose({ validate });
         @update:model-value="updateField('room', $event)"
       />
 
+      <!-- Credits (Autofilled from course) -->
       <v-combobox
         :model-value="modelValue.credits"
         label="Credits"
@@ -208,6 +384,7 @@ defineExpose({ validate });
         @update:model-value="updateField('credits', $event)"
       />
 
+      <!-- Grade (Optional) -->
       <v-combobox
         :model-value="modelValue.grade"
         label="Grade"

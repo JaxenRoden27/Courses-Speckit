@@ -4,11 +4,16 @@ import { useRoute } from "vue-router";
 import studentServices from "../services/studentServices.js";
 import courseServices from "../services/courseServices.js";
 import CourseEnrollmentForm from "../components/CourseEnrollmentForm.vue";
+import sectionServices from "../services/sectionServices.js";
+import semesterServices from "../services/semesterServices.js";
 
 const route = useRoute();
 
 const emptyEnrollmentForm = (initialStudentId = null) => ({
   studentId: initialStudentId,
+  semesterId: null,
+  courseId: null,
+  sectionId: null,
   term: "",
   schedule: "",
   room: "",
@@ -22,6 +27,8 @@ const student = ref(null);
 const courses = ref([]);
 const students = ref([]);
 const enrolledCourses = ref([]);
+const sections = ref([]);
+const semesters = ref([]);
 const loading = ref(false);
 const listError = ref("");
 const formDialogOpen = ref(false);
@@ -52,15 +59,19 @@ const retrieveStudentAndCourses = async () => {
   listError.value = "";
 
   try {
-    const [studentsResponse, coursesResponse, enrolledResponse] = await Promise.all([
+    const [studentsResponse, coursesResponse, enrolledResponse, sectionsResponse, semestersResponse] = await Promise.all([
       studentServices.getStudents().catch(() => ({ data: [] })),
       courseServices.getCourses().catch(() => ({ data: [] })),
       studentServices.getStudentCourses(studentId.value).catch(() => ({ data: [] })),
+      sectionServices.getSections().catch(() => ({ data: [] })),
+      semesterServices.getSemesters().catch(() => ({ data: [] })),
     ]);
 
     students.value = studentsResponse?.data || [];
     courses.value = coursesResponse?.data || [];
     enrolledCourses.value = enrolledResponse?.data || [];
+    sections.value = sectionsResponse?.data || [];
+    semesters.value = semestersResponse?.data || [];
 
     let foundStudent =
       students.value.find((row) => row.id === studentId.value) ?? null;
@@ -101,8 +112,24 @@ const openAddCourseDialog = () => {
 const openEditEnrollmentDialog = (course) => {
   isAddMode.value = false;
   editingId.value = course.id;
+
+  const matchedCourse = courses.value.find(
+    (c) => (c.courseNumber || c.code) === (course.courseCode || course.code)
+  );
+  const matchedSemester = semesters.value.find(
+    (s) => (s.semester || s.name) === course.term
+  );
+  const matchedSection = sections.value.find(
+    (s) =>
+      s.id === course.sectionId ||
+      (matchedCourse && s.courseId === matchedCourse.id)
+  );
+
   form.value = {
     studentId: course.studentId ?? studentId.value,
+    semesterId: course.semesterId ?? matchedSemester?.id ?? null,
+    courseId: matchedCourse?.id ?? null,
+    sectionId: course.sectionId ?? matchedSection?.id ?? null,
     term: course.term ?? "",
     schedule: course.schedule ?? "",
     room: course.room ?? "",
@@ -133,6 +160,8 @@ const saveEnrollment = async () => {
 
   const payload = {
     studentId: studentId.value,
+    ...(form.value.semesterId ? { semesterId: form.value.semesterId } : {}),
+    ...(form.value.sectionId ? { sectionId: form.value.sectionId } : {}),
     term: form.value.term?.trim(),
     schedule: form.value.schedule?.trim(),
     courseCode: form.value.courseCode?.trim(),
@@ -256,6 +285,8 @@ watch(() => route.params.studentId, retrieveStudentAndCourses);
             v-model="form"
             :students="students"
             :courses="courses"
+            :sections="sections"
+            :semesters="semesters"
             mode="course"
             :is-edit="!isAddMode"
             @submit="saveEnrollment"
