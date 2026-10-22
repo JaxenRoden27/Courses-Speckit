@@ -9,8 +9,10 @@ const exports = {};
 
 exports.findAll = async (req, res) => {
   try {
+    const role = req.query.role || "faculty";
+    const where = role === "all" ? {} : { role };
     const users = await db.user.findAll({
-      where: { role: "faculty" },
+      where,
       attributes: ["id", "universityId", "fName", "lName"],
       order: [["universityId", "ASC"]],
     });

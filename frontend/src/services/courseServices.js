@@ -5,6 +5,10 @@ const courseServices = {
     return apiClient.get("courses");
   },
 
+  getCourses() {
+    return apiClient.get("courses");
+  },
+
   create(course) {
     return apiClient.post("courses", course);
   },

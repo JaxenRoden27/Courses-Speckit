@@ -10,7 +10,9 @@ import Sections from "./views/Sections.vue";
 import Section from "./views/Section.vue";
 import Faculty from "./views/Faculty.vue";
 import Courses from "./views/Courses.vue";
-
+import StudentCourses from "./views/StudentCourses.vue";
+import StudentList from "./views/StudentList.vue";
+import SectionStudents from "./views/SectionStudents.vue";
 
 const publicRouteNames = new Set(["login", "register"]);
 
@@ -75,6 +77,25 @@ const router = createRouter({
       component: Enrollments,
     },
     {
+      path: "/students",
+      name: "students",
+      component: StudentList,
+    },
+    {
+      path: "/students/:studentId/courses",
+      name: "student",
+      component: StudentCourses,
+      props: true,
+      meta: { requiresAdmin: true },
+    },
+    {
+      path: "/sections/:sectionId/students",
+      name: "sectionStudents",
+      component: SectionStudents,
+      props: true,
+      meta: { requiresAdmin: true },
+    },
+    {
       path: "/:pathMatch(.*)*",
       redirect: { name: "home" },
     },
@@ -97,7 +118,7 @@ router.beforeEach((to, _from, next) => {
 
   if (
     user &&
-    ["faculty", "sections", "section"].includes(to.name) &&
+    ["faculty", "sections", "section", "sectionStudents", "students", "student"].includes(to.name) &&
     user.role?.toLowerCase?.().trim() !== "faculty"
   ) {
     next({ name: "home" });
