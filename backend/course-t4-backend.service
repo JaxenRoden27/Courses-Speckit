@@ -7,7 +7,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/home/ubuntu/nodeapps/2026/project3/t4
-ExecStart=/home/ubuntu/.nvm/versions/node/v18.20.8/bin/node server.js
+ExecStart=/usr/local/bin/node server.js
 Restart=on-failure
 
 [Install]

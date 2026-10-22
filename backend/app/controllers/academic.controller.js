@@ -94,10 +94,10 @@ const enrollStudentCourse = async (req, res) => {
     let targetSectionId = sectionId ? parseInt(sectionId, 10) : null;
 
     if (!targetSemesterId && term) {
+      const allSemesters = await db.semester.findAll();
       const semester =
-        (await db.semester.findOne({
-          where: db.Sequelize.or({ semester: term }, { semesterName: term }),
-        })) || (await db.semester.findOne());
+        allSemesters.find((s) => s.semester === term || term?.includes(s.semester) || s.semester?.includes(term)) ||
+        allSemesters[0];
       if (semester) targetSemesterId = semester.id;
     } else if (!targetSemesterId) {
       const firstSemester = await db.semester.findOne();

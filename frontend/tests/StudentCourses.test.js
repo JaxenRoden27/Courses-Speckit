@@ -11,6 +11,8 @@ import StudentCourses from "../src/views/StudentCourses.vue";
 import studentServices from "../src/services/studentServices.js";
 import courseServices from "../src/services/courseServices.js";
 import enrollmentServices from "../src/services/enrollmentServices.js";
+import sectionServices from "../src/services/sectionServices.js";
+import semesterServices from "../src/services/semesterServices.js";
 import { mountWithPlugins } from "./testUtils.js";
 
 vi.mock("../src/services/studentServices.js", () => ({
@@ -27,6 +29,18 @@ vi.mock("../src/services/courseServices.js", () => ({
   default: {
     getCourses: vi.fn(),
     findAll: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/sectionServices.js", () => ({
+  default: {
+    getSections: vi.fn(),
+  },
+}));
+
+vi.mock("../src/services/semesterServices.js", () => ({
+  default: {
+    getSemesters: vi.fn(),
   },
 }));
 
@@ -134,6 +148,23 @@ describe("Feature 7 — Student Course Listing", () => {
 
     courseServices.getCourses.mockResolvedValue({
       data: [{ id: 1, courseNumber: "CS-101", courseName: "Intro to Programming" }],
+    });
+
+    sectionServices.getSections.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          sectionNumber: "1",
+          courseId: 1,
+          daysOfWeek: "MWF",
+          startTime: "10:00:00",
+          endTime: "10:50:00",
+        },
+      ],
+    });
+
+    semesterServices.getSemesters.mockResolvedValue({
+      data: [{ id: 1, semester: "Fall 2026", name: "Fall 2026" }],
     });
   });
 
@@ -276,6 +307,48 @@ describe("Feature 7 — Student Course Listing", () => {
 
       expect(studentServices.enrollCourse).not.toHaveBeenCalled();
       expect(dialogWith(w, "Enroll Course")).toBeTruthy();
+    });
+
+    it("only displays the semester the student is currently enrolled in and does not populate courses from other terms", async () => {
+      semesterServices.getSemesters.mockResolvedValue({
+        data: [
+          { id: 1, semester: "Fall 2026", name: "Fall 2026" },
+          { id: 2, semester: "Spring 2027", name: "Spring 2027" },
+        ],
+      });
+      courseServices.getCourses.mockResolvedValue({
+        data: [
+          { id: 1, courseNumber: "CS-101", courseName: "Intro to Programming", courseTerm: "Fall" },
+          { id: 2, courseNumber: "CS-201", courseName: "Data Structures", courseTerm: "Spring" },
+        ],
+      });
+
+      const { wrapper: w } = await mountView("/students/1/courses");
+
+      await clickButton(w, "Enroll Course");
+
+      const dialog = dialogWith(w, "Enroll Course");
+      expect(dialog).toBeTruthy();
+
+      const form = w.findComponent({ name: "CourseEnrollmentForm" });
+      expect(form.exists()).toBe(true);
+
+      const passedSemesters = form.props("semesters");
+      expect(passedSemesters).toHaveLength(1);
+      expect(passedSemesters[0].semester).toBe("Fall 2026");
+
+      const selects = form.findAllComponents({ name: "VSelect" });
+      const semesterSelect = selects.find((s) => s.props("label") === "Semester");
+      expect(semesterSelect).toBeTruthy();
+      const items = semesterSelect.props("items");
+      expect(items).toHaveLength(1);
+      expect(items[0].title).toBe("Fall 2026");
+
+      const courseSelect = selects.find((s) => s.props("label") === "Course");
+      expect(courseSelect).toBeTruthy();
+      const courseItems = courseSelect.props("items");
+      expect(courseItems.some((c) => c.courseNumber === "CS-101")).toBe(true);
+      expect(courseItems.some((c) => c.courseNumber === "CS-201")).toBe(false);
     });
   });
 
