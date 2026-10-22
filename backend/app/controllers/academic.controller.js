@@ -168,6 +168,33 @@ const updateEnrollment = async (req, res) => {
       return res.status(404).send({ message: `Enrollment with id=${enrollmentId} not found.` });
     }
 
+    if (req.body.studentId !== undefined || req.body.sectionId !== undefined) {
+      const studentId = req.body.studentId !== undefined ? parseInt(req.body.studentId, 10) : enrollment.studentId;
+      const sectionId = req.body.sectionId !== undefined ? parseInt(req.body.sectionId, 10) : enrollment.sectionId;
+
+      if (req.body.studentId !== undefined) {
+        const student = await db.user.findByPk(studentId);
+        if (!student) {
+          return res.status(404).send({ message: "Student not found." });
+        }
+      }
+
+      const existing = await db.enrollment.findOne({
+        where: {
+          studentId,
+          sectionId,
+          id: { [db.Sequelize.Op.ne]: enrollmentId },
+        },
+      });
+      if (existing) {
+        return res.status(400).send({ message: "Student is already enrolled in this section." });
+      }
+
+      enrollment.studentId = studentId;
+      enrollment.sectionId = sectionId;
+      await enrollment.save();
+    }
+
     const { term, schedule, courseCode, courseTitle, credits, grade, room } = req.body;
     const currentMeta = enrollmentMetadata.get(enrollmentId) || {};
     const updatedMeta = {

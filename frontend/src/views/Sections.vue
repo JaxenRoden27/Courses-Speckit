@@ -106,6 +106,10 @@ const openSection = (section) => {
   router.push({ name: "section", params: { sectionId: section.id } });
 };
 
+const openSectionStudents = (section) => {
+  router.push(`/sections/${section.id}/students`);
+};
+
 const openDeleteDialog = (section) => {
   sectionToDelete.value = section;
   deleteDialogOpen.value = true;
@@ -194,10 +198,18 @@ onMounted(retrieveSections);
                   <v-icon
                     size="small"
                     class="mx-4"
+                    aria-label="View students"
+                    @click="openSectionStudents(section)"
+                  >
+                    mdi-account-group
+                  </v-icon>
+                  <v-icon
+                    size="small"
+                    class="mx-4"
                     aria-label="Open section"
                     @click="openSection(section)"
                   >
-                    mdi-account-group
+                    mdi-pencil
                   </v-icon>
                   <v-icon
                     size="small"

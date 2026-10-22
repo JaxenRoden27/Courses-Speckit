@@ -13,7 +13,7 @@
 ### US-8.1: Open a section from the list
 **As a** signed-in admin user
 **I want** each section row to show a **view students** icon
-**So that** I can open one section from the Sections List
+**So that** I can open one section without leaving the sections catalog
 
 **Priority:** P1  
 **Independent test:** From the Sections List, click **View students**; the Section Student View appears  
@@ -37,15 +37,6 @@
 **Independent test:** On the Section Student View, click **Enroll Student**; the enroll-student dialog opens with this section selected  
 **Acceptance scenarios:** see ### US-8.3 under Acceptance Criteria
 
-### US-8.4: Restrict the Section Student View to admins
-**As the** application
-**I want** `/sections/:sectionId/students` to follow the same admin-only UI rules as the Sections List
-**So that** users with role `student` cannot open the section student manager
-
-**Priority:** P1  
-**Independent test:** Unauthenticated navigation to `/sections/1/students` redirects to `login`; users with role `student` do not see **Sections**  
-**Acceptance scenarios:** see ### US-8.4 under Acceptance Criteria
-
 ### US-8.5: Edit an enrollment from the Section Student View
 **As a** signed-in admin user
 **I want** an edit icon on each student in the section student list
@@ -55,41 +46,51 @@
 **Independent test:** On the Section Student View, click **Edit Enrollment**; the edit dialog opens with that enrollment's values  
 **Acceptance scenarios:** see ### US-8.5 under Acceptance Criteria
 
+### US-8.4: Restrict the Section Student View to admins
+**As the** application
+**I want** `/sections/:sectionId/students` to follow the same admin-only UI rules as the Sections List
+**So that** users with role `student` cannot open the section student manager
+
+**Priority:** P1  
+**Independent test:** Unauthenticated navigation to `/sections/1/students` redirects to `login`; users with role `student` do not see **Sections**  
+**Acceptance scenarios:** see ### US-8.4 under Acceptance Criteria
+
 ## Requirements
 
 ### Functional Requirements
 
-- **FR-001**: This feature adds a **Section Student View** in `SectionStudents.vue` at route name `section`, path `/sections/:sectionId/students`. The Sections List remains `SectionList.vue` at `/sections`.
-- **FR-002**: The Sections List keeps Feature 5 create / edit / delete dialogs. Each section row adds a **View students** icon action that navigates to `/sections/:sectionId/students`. Section number stays plain text (not a link).
-- **FR-003**: The Section Student View has a **heading area** with Section Info: section **number**, **course** (code and title), **semester**, **faculty** name, and **schedule** (`daysOfWeek` plus `startTime`–`endTime`).
-- **FR-004**: The Section Student View lists **only enrolled students whose `sectionId` matches this section**. Columns: **name** (last name, first name), **university ID**, **email**, and **actions**. Rows stay ordered by last name, then first name. Each student row shows an **Edit Enrollment** icon (`mdi-pencil`, `aria-label="Edit Enrollment"`) that opens the Feature 6 **Edit Enrollment** dialog pre-filled with that enrollment.
-- **FR-005**: The Section Student View shows **Enroll Student** (`oc-cta`). That button opens the Feature 6 **Enroll Student** dialog with `sectionId` already set to this section.
-- **FR-006**: Creating an enrollment from the Section Student View MUST use `POST /academic/sections/:sectionId/students` and Feature 6 field rules (required fields, student not already enrolled in this section). After a successful create, the dialog closes and the new student appears in this section's student list.
-- **FR-007**: Empty students list copy is **"No students enrolled yet. Enroll your first student."** Unknown `sectionId` shows **"Section with id=<id> not found."**
+- **FR-001**: This feature MUST add a **Section Student View** in `SectionStudents.vue` at route name `section`, path `/sections/:sectionId/students`. The Sections List remains `SectionList.vue` at `/sections`.
+- **FR-002**: The Sections List MUST keep Feature 5 create / edit / delete dialogs. Each section row MUST add a **View students** icon action that navigates to `/sections/:sectionId/students`. Section number MUST stay plain text (not a link).
+- **FR-003**: The Section Student View MUST have a **heading area** with Section Info: section **number**, **course** (code and title), **semester**, **faculty** name, and **schedule** (`daysOfWeek` plus `startTime`–`endTime`).
+- **FR-004**: The Section Student View MUST list **only enrolled students whose `sectionId` matches this section**. Columns: **name** (last name, first name), **university ID**, **email**, and **actions**. Rows MUST stay ordered by last name, then first name. Each student row MUST show an **Edit Enrollment** icon (`mdi-pencil`, `aria-label="Edit Enrollment"`) that opens the Feature 6 **Edit Enrollment** dialog pre-filled with that enrollment.
+- **FR-005**: The Section Student View MUST show **Enroll Student** (`oc-cta`). That button MUST open the Feature 6 **Enroll Student** dialog with `sectionId` already set to this section.
+- **FR-006**: Creating an enrollment from the Section Student View MUST use `POST /academic/sections/:sectionId/students` and Feature 6 field rules (required fields, student not already enrolled in this section). After a successful create, the dialog MUST close and the new student MUST appear in this section's student list.
+- **FR-007**: Empty students list copy MUST be **"No students enrolled yet. Enroll your first student."** Unknown `sectionId` MUST show **"Section with id=<id> not found."**
 - **FR-008**: Unauthenticated navigation to `/sections/:sectionId/students` MUST redirect to `login`. Users with role `student` MUST NOT see **Sections** in `MenuBar` (Feature 5). This feature MUST NOT add a second `MenuBar` item.
 - **FR-009**: This feature MUST NOT add a `students` table, new student fields, or new enrollment endpoints. Reuse Feature 6 `GET /academic/sections/:sectionId/students`, `POST /academic/sections/:sectionId/students`, `PUT /academic/enrollments/:enrollmentId`, Feature 5 `GET /academic/sections`, and Feature 1 `GET /academic/students`. Filter enrolled students on the client by `sectionId` when the list API is unscoped.
-- **FR-010**: Feature 5 **Sections** catalog at `/sections` remains. Delete of enrollments stays on the Feature 6 catalog unless a later feature moves it.
-- **FR-011**: Saving an edit from the Section Student View MUST use `PUT /academic/enrollments/:enrollmentId` and Feature 6 edit rules. After a successful save, the dialog closes and the section student list refreshes.
+- **FR-010**: Feature 5 **Sections** catalog at `/sections` MUST remain. Delete of enrollments stays on the Feature 6 catalog unless a later feature moves it.
+- **FR-011**: Saving an edit from the Section Student View MUST use `PUT /academic/enrollments/:enrollmentId` and Feature 6 edit rules. After a successful save, the dialog MUST close and the section student list MUST refresh.
 
 ---
 
 ## Assumptions
 
-- Features 1–6 need to be on `dev` before this feature is implemented.
+- Features 1–6 MUST be merged to `dev` before implementing this feature.
 - A Section Student View is a parent-row drill-down: list row opens a dedicated page; mutations stay in dialogs.
 - Section Info in the heading comes from the existing section object (including nested `course`, `semester`, and `faculty`).
 - **Enroll Student** uses the existing `CourseEnrollmentForm` create fields. Section is pre-filled; the user still selects the student. University ID and email come from the selected student; they are not entered as enrollment fields.
 - Students shown in the enroll-student dialog still come from `GET /academic/students`. Feature 6 server rules still reject a student who is already enrolled in this section.
 - No `GET /academic/sections/:sectionId` is required. The view MAY load `GET /academic/sections` and `GET /academic/sections/:sectionId/students` and select the matching rows (same pattern as [Feature 7](feature-7-student-course-listing.md)).
-- Feature 5 list edit / delete stay on the Sections List. **Edit Enrollment** is available on the Section Student View (US-8.5). Delete enrollment stays on Feature 6. **Edit Section** stays on the Sections List.
+- Feature 5 list edit / delete stay on the Sections List. This feature does not move **Edit Section** onto the Section Student View.
 
 ## Edge Cases
 
 - Section with zero enrolled students → **"No students enrolled yet. Enroll your first student."**
 - Unknown `sectionId` → **"Section with id=<id> not found."**
 - **Enroll Student** with a missing required field → **"Required"**; no `POST`.
+- **Enroll Student** with a missing required Feature 6 create field → **"Required"**; no `POST`.
 - Unauthenticated `/sections/:sectionId/students` → redirect to `login`.
-- Student enrolled from this view for a different section (user changes the pre-filled section) → stored under that section; it does not stay on this section's list.
+- Student enrolled from this view for a different section (user changes the pre-filled section) → stored under that section; it MUST NOT stay on this section's list.
 
 ## Success Criteria
 
@@ -159,7 +160,8 @@ Feature 5 list, with this change:
 
 **App chrome**
 
-- Use the Feature 1 `MenuBar`. **Sections** still goes to `/sections`. Opening a section from that list shows this view.
+- Use the Feature 1 `MenuBar`. Do **not** create a second `MenuBar`. Do **not** add another menu item.
+- **Sections** still goes to `/sections`. Opening a section from that list shows this view.
 
 ---
 
@@ -211,7 +213,7 @@ No schema change. Existing Feature 5 `sections` and Feature 6 enrollments (`enro
 #### Scenario: Section Student View lists students for that section
 
 * **Given** I am signed in as a user with role `admin`
-* **And** `Jane Doe` is enrolled in section `CS-101-01`
+* **And** a student `Jane Doe` exists in section `CS-101-01`
 * **And** I am viewing the Section Student View for `CS-101-01`
 * **When** I view the students list
 * **Then** `Jane Doe` is displayed in the list
@@ -219,12 +221,12 @@ No schema change. Existing Feature 5 `sections` and Feature 6 enrollments (`enro
 #### Scenario: Section Student View does not list students from another section
 
 * **Given** I am signed in as a user with role `admin`
-* **And** `Jane Doe` is enrolled in a different section
+* **And** a student `Jane Doe` exists in a different section
 * **And** I am viewing the Section Student View for `CS-101-01`
 * **When** I view the students list
 * **Then** `Jane Doe` is not displayed in the list
 
-#### Scenario: Section has no enrolled students
+#### Scenario: User has no students in the section
 
 * **Given** I am signed in as a user with role `admin`
 * **And** I am viewing the Section Student View for `CS-101-01`
@@ -279,16 +281,6 @@ No schema change. Existing Feature 5 `sections` and Feature 6 enrollments (`enro
 
 ---
 
-### US-8.4 — Restrict the Section Student View to admins
-
-#### Scenario: Unauthenticated user navigates to a section
-
-* **Given** I have no session in `localStorage`
-* **When** I navigate to `/sections/1/students`
-* **Then** I am redirected to the login page
-
----
-
 ### US-8.5 — Edit an enrollment from the Section Student View
 
 #### Scenario: Section Student View student rows show an edit action
@@ -321,24 +313,34 @@ No schema change. Existing Feature 5 `sections` and Feature 6 enrollments (`enro
 
 ---
 
+### US-8.4 — Restrict the Section Student View to admins
+
+#### Scenario: Unauthenticated user navigates to a section
+
+* **Given** I have no session in `localStorage`
+* **When** I navigate to `/sections/1/students`
+* **Then** I am redirected to the login page
+
+---
+
 ## Test Coverage Map
 
-| Story  | Scenario                                                                               | Test file                                | Test name                                                 |
-| ------ | -------------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------- |
-| US-8.1 | section rows show a view students action                                               | `frontend/tests/SectionStudents.test.js` | `sections list rows include a view students icon`         |
-| US-8.1 | User opens a section from the Sections List                                            | `frontend/tests/SectionStudents.test.js` | `view students icon opens the Section Student View`       |
-| US-8.2 | Section Student View shows Section Info                                                | `frontend/tests/SectionStudents.test.js` | `shows section number and course in the heading`          |
-| US-8.2 | Section Student View lists students for that section                                   | `frontend/tests/SectionStudents.test.js` | `lists enrolled students for the open section`            |
-| US-8.2 | Section Student View does not list students from another section                       | `frontend/tests/SectionStudents.test.js` | `hides students that belong to another section`           |
-| US-8.2 | Section has no enrolled students                                                       | `frontend/tests/SectionStudents.test.js` | `shows empty copy when the section has no students`       |
-| US-8.3 | User selects to enroll a student from the Section Student View                         | `frontend/tests/SectionStudents.test.js` | `enroll student opens with this section selected`         |
-| US-8.3 | User creates an enrollment from the Section Student View                               | `frontend/tests/SectionStudents.test.js` | `create from this view adds the student to the list`      |
-| US-8.3 | User creates an enrollment from the Section Student View with a missing required field | `frontend/tests/SectionStudents.test.js` | `create with a blank required field stays on the dialog`  |
-| US-8.3 | User enrolls a student who is already in the section                                   | `frontend/tests/SectionStudents.test.js` | `duplicate enrollment in the same section is rejected`    |
-| US-8.4 | Unauthenticated user navigates to a section                                            | `frontend/tests/router.test.js`          | `unauthenticated section view redirects to login`         |
-| US-8.5 | Section Student View student rows show an edit action                                  | `frontend/tests/SectionStudents.test.js` | `student rows include an edit enrollment icon`            |
-| US-8.5 | User selects to edit an enrollment from the Section Student View                       | `frontend/tests/SectionStudents.test.js` | `edit enrollment opens with current values`               |
-| US-8.5 | User edits an enrollment from the Section Student View                                 | `frontend/tests/SectionStudents.test.js` | `save enrollment refreshes the student list`              |
+| Story  | Scenario                                                                                 | Test file                                | Test name                                                                                |
+| ------ | ---------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| US-8.1 | section rows show a view students action                                                 | `frontend/tests/SectionStudents.test.js` | `section rows show a view students action`                                               |
+| US-8.1 | User opens a section from the Sections List                                              | `frontend/tests/SectionStudents.test.js` | `User opens a section from the Sections List`                                            |
+| US-8.2 | Section Student View shows Section Info                                                  | `frontend/tests/SectionStudents.test.js` | `Section Student View shows Section Info`                                                |
+| US-8.2 | Section Student View lists students for that section                                     | `frontend/tests/SectionStudents.test.js` | `Section Student View lists students for that section`                                   |
+| US-8.2 | Section Student View does not list students from another section                         | `frontend/tests/SectionStudents.test.js` | `Section Student View does not list students from another section`                       |
+| US-8.2 | User has no students in the section                                                      | `frontend/tests/SectionStudents.test.js` | `User has no students in the section`                                                    |
+| US-8.3 | User selects to enroll a student from the Section Student View                           | `frontend/tests/SectionStudents.test.js` | `User selects to enroll a student from the Section Student View`                         |
+| US-8.3 | User creates an enrollment from the Section Student View                                 | `frontend/tests/SectionStudents.test.js` | `User creates an enrollment from the Section Student View`                               |
+| US-8.3 | User creates an enrollment from the Section Student View with a missing required field   | `frontend/tests/SectionStudents.test.js` | `User creates an enrollment from the Section Student View with a missing required field` |
+| US-8.3 | User enrolls a student who is already in the section                                     | `frontend/tests/SectionStudents.test.js` | `User enrolls a student who is already in the section`                                   |
+| US-8.5 | Section Student View student rows show an edit action                                    | `frontend/tests/SectionStudents.test.js` | `Section Student View student rows show an edit action`                                  |
+| US-8.5 | User selects to edit an enrollment from the Section Student View                         | `frontend/tests/SectionStudents.test.js` | `User selects to edit an enrollment from the Section Student View`                       |
+| US-8.5 | User edits an enrollment from the Section Student View                                   | `frontend/tests/SectionStudents.test.js` | `User edits an enrollment from the Section Student View`                                 |
+| US-8.4 | Unauthenticated user navigates to a section                                              | `frontend/tests/router.test.js`          | `Unauthenticated user navigates to a section`                                            |
 
 ---
 
@@ -362,13 +364,13 @@ Reference updates for this feature: `features/reference/behavior.md` (Section St
 
 ## Definition of Done
 
-- [ ] Backend and frontend implemented per this spec (**FR-00N** satisfied)
-- [ ] **Success Criteria (SC-00N)** met
-- [ ] All mapped tests pass (`npm test`)
-- [ ] Test Coverage Map complete
-- [ ] `features/reference/data-model.md` updated (if schema changed)
-- [ ] `features/reference/api.md` updated (if API changed)
-- [ ] `features/reference/behavior.md` updated (if product rules changed)
+- [x] Backend and frontend implemented per this spec (**FR-00N** satisfied)
+- [x] **Success Criteria (SC-00N)** met
+- [x] All mapped tests pass (`npm test`)
+- [x] Test Coverage Map complete
+- [x] `features/reference/data-model.md` updated (if schema changed)
+- [x] `features/reference/api.md` updated (if API changed)
+- [x] `features/reference/behavior.md` updated (if product rules changed)
 
 ---
 
@@ -386,5 +388,5 @@ Reference updates for this feature: `features/reference/behavior.md` (Section St
 
 ## Delivered to later features
 
-- The Sections List now opens `SectionStudents.vue`. A later feature MAY add **Edit Section** or extra enrollment row actions on that view.
+- The Sections List now opens `SectionStudents.vue`. A later feature MAY add **Edit Section** or enrollment row actions on that view; it MUST NOT create a second sections `MenuBar` item.
 - This view is the section-side roster. [Feature 7](feature-7-student-course-listing.md) remains the student-side course list. Both reuse Feature 6 enrollments.
