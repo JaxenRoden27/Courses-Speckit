@@ -101,10 +101,82 @@ const retrieveStudentAndCourses = async () => {
   }
 };
 
+const normalizeTerm = (str) =>
+  String(str || "")
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort()
+    .join(" ");
+
+const semesterMatchesCourse = (semester, course) => {
+  if (!semester || !course) return false;
+
+  if (course.semesterId && Number(semester.id) === Number(course.semesterId)) {
+    return true;
+  }
+
+  const semName = (semester.semester || semester.name || semester.semesterName || "").trim().toLowerCase();
+  const courseTerm = (course.term || "").trim().toLowerCase();
+  if (!semName || !courseTerm) return false;
+
+  if (semName === courseTerm) return true;
+
+  const normSem = normalizeTerm(semName);
+  const normCourse = normalizeTerm(courseTerm);
+  if (normSem && normCourse && normSem === normCourse) return true;
+
+  const semWords = semName.split(/\s+/).filter(Boolean);
+  const courseWords = courseTerm.split(/\s+/).filter(Boolean);
+  if (semWords.length >= 2 && courseWords.length >= 2) {
+    const allSemInCourse = semWords.every((w) => courseWords.includes(w));
+    const allCourseInSem = courseWords.every((w) => semWords.includes(w));
+    if (allSemInCourse || allCourseInSem) return true;
+  }
+
+  return false;
+};
+
+const enrolledSemesters = computed(() => {
+  const enrolled = studentEnrolledCourses.value;
+  if (!enrolled || enrolled.length === 0) {
+    const studentOwned = semesters.value.filter((s) => Number(s.userId) === Number(studentId.value));
+    return studentOwned.length > 0 ? studentOwned : semesters.value;
+  }
+
+  const matched = semesters.value.filter((s) =>
+    enrolled.some((course) => semesterMatchesCourse(s, course))
+  );
+
+  if (matched.length > 0) {
+    return matched;
+  }
+
+  const termsMap = new Map();
+  enrolled.forEach((course) => {
+    const term = course.term || (course.semesterId ? `Semester ${course.semesterId}` : "");
+    if (term && !termsMap.has(term)) {
+      termsMap.set(term, {
+        id: course.semesterId || term,
+        semester: term,
+        name: term,
+      });
+    }
+  });
+
+  return termsMap.size > 0 ? Array.from(termsMap.values()) : semesters.value;
+});
+
 const openAddCourseDialog = () => {
   isAddMode.value = true;
   editingId.value = null;
   form.value = emptyEnrollmentForm(studentId.value);
+  if (enrolledSemesters.value.length === 1) {
+    const singleSem = enrolledSemesters.value[0];
+    form.value.semesterId = singleSem.id;
+    form.value.term = singleSem.semester || singleSem.name || "";
+  }
   formError.value = "";
   formDialogOpen.value = true;
 };
@@ -117,7 +189,9 @@ const openEditEnrollmentDialog = (course) => {
     (c) => (c.courseNumber || c.code) === (course.courseCode || course.code)
   );
   const matchedSemester = semesters.value.find(
-    (s) => (s.semester || s.name) === course.term
+    (s) =>
+      (course.semesterId && Number(s.id) === Number(course.semesterId)) ||
+      semesterMatchesCourse(s, course)
   );
   const matchedSection = sections.value.find(
     (s) =>
@@ -130,7 +204,7 @@ const openEditEnrollmentDialog = (course) => {
     semesterId: course.semesterId ?? matchedSemester?.id ?? null,
     courseId: matchedCourse?.id ?? null,
     sectionId: course.sectionId ?? matchedSection?.id ?? null,
-    term: course.term ?? "",
+    term: course.term ?? matchedSemester?.semester ?? matchedSemester?.name ?? "",
     schedule: course.schedule ?? "",
     room: course.room ?? "",
     courseCode: course.courseCode ?? course.code ?? "",
@@ -286,7 +360,7 @@ watch(() => route.params.studentId, retrieveStudentAndCourses);
             :students="students"
             :courses="courses"
             :sections="sections"
-            :semesters="semesters"
+            :semesters="enrolledSemesters"
             mode="course"
             :is-edit="!isAddMode"
             @submit="saveEnrollment"
