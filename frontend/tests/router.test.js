@@ -119,3 +119,18 @@ describe("Feature 6 — Enrollment Management", () => {
     });
   });
 });
+
+describe("Feature 7 — Student Course Listing", () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await router.push("/login");
+  });
+
+  describe("US-7.4 — Restrict the Student Course View to admins", () => {
+    it("unauthenticated course view redirects to login", async () => {
+      await router.push("/students/1/courses");
+
+      expect(router.currentRoute.value.name).toBe("login");
+    });
+  });
+});

@@ -16,12 +16,19 @@ const updateField = (field, value) => {
   emit("update:modelValue", { ...props.modelValue, [field]: value });
 };
 
+const getSemesterTerm = (semester) => {
+  if (!semester?.name) return "";
+  const parts = semester.name.split(" ");
+  return parts.find((p) => ["Fall", "Spring", "Summer", "Winter"].includes(p)) || parts[0];
+};
+
 const updateSemester = (semesterId) => {
   const semester = props.semesters.find((item) => item.id === semesterId);
-  const term = semester?.name?.split(" ")[0];
+  const term = getSemesterTerm(semester);
   const courseStillValid = props.courses.some(
     (course) =>
-      course.id === props.modelValue.courseId && course.courseTerm === term,
+      course.id === props.modelValue.courseId &&
+      (course.courseTerm === term || semester?.name?.toLowerCase().includes((course.courseTerm || "").toLowerCase())),
   );
 
   emit("update:modelValue", {
@@ -33,33 +40,81 @@ const updateSemester = (semesterId) => {
 };
 
 const updateCourse = (courseId) => {
-  const sectionStillValid = props.sections.some(
-    (section) =>
-      section.id === props.modelValue.sectionId &&
-      section.courseId === courseId,
+  const course = props.courses.find((c) => c.id === courseId);
+  let newSemesterId = props.modelValue.semesterId;
+  if (!newSemesterId && course?.courseTerm) {
+    const matchedSemester = props.semesters.find((s) =>
+      s.name?.toLowerCase().includes(course.courseTerm.toLowerCase())
+    );
+    if (matchedSemester) newSemesterId = matchedSemester.id;
+  }
+
+  const matchingSections = props.sections.filter(
+    (section) => section.courseId === courseId
   );
+  const sectionStillValid = matchingSections.some(
+    (section) => section.id === props.modelValue.sectionId
+  );
+  const newSectionId = sectionStillValid
+    ? props.modelValue.sectionId
+    : (matchingSections.length === 1 ? matchingSections[0].id : null);
 
   emit("update:modelValue", {
     ...props.modelValue,
     courseId,
-    sectionId: sectionStillValid ? props.modelValue.sectionId : null,
+    semesterId: newSemesterId,
+    sectionId: newSectionId,
+  });
+};
+
+const updateSection = (sectionId) => {
+  const section = props.sections.find((s) => s.id === sectionId);
+  const newCourseId = section?.courseId ?? props.modelValue.courseId;
+  let newSemesterId = props.modelValue.semesterId;
+  if (!newSemesterId && newCourseId) {
+    const course = props.courses.find((c) => c.id === newCourseId);
+    if (course?.courseTerm) {
+      const matched = props.semesters.find((s) =>
+        s.name?.toLowerCase().includes(course.courseTerm.toLowerCase())
+      );
+      if (matched) newSemesterId = matched.id;
+    }
+  }
+
+  emit("update:modelValue", {
+    ...props.modelValue,
+    sectionId,
+    courseId: newCourseId,
+    semesterId: newSemesterId,
   });
 };
 
 const courseChoices = computed(() => {
+  if (!props.modelValue.semesterId) {
+    return props.courses;
+  }
   const semester = props.semesters.find(
     (item) => item.id === props.modelValue.semesterId,
   );
-  const term = semester?.name?.split(" ")[0];
-  if (!term) return [];
-  return props.courses.filter((course) => course.courseTerm === term);
+  if (!semester) return props.courses;
+  const term = getSemesterTerm(semester);
+  const filtered = props.courses.filter(
+    (course) =>
+      course.courseTerm === term ||
+      semester.name.toLowerCase().includes((course.courseTerm || "").toLowerCase())
+  );
+  return filtered.length > 0 ? filtered : props.courses;
 });
 
-const sectionChoices = computed(() =>
-  props.sections.filter(
+const sectionChoices = computed(() => {
+  if (!props.modelValue.courseId) {
+    return props.sections;
+  }
+  const filtered = props.sections.filter(
     (section) => section.courseId === props.modelValue.courseId,
-  ),
-);
+  );
+  return filtered.length > 0 ? filtered : props.sections;
+});
 
 const semesterRules = [(value) => !!value || "Required"];
 const courseRules = [(value) => !!value || "Required"];
@@ -100,7 +155,7 @@ defineExpose({ validate });
       item-value="id"
       density="comfortable"
       :rules="sectionRules"
-      @update:model-value="updateField('sectionId', $event)"
+      @update:model-value="updateSection"
     />
   </v-form>
 </template>
